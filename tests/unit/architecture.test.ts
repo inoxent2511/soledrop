@@ -102,3 +102,36 @@ describe("hygiene", () => {
     expect([...names].sort()).toEqual(names)
   })
 })
+
+describe("admin access (A-006)", () => {
+  const handlers = files(path.join("app", "api", "admin"), /^route\.ts$/)
+  const shellPages = files(path.join("app", "(admin)", "admin", "(shell)"), /^page\.tsx$/)
+
+  it("wraps every admin route handler in adminRoute with a declared access", () => {
+    expect(handlers.length).toBeGreaterThan(5)
+    for (const file of handlers) {
+      const text = read(file)
+      const exported = [...text.matchAll(/^export (?:async )?(?:const|function) (GET|POST|PUT|PATCH|DELETE)\b(.*)$/gm)]
+      expect(exported.length, file).toBeGreaterThan(0)
+      for (const [, method, rest] of exported) expect(rest, `${file} ${method}`).toMatch(/^ = adminRoute(?:<.*>)?\("(public|pending|staff|[a-z_]+:[a-z_]+)"|^ = adminRoute(?:<.*>)?\(\{ permission: "[a-z_]+:[a-z_]+", stepUp: true \}/)
+    }
+  })
+
+  it("keeps public admin handlers to sign-in, invites and sign-out", () => {
+    const publicHandlers = handlers.filter((file) => /adminRoute(?:<.*>)?\("public"/.test(read(file))).map((file) => file.split(path.sep).join("/"))
+    expect(publicHandlers.sort()).toEqual(["app/api/admin/auth/invite/[token]/route.ts", "app/api/admin/auth/login/route.ts", "app/api/admin/auth/logout/route.ts"])
+  })
+
+  it("checks a permission on every shell page (account and no-access only need a session)", () => {
+    expect(shellPages.length).toBeGreaterThan(2)
+    for (const file of shellPages) {
+      const text = read(file)
+      const sessionOnly = /\/(account|no-access)\/page\.tsx$/.test(file.split(path.sep).join("/"))
+      expect(text, file).toMatch(sessionOnly ? /await staffPage\(/ : /await permissionPage\("[a-z_]+:[a-z_]+"/)
+    }
+  })
+
+  it("keeps the admin DAL and route wrapper server-only", () => {
+    for (const file of ["server/admin/dal.ts", "server/admin/route.ts", "server/admin/service.ts", "server/admin/index.ts"]) expect(read(file), file).toMatch(/^import "server-only"/)
+  })
+})

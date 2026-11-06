@@ -41,3 +41,16 @@ Not green:
 Blocked:
 - No Docker, Supabase CLI or Postgres server, so `supabase start`/`db reset` and parallel-connection lock tests can't run. PGlite serialises calls.
 - No git commit (session policy).
+
+## 2026-11-07 — Admin A1: foundation (identity, RBAC, shell)
+Built (admin-decisions A-001…A-013):
+- Migration `20261107090000_admin_foundation.sql` (additive): staff identity columns, `permissions`, `roles`, `role_permissions`, `staff_roles`, `staff_invites`, `staff_sessions`, audit context columns, `has_permission()` (SECURITY DEFINER, `search_path=''`), deferred last-Owner triggers, RPCs `sync_admin_registry`/`save_role`/`delete_role`/`set_staff_roles`/`active_owner_count` (service role only), RLS on every new table.
+- `server/admin`: permission registry and ten preset roles, repositories for both drivers, service (password + mandatory TOTP with recovery codes, AAL1/AAL2 sessions with 30-minute idle / 12-hour absolute timeouts, lockout, rate limits, step-up, invites, staff and role management, no privilege escalation, audit with actor/role/IP/UA/request id/reason), DAL, `adminRoute` wrapper (declared access, own-Origin check, no-store).
+- `proxy.ts`: optimistic cookie check for `/admin` and `/api/admin`, per-request nonce CSP (`lib/admin-csp.ts`), no-store, noindex.
+- UI: sign-in, MFA setup (QR) and verification, invite acceptance, shell with the permission-filtered module registry, dashboard placeholder, no-access, account (sessions, sign out everywhere, password, recovery codes); shared components (PageHeader, StatusPill, EmptyState, AdminCard, ConfirmDialog, StepUpProvider, form controls).
+- Tooling: `pnpm admin:docs` (generates `docs/app/admin/permissions.md`), `pnpm admin:create-owner` (local Supabase only), `.env.example` now committed (it was gitignored), DEMO staff for QA (`ADMIN_DEMO_STAFF=on` in `qa/serve.mjs`).
+Verified:
+- tsc ✓; eslint (0 warnings) ✓; vitest 149/149 ✓ (new: admin DB 8, admin auth integration 14, registry/TOTP RFC 6238/crypto 13, admin CSP 2, admin architecture 4).
+- `next build` ✓ (every /admin route dynamic).
+- Playwright Chromium on the production build: admin-auth 7/7, security 4/4, journeys 14/14 ✓.
+Not run: Firefox and WebKit (browsers not installed on this machine).

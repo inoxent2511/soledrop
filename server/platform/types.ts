@@ -46,4 +46,11 @@ export type AuditEntry = {
   before: unknown
   after: unknown
   at: string
+  /** Who acted, from where and why (admin, A-006); absent on phase 1 system entries. */
+  storeId?: string | null
+  actorRole?: string | null
+  ip?: string | null
+  userAgent?: string | null
+  requestId?: string | null
+  reason?: string | null
 }

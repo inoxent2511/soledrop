@@ -68,6 +68,12 @@ export function createSupabasePlatformRepository(): PlatformRepository {
           entity_id: entry.entityId,
           before: entry.before ?? null,
           after: entry.after ?? null,
+          store_id: entry.storeId ?? null,
+          actor_role: entry.actorRole ?? null,
+          ip: entry.ip ?? null,
+          user_agent: entry.userAgent ?? null,
+          request_id: entry.requestId ?? null,
+          reason: entry.reason ?? null,
         }),
       )
     },

@@ -100,11 +100,11 @@ describe("row level security", () => {
     expect(await attempt(`update public.audit_log set actor = 'someone else'`)).toMatchObject({ ok: false })
   })
 
-  it("pins search_path on every function and keeps SECURITY DEFINER to the role lookup", async () => {
+  it("pins search_path on every function and keeps SECURITY DEFINER to the role and permission lookups", async () => {
     const { rows } = await db.query<{ proname: string; prosecdef: boolean; proconfig: string[] | null }>(
       `select p.proname, p.prosecdef, p.proconfig from pg_proc as p join pg_namespace as n on n.oid = p.pronamespace where n.nspname = 'public'`,
     )
     expect(rows.filter((row) => !row.proconfig?.includes('search_path=""'))).toEqual([])
-    expect(rows.filter((row) => row.prosecdef).map((row) => row.proname).sort()).toEqual(["has_staff_role", "staff_role"])
+    expect(rows.filter((row) => row.prosecdef).map((row) => row.proname).sort()).toEqual(["has_permission", "has_staff_role", "staff_role"])
   })
 })

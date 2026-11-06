@@ -41,6 +41,9 @@ const serverSchema = z
     // Reverse proxies in front of the app that append to X-Forwarded-For; rate limits key on the
     // address the outermost of them saw, never on client-written entries (BUG-015).
     TRUSTED_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(1),
+    // Demo staff accounts (one per preset role, known password and TOTP secret) for local work and
+    // the e2e suite; fixtures driver only, refused with the real database (A-011).
+    ADMIN_DEMO_STAFF: z.enum(["on", "off"]).default("off"),
   })
   .superRefine((env, context) => {
     if (env.DATA_DRIVER === "supabase" && (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY)) {
@@ -54,6 +57,9 @@ const serverSchema = z
     }
     if (env.NODE_ENV === "production" && env.JOBS_SECRET.startsWith("local-")) {
       context.addIssue({ code: "custom", message: "Set a real JOBS_SECRET in production" })
+    }
+    if (env.ADMIN_DEMO_STAFF === "on" && env.DATA_DRIVER === "supabase") {
+      context.addIssue({ code: "custom", message: "ADMIN_DEMO_STAFF=on is for the fixtures driver only; never with a real database" })
     }
   })
 

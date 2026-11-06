@@ -11,6 +11,7 @@ import {
   products,
   STORE_ID,
 } from "@/server/fixtures/seed"
+import { adminPermissionRows, adminSystemRoles, demoStaff } from "@/server/fixtures/admin-seed"
 import { contentSeed } from "@/server/fixtures/content-seed"
 import { commerceSeed } from "@/server/fixtures/commerce-seed"
 import { searchSeed } from "@/server/fixtures/search-seed"
@@ -23,6 +24,19 @@ import { serverEnv } from "@/lib/env.server"
  * stock never below zero, idempotent order placement, legal state transitions — so the
  * storefront behaves the same on both drivers. Data lives for the life of the server process.
  */
+/** Admin RBAC tables; demo staff only with ADMIN_DEMO_STAFF=on (A-011). */
+function adminTables() {
+  const demo = serverEnv.ADMIN_DEMO_STAFF === "on" ? demoStaff(serverEnv.SESSION_SECRET) : { members: [], links: [] }
+  return {
+    staffMembers: demo.members,
+    adminPermissions: adminPermissionRows(),
+    adminRoles: adminSystemRoles(),
+    staffRoleLinks: demo.links,
+    staffInvites: [],
+    staffSessions: [],
+  }
+}
+
 function createTables(): FixtureTables {
   return {
     stores: [
@@ -68,6 +82,7 @@ function createTables(): FixtureTables {
     sessions: [],
     passwordResets: [],
     staffRoles: [],
+    ...adminTables(),
     pages: structuredClone(contentSeed.pages),
     faqs: structuredClone(contentSeed.faqs),
     newsletter: [],

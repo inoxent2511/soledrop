@@ -1,3 +1,4 @@
+import type { Role, StaffInvite, StaffMember, StaffSession } from "@/server/admin/types"
 import type { CartRow } from "@/server/cart/types"
 import type { AttributeDefinition, Brand, Collection, CustomFieldDefinition, Product } from "@/server/catalog/types"
 import type { ContactMessage, Faq, NewsletterSubscriber, Page } from "@/server/content/types"
@@ -40,6 +41,13 @@ export type FixtureTables = {
   sessions: Session[]
   passwordResets: PasswordReset[]
   staffRoles: StaffRole[]
+  /** Admin identity and RBAC (phase 2, A-001/A-007). */
+  staffMembers: StaffMember[]
+  adminPermissions: { key: string; label: string; group: string; sensitive: boolean }[]
+  adminRoles: Role[]
+  staffRoleLinks: { userId: string; storeId: string; roleId: string }[]
+  staffInvites: StaffInvite[]
+  staffSessions: StaffSession[]
   pages: Page[]
   faqs: Faq[]
   newsletter: NewsletterSubscriber[]

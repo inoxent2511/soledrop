@@ -24,7 +24,6 @@ const csp = [
 ].join("; ")
 
 const securityHeaders = [
-  { key: "Content-Security-Policy", value: csp },
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -32,6 +31,9 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=()" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
 ]
+
+/** Every path except /admin and below. */
+export const STOREFRONT = "/:path((?!admin(?:/|$)).*)"
 
 const nextConfig: NextConfig = {
   // Self-contained server bundle for the Dockerfile (docs/DEPLOYMENT-RUNBOOK.md).
@@ -50,6 +52,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
+      // The admin gets a stricter per-request nonce CSP from proxy.ts instead (admin-design.md).
+      { source: STOREFRONT, headers: [{ key: "Content-Security-Policy", value: csp }] },
       // Personal and transactional responses are never cached by browsers or CDNs.
       { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] },
     ]

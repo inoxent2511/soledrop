@@ -31,6 +31,8 @@ const server = spawn(process.execPath, ["server.js"], {
     JOBS_SECRET: "qa-only-jobs-secret-0000",
     // Plain HTTP on loopback: WebKit would drop Secure cookies here (BUG-010). Deployments keep the default.
     COOKIE_SECURE: "false",
+    // DEMO staff accounts for the admin e2e suite (fixtures driver only, A-011).
+    ADMIN_DEMO_STAFF: "on",
   },
 })
 server.on("exit", (code) => process.exit(code ?? 0))

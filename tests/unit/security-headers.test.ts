@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { secureCookies } from "@/lib/env.server"
 import { forwardedClient } from "@/server/http/client-key"
 
-import nextConfig from "../../next.config"
+import nextConfig, { STOREFRONT } from "../../next.config"
 
 async function headerValue(source: string, key: string) {
   const rules = (await nextConfig.headers?.()) ?? []
@@ -12,7 +12,7 @@ async function headerValue(source: string, key: string) {
 
 describe("security headers", () => {
   it("keeps the CSP same-origin and lets loopback HTTP work in every engine (BUG-009)", async () => {
-    const csp = await headerValue("/:path*", "Content-Security-Policy")
+    const csp = await headerValue(STOREFRONT, "Content-Security-Policy")
     expect(csp).toContain("default-src 'self'")
     expect(csp).toContain("frame-ancestors 'none'")
     expect(csp).toContain("object-src 'none'")
