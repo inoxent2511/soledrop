@@ -84,14 +84,14 @@ export function AdminShell({ staff, children }: { staff: ShellStaff; children: R
 
   return (
     <StepUpProvider>
-      <div className="flex min-h-dvh bg-surface">
-        <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-y-auto bg-foreground lg:flex">
+      <div className="flex min-h-dvh bg-surface print:bg-background">
+        <aside className="sticky top-0 hidden h-dvh print:hidden w-64 shrink-0 flex-col overflow-y-auto bg-foreground lg:flex">
           <Brand />
           <Nav permissions={staff.permissions} />
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-nav flex h-16 items-center gap-2 border-b border-border bg-background px-4 md:px-6">
+          <header className="sticky top-0 z-nav flex h-16 print:hidden items-center gap-2 border-b border-border bg-background px-4 md:px-6">
             <Dialog.Root open={drawer} onOpenChange={setDrawer}>
               <Dialog.Trigger className={cn(adminButton({ tone: "ghost", size: "icon" }), "lg:hidden")} aria-label="Open the admin menu">
                 <Menu />

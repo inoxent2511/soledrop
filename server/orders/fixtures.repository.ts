@@ -5,7 +5,7 @@ import type { FixtureTables } from "@/server/fixtures/tables"
 import { assertInventoryInvariants, releaseCartIn, releaseExpiredIn } from "@/server/inventory/fixtures.repository"
 import type { OrderRepository } from "@/server/orders/repository"
 import { canTransition, restocksOnTransition } from "@/server/orders/state-machine"
-import type { Order, Payment } from "@/server/orders/types"
+import type { Order, OrderQuery, Payment } from "@/server/orders/types"
 import type { EventTopic } from "@/server/platform/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
@@ -35,6 +35,29 @@ const statusEvent = (order: Order, from: string, trackingNumber?: string) => ({
   to: order.status,
   trackingNumber: trackingNumber ?? order.trackingNumber,
 })
+
+/** Staff search over the fixture orders, mirroring the Postgres query in the supabase repository. */
+function matches(order: Order, query: OrderQuery): boolean {
+  const q = query.q?.trim().toLowerCase()
+  if (q) {
+    const digits = q.replace(/D/g, "")
+    const haystack = [order.number, order.email, order.shippingAddress.fullName, order.phone].map((value) => value.toLowerCase())
+    if (!haystack.some((value) => value.includes(q)) && !(digits.length >= 4 && order.phone.replace(/D/g, "").includes(digits))) return false
+  }
+  if (query.status?.length && !query.status.includes(order.status)) return false
+  if (query.paymentStatus?.length && !query.paymentStatus.includes(order.paymentStatus)) return false
+  if (query.paymentMethod && order.paymentMethod !== query.paymentMethod) return false
+  if (query.placedFrom && order.placedAt < query.placedFrom) return false
+  if (query.placedTo && order.placedAt >= query.placedTo) return false
+  return true
+}
+
+const SORTERS: Record<NonNullable<OrderQuery["sort"]>, (a: Order, b: Order) => number> = {
+  placed_desc: (a, b) => b.placedAt.localeCompare(a.placedAt),
+  placed_asc: (a, b) => a.placedAt.localeCompare(b.placedAt),
+  total_desc: (a, b) => b.total - a.total || b.placedAt.localeCompare(a.placedAt),
+  total_asc: (a, b) => a.total - b.total || b.placedAt.localeCompare(a.placedAt),
+}
 
 export function createFixturesOrderRepository(): OrderRepository {
   return {
@@ -220,6 +243,34 @@ export function createFixturesOrderRepository(): OrderRepository {
     },
     async listReturns(orderId) {
       return structuredClone(db().returns.filter((row) => row.orderId === orderId))
+    },
+    async search(storeId, query) {
+      const found = db().orders.filter((order) => order.storeId === storeId && matches(order, query)).sort(SORTERS[query.sort ?? "placed_desc"])
+      const start = (query.page - 1) * query.pageSize
+      return { orders: structuredClone(found.slice(start, start + query.pageSize)), total: found.length }
+    },
+    async listRefunds(orderId) {
+      return structuredClone(db().refunds.filter((row) => row.orderId === orderId).sort((a, b) => a.createdAt.localeCompare(b.createdAt)))
+    },
+    async decideReturn(returnId, decision) {
+      return transaction((tables) => {
+        const request = tables.returns.find((row) => row.id === returnId)
+        if (!request) throw new DomainError("not_found", "Return not found.")
+        if (request.status !== "requested") throw new DomainError("invalid_transition", `A return that is ${request.status} can't be ${decision}.`)
+        request.status = decision
+        return structuredClone(request)
+      })
+    },
+    async addNote(input) {
+      return transaction((tables) => {
+        if (!tables.orders.some((order) => order.id === input.orderId)) throw new DomainError("not_found", "Order not found.")
+        const note = { ...input, id: newId(), createdAt: now() }
+        tables.orderNotes.push(note)
+        return structuredClone(note)
+      })
+    },
+    async listNotes(orderId) {
+      return structuredClone(db().orderNotes.filter((note) => note.orderId === orderId).sort((a, b) => a.createdAt.localeCompare(b.createdAt)))
     },
     async nextOrderNumber() {
       return transaction((tables) => nextNumberIn(tables))

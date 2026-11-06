@@ -2,7 +2,8 @@ import "server-only"
 
 import { supabase, unwrap } from "@/server/db/supabase"
 import type { OrderRepository } from "@/server/orders/repository"
-import type { Order, OrderLine, Payment, Refund, ReturnRequest } from "@/server/orders/types"
+import type { Order, OrderLine, OrderNote, Payment, Refund, ReturnRequest } from "@/server/orders/types"
+import { DomainError } from "@/server/shared/errors"
 
 const ORDER_SELECT =
   "id, store_id, number, customer_id, email, phone, status, payment_status, fulfillment_status, currency, subtotal, discount_total, shipping_total, tax_total, tax_included, total, refunded_total, promotion_codes, shipping_address, shipping_method, payment_method, idempotency_key, access_token_hash, custom_fields, note, tracking_number, history, placed_at, updated_at, order_lines(id, variant_id, product_id, slug, title, brand, kind, condition, size, image_url, sku, quantity, unit_price, compare_at, discount, tax, total, refunded_quantity, position)"
@@ -147,6 +148,27 @@ const toPayment = (row: PaymentRecord): Payment => ({
 type ReturnRecord = { id: string; order_id: string; status: ReturnRequest["status"]; lines: ReturnRequest["lines"]; reason: string; created_at: string }
 const toReturn = (row: ReturnRecord): ReturnRequest => ({ id: row.id, orderId: row.order_id, status: row.status, lines: row.lines, reason: row.reason, createdAt: row.created_at })
 
+type RefundRecord = { id: string; order_id: string; payment_id: string | null; amount: number; reason: string; lines: { order_line_id?: string; orderLineId?: string; quantity: number }[]; restock: boolean; idempotency_key: string; created_at: string }
+const toRefund = (row: RefundRecord): Refund => ({
+  id: row.id,
+  orderId: row.order_id,
+  paymentId: row.payment_id,
+  amount: Number(row.amount),
+  reason: row.reason,
+  lines: row.lines.map((line) => ({ orderLineId: line.order_line_id ?? line.orderLineId ?? "", quantity: line.quantity })),
+  restock: row.restock,
+  idempotencyKey: row.idempotency_key,
+  createdAt: row.created_at,
+})
+
+type NoteRecord = { id: string; order_id: string; author: string; author_name: string; body: string; created_at: string }
+const toNote = (row: NoteRecord): OrderNote => ({ id: row.id, orderId: row.order_id, author: row.author, authorName: row.author_name, body: row.body, createdAt: row.created_at })
+
+const SORT_COLUMNS = { placed_desc: ["placed_at", false], placed_asc: ["placed_at", true], total_desc: ["total", false], total_asc: ["total", true] } as const
+
+/** PostgREST filter values can't contain its own syntax; search terms are plain words anyway. */
+const searchTerm = (value: string) => value.replace(/[,()*%\\:."']/g, " ").trim().slice(0, 80)
+
 export function createSupabaseOrderRepository(): OrderRepository {
   const byId = async (id: string) => {
     const row = unwrap(await supabase().from("orders").select(ORDER_SELECT).eq("id", id).maybeSingle()) as OrderRecord | null
@@ -280,6 +302,40 @@ export function createSupabaseOrderRepository(): OrderRepository {
     async listReturns(orderId) {
       const rows = unwrap(await supabase().from("returns").select("*").eq("order_id", orderId)) as ReturnRecord[]
       return rows.map(toReturn)
+    },
+    async search(storeId, query) {
+      let request = supabase().from("orders").select(ORDER_SELECT, { count: "exact" }).eq("store_id", storeId)
+      const term = query.q ? searchTerm(query.q) : ""
+      if (term) request = request.or(`number.ilike.*${term}*,email.ilike.*${term}*,phone.ilike.*${term}*,shipping_address->>fullName.ilike.*${term}*`)
+      if (query.status?.length) request = request.in("status", query.status)
+      if (query.paymentStatus?.length) request = request.in("payment_status", query.paymentStatus)
+      if (query.paymentMethod) request = request.eq("payment_method", query.paymentMethod)
+      if (query.placedFrom) request = request.gte("placed_at", query.placedFrom)
+      if (query.placedTo) request = request.lt("placed_at", query.placedTo)
+      const [column, ascending] = SORT_COLUMNS[query.sort ?? "placed_desc"]
+      const start = (query.page - 1) * query.pageSize
+      const result = await request.order(column, { ascending }).order("placed_at", { ascending: false }).range(start, start + query.pageSize - 1)
+      const rows = unwrap(result) as OrderRecord[]
+      return { orders: rows.map(toOrder), total: result.count ?? rows.length }
+    },
+    async listRefunds(orderId) {
+      const rows = unwrap(await supabase().from("refunds").select("*").eq("order_id", orderId).order("created_at")) as RefundRecord[]
+      return rows.map(toRefund)
+    },
+    async decideReturn(returnId, decision) {
+      const row = unwrap(await supabase().from("returns").update({ status: decision }).eq("id", returnId).eq("status", "requested").select("*").maybeSingle()) as ReturnRecord | null
+      if (row) return toReturn(row)
+      const existing = unwrap(await supabase().from("returns").select("status").eq("id", returnId).maybeSingle()) as { status: string } | null
+      if (!existing) throw new DomainError("not_found", "Return not found.")
+      throw new DomainError("invalid_transition", `A return that is ${existing.status} can't be ${decision}.`)
+    },
+    async addNote(note) {
+      const row = unwrap(await supabase().from("order_notes").insert({ order_id: note.orderId, author: note.author, author_name: note.authorName, body: note.body }).select("*").single()) as NoteRecord
+      return toNote(row)
+    },
+    async listNotes(orderId) {
+      const rows = unwrap(await supabase().from("order_notes").select("*").eq("order_id", orderId).order("created_at")) as NoteRecord[]
+      return rows.map(toNote)
     },
     async nextOrderNumber(storeId) {
       return unwrap(await supabase().rpc("next_order_number", { p_store_id: storeId })) as string

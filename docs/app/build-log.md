@@ -54,3 +54,11 @@ Verified:
 - `next build` ✓ (every /admin route dynamic).
 - Playwright Chromium on the production build: admin-auth 7/7, security 4/4, journeys 14/14 ✓.
 Not run: Firefox and WebKit (browsers not installed on this machine).
+
+## 2026-11-08 — Admin A2: orders
+Built:
+- `server/orders`: staff search (number, email, name, phone; status, payment, method, date range; four sorts; paging), refunds list, return approve/reject, staff notes. Both drivers, plus migration `20261108090000_admin_orders.sql` (`order_notes` with RLS, search indexes, `orders:read`/`payments:read` read policies for RBAC staff).
+- `server/orders/staff.ts`: permission per target status, cancel needs a reason, shipping needs a tracking number, stale-edit conflict check (`updated_at`), offline payments (idempotent), refunds (step-up and the role's ceiling), returns, notes, CSV export (formula-safe: `server/import-export/csv.ts` now neutralises `= + - @` cells for every export). Contact details are masked without `customers:read_pii`. Every action writes an admin audit entry.
+- UI: `/admin/orders` (quick views, search with `/`, filters and sort in the URL, server-paged table, CSV export), `/admin/orders/[number]` (items, returns, merged timeline, notes, actions offered by permission with dialogs: next status, record payment, refund with step-up, cancel with type-to-confirm and reason), packing slip print view.
+- Shared components: DataTable, Pagination, FilterBar, Timeline, DetailLayout, FormDialog.
+Verified: tsc ✓, eslint ✓, vitest (admin orders integration 6, admin DB 9 incl. order notes RLS) ✓, `next build` ✓, Playwright Chromium admin-auth 9/9 + admin-orders 3/3 ✓.

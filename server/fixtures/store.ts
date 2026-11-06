@@ -76,6 +76,7 @@ function createTables(): FixtureTables {
     payments: [],
     refunds: [],
     returns: [],
+    orderNotes: [],
     orderSequence: { prefix: "SD", next: 10001 },
     customers: [],
     addresses: [],

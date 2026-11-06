@@ -266,6 +266,12 @@ export function createOrderService(deps: Deps) {
     recordPayment: orders.recordPayment,
     listPayments: orders.listPayments,
     restockReturn: orders.restockReturn,
+    search: orders.search,
+    listRefunds: orders.listRefunds,
+    decideReturn: orders.decideReturn,
+    addNote: orders.addNote,
+    listNotes: orders.listNotes,
+    findById: orders.findById,
 
     async refund(input: { orderId: string; amount: number; reason: string; lines: { orderLineId: string; quantity: number }[]; restock: boolean; idempotencyKey: string }) {
       const payments = await orders.listPayments(input.orderId)

@@ -35,9 +35,15 @@ export function parseCsv(text: string): Record<string, string>[] {
   return body.map((cells) => Object.fromEntries(keys.map((key, index) => [key, (cells[index] ?? "").trim()])))
 }
 
+/**
+ * Spreadsheet formula injection: a text cell starting with = + - @ (or a tab/CR) would run as a
+ * formula in Excel or Sheets, so it gets a leading apostrophe. Numbers are written as they are.
+ */
+export const neutralise = (value: string | number | null): string => (typeof value === "string" && /^[=+\-@\t\r]/.test(value) ? `'${value}` : String(value ?? ""))
+
 const escape = (value: string) => (/[",\r\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value)
 
 export function toCsv(columns: readonly string[], rows: Record<string, string | number | null>[]): string {
-  const lines = [columns.join(","), ...rows.map((row) => columns.map((column) => escape(String(row[column] ?? ""))).join(","))]
+  const lines = [columns.join(","), ...rows.map((row) => columns.map((column) => escape(neutralise(row[column] ?? null))).join(","))]
   return `${lines.join("\r\n")}\r\n`
 }

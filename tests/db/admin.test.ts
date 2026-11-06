@@ -148,3 +148,22 @@ describe("admin foundation", () => {
     })
   })
 })
+
+describe("admin orders (migration 20261108090000)", () => {
+  it("shows staff notes and orders to orders:read holders only", async () => {
+    const { cart, ids, placeOrder } = await import("./harness")
+    const cartId = await cart(db, [{ variantId: ids.variantA, quantity: 1 }])
+    await placeOrder(db, cartId, "admin-notes-1", [{ variantId: ids.variantA, quantity: 1 }])
+    const { rows } = await db.query<{ id: string }>(`select id from public.orders limit 1`)
+    await db.exec(`insert into public.order_notes (order_id, author, author_name, body) values ('${rows[0].id}', '${owner}', 'Owner', 'Called the customer')`)
+    await as(db, "authenticated", support, async () => {
+      expect((await attempt(`select body from public.order_notes`)).rows).toEqual([{ body: "Called the customer" }])
+      expect((await attempt(`select id from public.orders`)).rows?.length).toBe(1)
+      expect(await attempt(`insert into public.order_notes (order_id, author, author_name, body) values ('${rows[0].id}', '${support}', 'x', 'y')`)).toMatchObject({ ok: false })
+    })
+    await as(db, "authenticated", suspended, async () => {
+      expect((await attempt(`select body from public.order_notes`)).rows).toEqual([])
+      expect((await attempt(`select id from public.orders`)).rows).toEqual([])
+    })
+  })
+})

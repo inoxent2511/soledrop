@@ -3,7 +3,7 @@ import type { CartRow } from "@/server/cart/types"
 import type { AttributeDefinition, Brand, Collection, CustomFieldDefinition, Product } from "@/server/catalog/types"
 import type { ContactMessage, Faq, NewsletterSubscriber, Page } from "@/server/content/types"
 import type { Customer, CustomerAddress, PasswordReset, Session, StaffRole } from "@/server/customers/types"
-import type { Order, Payment, Refund, ReturnRequest } from "@/server/orders/types"
+import type { Order, OrderNote, Payment, Refund, ReturnRequest } from "@/server/orders/types"
 import type { AuditEntry, FeatureFlag, OutboxEvent, WebhookDelivery } from "@/server/platform/types"
 import type { ExchangeRates, PriceList, PriceRow } from "@/server/pricing/types"
 import type { Promotion, PromotionRedemption } from "@/server/promotions/types"
@@ -35,6 +35,7 @@ export type FixtureTables = {
   payments: Payment[]
   refunds: Refund[]
   returns: ReturnRequest[]
+  orderNotes: OrderNote[]
   orderSequence: { prefix: string; next: number }
   customers: Customer[]
   addresses: CustomerAddress[]

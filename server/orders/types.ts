@@ -117,3 +117,24 @@ export type ReturnRequest = {
   reason: string
   createdAt: string
 }
+
+/** A staff-only note on an order (admin A2); shoppers never see these. */
+export type OrderNote = { id: string; orderId: string; author: string; authorName: string; body: string; createdAt: string }
+
+export const ORDER_SORTS = ["placed_desc", "placed_asc", "total_desc", "total_asc"] as const
+export type OrderSort = (typeof ORDER_SORTS)[number]
+
+/** Staff order search (admin list): every filter optional, newest first by default. */
+export type OrderQuery = {
+  q?: string
+  status?: OrderStatus[]
+  paymentStatus?: PaymentStatus[]
+  paymentMethod?: string
+  placedFrom?: string
+  placedTo?: string
+  sort?: OrderSort
+  page: number
+  pageSize: number
+}
+
+export type OrderPage = { orders: Order[]; total: number }

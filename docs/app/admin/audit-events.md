@@ -43,3 +43,17 @@ Each module stage adds its events here.
 | `role.created` | role | `{ name, refundLimit, permissions }` | — |
 | `role.updated` | role | `{ name, refundLimit, permissions }` → same | — |
 | `role.deleted` | role | `{ name, permissions }` | — |
+
+### Orders (A2)
+
+Entity `order`, `entity_id` = order number. The order service's own history (`orders.history`) and the database's `order.transition` entries are kept too; these are the staff-side entries.
+
+| Action | Before → after | Reason |
+| --- | --- | --- |
+| `order.processing` / `order.shipped` / `order.delivered` / `order.returned` / `order.confirmed` | `{ status }` → `{ status, trackingNumber }` | — |
+| `order.cancelled` | `{ status }` → `{ status }` | required |
+| `order.payment_recorded` | — → `{ provider, amount, reference }` | — |
+| `order.refunded` | — → `{ amount, lines, restock }` | required (the refund reason) |
+| `return.approved` / `return.rejected` / `return.received` | — → `{ returnId, status }` | optional |
+| `order.note_added` | — → `{ noteId }` | — |
+| `order.exported` | — → `{ rows, filters }` | — |

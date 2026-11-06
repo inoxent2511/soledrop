@@ -1,5 +1,5 @@
 import type { EventTopic } from "@/server/platform/types"
-import type { Order, OrderStatus, Payment, Refund, ReturnRequest } from "@/server/orders/types"
+import type { Order, OrderNote, OrderPage, OrderQuery, OrderStatus, Payment, Refund, ReturnRequest } from "@/server/orders/types"
 
 /** A fully priced order ready to persist; everything here was computed on the server. */
 export type OrderDraft = Omit<Order, "id" | "number" | "history" | "placedAt" | "updatedAt" | "refundedTotal">
@@ -36,6 +36,13 @@ export interface OrderRepository {
   listReturns(orderId: string): Promise<ReturnRequest[]>
   /** next_order_number: gap-tolerant, never repeats. */
   nextOrderNumber(storeId: string): Promise<string>
+  /** Staff search (admin): number, email, name or phone; filters; one page plus the total. */
+  search(storeId: string, query: OrderQuery): Promise<OrderPage>
+  listRefunds(orderId: string): Promise<Refund[]>
+  /** Approves or rejects a requested return; anything else is an invalid transition. */
+  decideReturn(returnId: string, decision: "approved" | "rejected", actor: string): Promise<ReturnRequest>
+  addNote(note: Omit<OrderNote, "id" | "createdAt">): Promise<OrderNote>
+  listNotes(orderId: string): Promise<OrderNote[]>
   /** Removes personal data from orders of a deleted customer, keeping amounts for accounting. */
   anonymiseCustomer(customerId: string): Promise<number>
 }
