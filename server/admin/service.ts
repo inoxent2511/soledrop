@@ -430,7 +430,7 @@ export function createAdminService(deps: Deps) {
     async getStaff(staff: StaffContext, userId: string) {
       requireIn(staff, "staff:read")
       const { member, roles } = await memberAndRoles(staff.member.storeId, userId)
-      return { ...toSummary(member, roles), updatedAt: member.updatedAt, lockedUntil: member.lockedUntil }
+      return { ...toSummary(member, roles), updatedAt: member.updatedAt, lockedUntil: member.lockedUntil, locked: member.lockedUntil !== null && Date.parse(member.lockedUntil) > clock() }
     },
 
     async setStaffRoles(staff: StaffContext, userId: string, roleKeys: string[], meta: RequestMeta, reason: string | null) {

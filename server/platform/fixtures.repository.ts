@@ -1,6 +1,7 @@
 import "server-only"
 
 import { db } from "@/server/fixtures/store"
+import { DomainError } from "@/server/shared/errors"
 import type { PlatformRepository } from "@/server/platform/repository"
 import { newId, now } from "@/server/shared/ids"
 
@@ -65,6 +66,42 @@ export function createFixturesPlatformRepository(): PlatformRepository {
     },
     async ping() {
       return Array.isArray(db().products)
+    },
+    async setFlag(_storeId, key, changes) {
+      const flag = db().flags.find((row) => row.key === key)
+      if (!flag) throw new DomainError("not_found", "Unknown flag.")
+      flag.enabled = changes.enabled
+      if (changes.customerGroups !== undefined) flag.customerGroups = changes.customerGroups ?? undefined
+      return structuredClone(flag)
+    },
+    async searchAudit(storeId, query) {
+      const q = query.q?.trim().toLowerCase()
+      const found = db()
+        .audit.filter((entry) => (entry.storeId ?? storeId) === storeId)
+        .filter((entry) => (!query.actor || entry.actor === query.actor) && (!query.entity || entry.entity === query.entity) && (!query.action || entry.action.startsWith(query.action)))
+        .filter((entry) => !q || entry.entityId.toLowerCase().includes(q))
+        .filter((entry) => (!query.from || entry.at >= query.from) && (!query.to || entry.at < query.to))
+        .sort((a, b) => b.at.localeCompare(a.at))
+      const start = (query.page - 1) * query.pageSize
+      return { entries: structuredClone(found.slice(start, start + query.pageSize)), total: found.length }
+    },
+    async outboxSummary() {
+      const outbox = db().outbox
+      return {
+        pending: outbox.filter((event) => event.status === "pending").length,
+        delivered: outbox.filter((event) => event.status === "delivered").length,
+        failed: outbox.filter((event) => event.status === "failed").length,
+        recentFailed: structuredClone(outbox.filter((event) => event.status === "failed").sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 20)),
+        deliveries: structuredClone([...db().webhookDeliveries].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20)),
+      }
+    },
+    async retryEvent(_storeId, id) {
+      const event = db().outbox.find((row) => row.id === id)
+      if (!event) throw new DomainError("not_found", "Event not found.")
+      if (event.status !== "failed") throw new DomainError("conflict", "Only failed events can be retried.")
+      event.status = "pending"
+      event.availableAt = now()
+      event.lastError = null
     },
   }
 }

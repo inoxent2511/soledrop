@@ -114,3 +114,13 @@ Entity `order`, `entity_id` = order number. The order service's own history (`or
 | `newsletter.exported` | newsletter (`*`) | `{ rows }` | required |
 | `synonym.created` / `synonym.updated` / `synonym.deleted` | synonym | the group | — |
 | `report.exported` | report (`sales`) | `{ from, to }` | — |
+
+### Settings and operations (A9)
+
+| Action | Entity | Before → after |
+| --- | --- | --- |
+| `flag.changed` | flag | `{ enabled, customerGroups }` |
+| `outbox.retried` | outbox_event | — |
+| `job.run` | job (`outbox`, `release-reservations`, `purge-carts`) | the job's result |
+
+Staff and role changes from the Staff & roles screens use the A1 actions above (`staff.*`, `role.*`).

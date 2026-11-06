@@ -16,4 +16,15 @@ export interface PlatformRepository {
   getIdempotent(key: string): Promise<{ status: number; body: unknown } | null>
   saveIdempotent(key: string, status: number, body: unknown): Promise<void>
   ping(): Promise<boolean>
+
+  // ─── Staff (admin A9) ─────────────────────────────────────────────────────
+  setFlag(storeId: string, key: string, changes: { enabled: boolean; customerGroups?: string[] | null }): Promise<FeatureFlag>
+  /** The audit log, newest first; `q` matches the entity id. Entries without a store (system) are included. */
+  searchAudit(storeId: string, query: AuditQuery): Promise<{ entries: AuditEntry[]; total: number }>
+  /** Counts by status, and the most recent failed events. */
+  outboxSummary(storeId: string): Promise<{ pending: number; delivered: number; failed: number; recentFailed: OutboxEvent[]; deliveries: WebhookDelivery[] }>
+  /** Puts a failed event back in the queue for the next worker run. */
+  retryEvent(storeId: string, id: string): Promise<void>
 }
+
+export type AuditQuery = { actor?: string; entity?: string; action?: string; q?: string; from?: string; to?: string; page: number; pageSize: number }

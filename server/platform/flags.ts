@@ -8,7 +8,7 @@ import { platform } from "@/server/platform"
  * Feature flags: stored per store, overridable per deployment with FEATURE_FLAGS
  * ("key=on,other=off"). Targeted flags only switch on for the listed customer groups.
  */
-function envOverrides(): Map<string, boolean> {
+export function envOverrides(): Map<string, boolean> {
   return new Map(
     serverEnv.FEATURE_FLAGS.split(",")
       .map((pair) => pair.trim())

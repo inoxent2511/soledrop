@@ -249,3 +249,11 @@ export function renderPermissionMatrix(): string {
     "",
   ].join("\n")
 }
+
+/** The registry grouped for the permission matrix (plain data, safe to hand to client components). */
+export function permissionCatalog(): { group: string; permissions: { key: string; label: string; sensitive: boolean }[] }[] {
+  return PERMISSION_GROUPS.map((group) => ({
+    group,
+    permissions: ALL_PERMISSIONS.filter((permission) => PERMISSIONS[permission].group === group).map((permission) => ({ key: permission, label: PERMISSIONS[permission].label, sensitive: isSensitive(permission) })),
+  })).filter((entry) => entry.permissions.length > 0)
+}

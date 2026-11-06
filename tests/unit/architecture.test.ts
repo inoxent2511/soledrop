@@ -134,6 +134,16 @@ describe("admin access (A-006)", () => {
     }
   })
 
+  it("gives every sidebar module a page", () => {
+    const registry = read(path.join("features", "admin", "modules.ts"))
+    const hrefs = [...registry.matchAll(/href: "(\/admin[^"]*)"/g)].map((match) => match[1])
+    expect(hrefs.length).toBeGreaterThan(15)
+    for (const href of hrefs) {
+      const page = path.join("app", "(admin)", "admin", "(shell)", ...href.split("/").slice(2), "page.tsx")
+      expect(fs.existsSync(path.join(ROOT, page)), href).toBe(true)
+    }
+  })
+
   it("keeps the admin DAL and route wrapper server-only", () => {
     for (const file of ["server/admin/dal.ts", "server/admin/route.ts", "server/admin/service.ts", "server/admin/index.ts"]) expect(read(file), file).toMatch(/^import "server-only"/)
   })

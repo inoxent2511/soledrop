@@ -27,15 +27,22 @@ const PAGES = [
   ["/admin/marketing?view=abandoned", "Marketing"],
   ["/admin/search", "Search"],
   ["/admin/reports", "Reports"],
+  ["/admin/staff", "Staff & roles"],
+  ["/admin/staff/roles", "Roles"],
+  ["/admin/staff/roles/new", "New role"],
+  ["/admin/settings", "Settings"],
+  ["/admin/settings?view=integrations", "Settings"],
+  ["/admin/settings?view=outbox", "Settings"],
+  ["/admin/settings?view=health", "Settings"],
+  ["/admin/audit", "Audit log"],
   ["/admin/account", "Your account"],
 ] as const
 
-test("the Owner can open every built module, and the simulator and rate tester answer", async ({ page }) => {
+test("the Owner can open every module, and the simulator and rate tester answer", async ({ page }) => {
   test.setTimeout(180_000)
   const problems: string[] = []
   page.on("console", (message) => {
-    // Sidebar prefetches of modules still being built (A6–A9) answer 404; everything else counts.
-    if (message.type() === "error" && !/status of 404/.test(message.text())) problems.push(`${page.url()}: ${message.text()}`)
+    if (message.type() === "error") problems.push(`${page.url()}: ${message.text()}`)
   })
   page.on("pageerror", (error) => problems.push(`${page.url()}: ${error.message}`))
   await signInAs(page, "admin")

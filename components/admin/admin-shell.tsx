@@ -8,6 +8,8 @@ import { useState, type ReactNode } from "react"
 
 import { adminAuthApi } from "@/api/admin/auth"
 import { adminButton } from "@/components/admin/button"
+import { CommandPalette } from "@/components/admin/command-palette"
+import { NotificationBell } from "@/components/admin/notification-bell"
 import { StepUpProvider } from "@/components/admin/step-up"
 import { ADMIN_MODULES, moduleFor, type AdminModule } from "@/features/admin/modules"
 import { cn } from "@/lib/utils"
@@ -112,7 +114,9 @@ export function AdminShell({ staff, children }: { staff: ShellStaff; children: R
               </Dialog.Portal>
             </Dialog.Root>
 
+            <CommandPalette />
             <div className="flex-1" />
+            <NotificationBell />
 
             <Link href="/" className={adminButton({ tone: "ghost", size: "sm" })} target="_blank" rel="noopener">
               <Store aria-hidden /> <span className="hidden sm:inline">View store</span>
