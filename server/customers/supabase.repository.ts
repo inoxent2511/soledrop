@@ -2,7 +2,7 @@ import "server-only"
 
 import type { CustomerRepository } from "@/server/customers/repository"
 import type { Customer, CustomerAddress, PasswordReset, Session } from "@/server/customers/types"
-import { supabase, unwrap } from "@/server/db/supabase"
+import { searchTerm, supabase, unwrap } from "@/server/db/supabase"
 import { DomainError } from "@/server/shared/errors"
 
 type CustomerRecord = {
@@ -99,6 +99,7 @@ export function createSupabaseCustomerRepository(): CustomerRepository {
             ...(changes.phone !== undefined && { phone: changes.phone }),
             ...(changes.marketingOptIn !== undefined && { marketing_opt_in: changes.marketingOptIn }),
             ...(changes.passwordHash !== undefined && { password_hash: changes.passwordHash }),
+            ...(changes.group !== undefined && { customer_group: changes.group }),
           })
           .eq("id", id)
           .select("*")
@@ -170,6 +171,17 @@ export function createSupabaseCustomerRepository(): CustomerRepository {
     },
     async scrub(customerId) {
       unwrap(await supabase().rpc("scrub_customer", { p_customer_id: customerId }))
+    },
+    async search(storeId, query) {
+      let request = supabase().from("customers").select("*", { count: "exact" }).eq("store_id", storeId).not("email", "like", "%@invalid")
+      const term = query.q ? searchTerm(query.q) : ""
+      if (term) request = request.or(`email.ilike.*${term}*,full_name.ilike.*${term}*,phone.ilike.*${term}*`)
+      if (query.group) request = request.eq("customer_group", query.group)
+      if (query.marketing !== undefined) request = request.eq("marketing_opt_in", query.marketing)
+      const start = (query.page - 1) * query.pageSize
+      const result = await request.order("created_at", { ascending: false }).range(start, start + query.pageSize - 1)
+      const rows = unwrap(result) as CustomerRecord[]
+      return { customers: rows.map(toCustomer), total: result.count ?? rows.length }
     },
   }
 }

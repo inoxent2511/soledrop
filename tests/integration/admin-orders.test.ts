@@ -70,6 +70,8 @@ describe("staff orders", () => {
     expect((await staff.list(support, { q: "bilal", page: 1, pageSize: 25 })).orders.map((order) => order.customer)).toEqual(["Bilal Ahmed"])
     expect((await staff.list(support, { q: first.number.toLowerCase(), page: 1, pageSize: 25 })).orders).toHaveLength(1)
     expect((await staff.list(support, { status: ["shipped"], page: 1, pageSize: 25 })).total).toBe(0)
+    // Phone digits match however the number was typed.
+    expect((await staff.list(support, { q: "0300 123", page: 1, pageSize: 25 })).total).toBe(2)
 
     const readOnly = staffAs("read_only")
     const masked = await staff.list(readOnly, { q: "ayesha", page: 1, pageSize: 25 })

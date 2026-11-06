@@ -105,5 +105,17 @@ export function createFixturesCustomerRepository(): CustomerRepository {
         tables.passwordResets = tables.passwordResets.filter((row) => row.customerId !== customerId)
       })
     },
+    async search(storeId, query) {
+      const q = query.q?.trim().toLowerCase()
+      const digits = q?.replace(/\D/g, "") ?? ""
+      const found = db()
+        .customers.filter((row) => row.storeId === storeId && !row.email.endsWith("@invalid"))
+        .filter((row) => !q || row.email.includes(q) || row.fullName.toLowerCase().includes(q) || (digits.length >= 4 && (row.phone ?? "").replace(/\D/g, "").includes(digits)))
+        .filter((row) => !query.group || row.group === query.group)
+        .filter((row) => query.marketing === undefined || row.marketingOptIn === query.marketing)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      const start = (query.page - 1) * query.pageSize
+      return { customers: structuredClone(found.slice(start, start + query.pageSize)), total: found.length }
+    },
   }
 }

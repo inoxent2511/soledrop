@@ -40,9 +40,9 @@ const statusEvent = (order: Order, from: string, trackingNumber?: string) => ({
 function matches(order: Order, query: OrderQuery): boolean {
   const q = query.q?.trim().toLowerCase()
   if (q) {
-    const digits = q.replace(/D/g, "")
+    const digits = q.replace(/\D/g, "")
     const haystack = [order.number, order.email, order.shippingAddress.fullName, order.phone].map((value) => value.toLowerCase())
-    if (!haystack.some((value) => value.includes(q)) && !(digits.length >= 4 && order.phone.replace(/D/g, "").includes(digits))) return false
+    if (!haystack.some((value) => value.includes(q)) && !(digits.length >= 4 && order.phone.replace(/\D/g, "").includes(digits))) return false
   }
   if (query.status?.length && !query.status.includes(order.status)) return false
   if (query.paymentStatus?.length && !query.paymentStatus.includes(order.paymentStatus)) return false

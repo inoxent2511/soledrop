@@ -70,3 +70,8 @@ Built:
 - UI: products list (views, search, type filter, stock and price), product editor (details, media picker with upload, card photo and order, sizes and prices table, collections, tags, SEO, dirty guard, conflict banner, publish/archive/delete), CSV import with dry run, collections list/editor (RuleBuilder, product search), inventory with low/out views and adjust dialog with ledger, media library (drag-and-drop upload, alt text, delete when unused).
 - CSV export now neutralises formula cells for every export (done in A2) and staff search terms are sanitised in one place (`server/db/supabase.ts#searchTerm`).
 Verified: tsc ✓, eslint ✓, vitest 165/165 ✓ (admin catalogue integration 8, save_product DB test), `next build` ✓, Playwright Chromium admin-auth 9 + admin-orders 3 + admin-catalog 2 + journeys 12 + security 4 = 30/30 ✓.
+
+## 2026-11-09 — Admin A4: customers
+Built: customer search for staff (email, name, phone digits; wholesale and marketing views) on both drivers; `server/customers/staff.ts` (detail with orders, addresses and lifetime stats; edits of name/phone (PII holders only), price group and consent with an audit diff; sign out everywhere; data export and erasure behind `customers:export` / `customers:delete`, step-up, reason, type-to-confirm). Contact details are masked without `customers:read_pii`. UI: `/admin/customers` and `/admin/customers/[id]`.
+Fixed: the fixtures order search's phone-digit match had lost its regex escape (`/D/` instead of `/\D/`); a test now covers it.
+Verified: tsc ✓, eslint ✓, vitest (all suites) ✓ — admin customers integration 3, orders phone search.

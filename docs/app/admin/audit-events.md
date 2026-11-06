@@ -71,3 +71,12 @@ Entity `order`, `entity_id` = order number. The order service's own history (`or
 | `collection.deleted` | collection | `{ title, slug }` | optional |
 | `inventory.adjusted` | variant | `{ onHand }` → `{ onHand }` (the ledger in `inventory_movements` keeps the delta) | required |
 | `media.uploaded` / `media.alt_changed` / `media.deleted` | media | file name, size, alt | — |
+
+### Customers (A4)
+
+| Action | Before → after | Reason |
+| --- | --- | --- |
+| `customer.updated` | changed fields (`fullName`, `phone`, `group`, `marketingOptIn`) | optional |
+| `customer.signed_out` | — | — |
+| `customer.exported` | — → `{ orders, addresses }` | required |
+| `customer.erased` | `{ createdAt }` → `{ ordersAnonymised }` | required |
