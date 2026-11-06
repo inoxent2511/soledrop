@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 export type Column<Row> = {
   key: string
   header: string
-  /** Numbers right-aligned in tabular figures (admin-design.md §2). */
+  /** Numbers aligned to the end in tabular figures (admin-design.md §2). */
   align?: "start" | "end"
   /** Hidden below this breakpoint so phones keep the essentials. */
   hideBelow?: "sm" | "md" | "lg"
