@@ -1,6 +1,7 @@
 import "server-only"
 
-import { db } from "@/server/fixtures/store"
+import { db, transaction } from "@/server/fixtures/store"
+import { DomainError } from "@/server/shared/errors"
 import type { PromotionRepository } from "@/server/promotions/repository"
 
 const matchesShopper = (order: { customerId: string | null; email: string }, shopper: { customerId: string | null; email: string | null }) =>
@@ -23,6 +24,35 @@ export function createFixturesPromotionRepository(): PromotionRepository {
     },
     async orderCountFor(storeId, shopper) {
       return db().orders.filter((order) => order.storeId === storeId && order.status !== "cancelled" && matchesShopper(order, shopper)).length
+    },
+    async listAll(storeId) {
+      return structuredClone(db().promotions.filter((promotion) => promotion.storeId === storeId))
+    },
+    async find(storeId, id) {
+      return structuredClone(db().promotions.find((promotion) => promotion.storeId === storeId && promotion.id === id) ?? null)
+    },
+    async save(promotion) {
+      return transaction((tables) => {
+        if (promotion.code && tables.promotions.some((row) => row.storeId === promotion.storeId && row.id !== promotion.id && row.code?.toUpperCase() === promotion.code?.toUpperCase())) {
+          throw new DomainError("conflict", "Another promotion already uses this code.")
+        }
+        const index = tables.promotions.findIndex((row) => row.storeId === promotion.storeId && row.id === promotion.id)
+        const saved = { ...structuredClone(promotion), timesUsed: index === -1 ? 0 : tables.promotions[index].timesUsed }
+        if (index === -1) tables.promotions.push(saved)
+        else tables.promotions[index] = saved
+        return structuredClone(saved)
+      })
+    },
+    async remove(storeId, id) {
+      transaction((tables) => {
+        const promotion = tables.promotions.find((row) => row.storeId === storeId && row.id === id)
+        if (!promotion) throw new DomainError("not_found", "Promotion not found.")
+        if (promotion.timesUsed > 0 || tables.promotionRedemptions.some((row) => row.promotionId === id)) throw new DomainError("conflict", "This promotion has been used, so it can only be switched off.")
+        tables.promotions = tables.promotions.filter((row) => row !== promotion)
+      })
+    },
+    async redemptions(promotionId, limit) {
+      return structuredClone(db().promotionRedemptions.filter((row) => row.promotionId === promotionId).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit))
     },
   }
 }

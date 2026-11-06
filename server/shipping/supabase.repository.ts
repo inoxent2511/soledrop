@@ -3,6 +3,7 @@ import "server-only"
 import { supabase, unwrap } from "@/server/db/supabase"
 import type { ShippingRepository } from "@/server/shipping/repository"
 import type { ShippingRate, ShippingZone, TaxRate } from "@/server/shipping/types"
+import { DomainError } from "@/server/shared/errors"
 
 export function createSupabaseShippingRepository(): ShippingRepository {
   return {
@@ -47,6 +48,24 @@ export function createSupabaseShippingRepository(): ShippingRepository {
         await supabase().from("tax_rates").select("country, province, label, basis_points, inclusive").eq("store_id", storeId),
       ) as { country: string; province: string | null; label: string; basis_points: number; inclusive: boolean }[]
       return rows.map((row): TaxRate => ({ country: row.country, province: row.province, label: row.label, basisPoints: row.basis_points, inclusive: row.inclusive }))
+    },
+    async saveZone(storeId, zone) {
+      unwrap(
+        await supabase().rpc("save_shipping_zone", {
+          p_store_id: storeId,
+          p_zone: { id: zone.id, name: zone.name, countries: zone.countries, cities: zone.cities, position: zone.position },
+          p_rates: zone.rates.map((rate) => ({ code: rate.code, label: rate.label, amount: rate.amount, free_over: rate.freeOver, min_days: rate.minDays, max_days: rate.maxDays, cash_on_delivery: rate.cashOnDelivery })),
+        }),
+      )
+      return zone
+    },
+    async deleteZone(storeId, id) {
+      const deleted = unwrap(await supabase().from("shipping_zones").delete().eq("store_id", storeId).eq("id", id).select("id")) as { id: string }[]
+      if (!deleted.length) throw new DomainError("not_found", "Zone not found.")
+    },
+    async replaceTaxRates(storeId, rates) {
+      unwrap(await supabase().rpc("replace_tax_rates", { p_store_id: storeId, p_rates: rates.map((rate) => ({ country: rate.country, province: rate.province, label: rate.label, basis_points: rate.basisPoints, inclusive: rate.inclusive })) }))
+      return rates
     },
   }
 }

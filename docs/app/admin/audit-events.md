@@ -80,3 +80,13 @@ Entity `order`, `entity_id` = order number. The order service's own history (`or
 | `customer.signed_out` | — | — |
 | `customer.exported` | — → `{ orders, addresses }` | required |
 | `customer.erased` | `{ createdAt }` → `{ ordersAnonymised }` | required |
+
+### Promotions, shipping and tax (A5)
+
+| Action | Entity | Before → after |
+| --- | --- | --- |
+| `promotion.created` / `promotion.updated` | promotion | title, code, conditions, actions, dates, limit, active |
+| `promotion.switched_on` / `promotion.switched_off` | promotion | `{ active }` |
+| `promotion.deleted` | promotion | `{ title, code }` (only never-used promotions) |
+| `shipping_zone.created` / `shipping_zone.updated` / `shipping_zone.deleted` | shipping_zone | the whole zone with its rates |
+| `tax_rates.updated` | tax_rates | the whole table before and after |

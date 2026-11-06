@@ -1,4 +1,4 @@
-import type { Promotion } from "@/server/promotions/types"
+import type { Promotion, PromotionRedemption } from "@/server/promotions/types"
 
 export interface PromotionRepository {
   listActive(storeId: string): Promise<Promotion[]>
@@ -6,4 +6,13 @@ export interface PromotionRepository {
   redemptionsFor(storeId: string, shopper: { customerId: string | null; email: string | null }): Promise<Map<string, number>>
   /** Number of non-cancelled orders already placed by this shopper (first-order rules). */
   orderCountFor(storeId: string, shopper: { customerId: string | null; email: string | null }): Promise<number>
+
+  // ─── Staff (admin A5) ─────────────────────────────────────────────────────
+  listAll(storeId: string): Promise<Promotion[]>
+  find(storeId: string, id: string): Promise<Promotion | null>
+  /** Creates or updates by id; a code is unique per store (case-insensitive). `timesUsed` is never written. */
+  save(promotion: Promotion): Promise<Promotion>
+  /** Deletes a promotion nobody has redeemed; a used one can only be switched off. */
+  remove(storeId: string, id: string): Promise<void>
+  redemptions(promotionId: string, limit: number): Promise<PromotionRedemption[]>
 }
