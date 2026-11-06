@@ -182,6 +182,8 @@ test.describe("nav dropdown", () => {
     await men.focus()
     await page.keyboard.press("Space")
     await expect(men).toHaveAttribute("aria-expanded", "true")
+    await expect(page.locator(`#${await men.getAttribute("aria-controls")}`).getByRole("link").first()).toBeFocused()
+    await men.focus()
     await page.keyboard.press("ArrowLeft")
     await expect(link).toBeFocused()
     await expect(page.locator("[id^=nav-panel-]:visible")).toHaveCount(0)

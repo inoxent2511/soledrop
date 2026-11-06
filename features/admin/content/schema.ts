@@ -1,3 +1,4 @@
+import "@/lib/validation"
 import { z } from "zod"
 
 import { SLUG } from "@/features/admin/products/schema"

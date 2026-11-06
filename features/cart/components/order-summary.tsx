@@ -54,7 +54,7 @@ export function OrderSummary({ cart, blocked }: { cart: Cart; blocked: boolean }
         <div className="pt-6">
           <p className="flex items-center justify-between gap-4 rounded-lg bg-brand-tint px-4 py-3 text-16 font-semibold md:text-18">
             You&apos;re saving on sale prices
-            <span className="font-bold text-success">{price(savings)}</span>
+            <span className="font-bold text-brand-foreground">{price(savings)}</span>
           </p>
         </div>
       ) : null}

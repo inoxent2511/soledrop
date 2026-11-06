@@ -1,3 +1,4 @@
+import "@/lib/validation"
 import { z } from "zod"
 
 import { ORDER_SORTS, ORDER_STATUSES, type OrderQuery, type OrderStatus, type PaymentStatus } from "@/server/orders/types"

@@ -22,6 +22,14 @@ const source = SOURCE_DIRS.flatMap((dir) => files(dir, /\.(ts|tsx)$/)).filter((f
 const ui = source.filter((file) => file.endsWith(".tsx"))
 
 describe("data seam", () => {
+  it("initialises browser schemas through the CSP-safe validation module", () => {
+    const browserSchemas = source.filter((file) => file.startsWith(`features${path.sep}`) || file === path.join("lib", "env.ts"))
+    for (const file of browserSchemas) {
+      const text = read(file)
+      if (/^import (?!type )[^\n]*from "zod"/m.test(text)) expect(text, file).toMatch(/^(?:"use client"\r?\n\r?\n)?import "@\/lib\/validation"\r?\n/)
+    }
+  })
+
   it("gives every repository a supabase and a fixtures implementation behind one index", () => {
     const domains = fs.readdirSync(path.join(ROOT, "server")).filter((name) => fs.existsSync(path.join(ROOT, "server", name, "repository.ts")))
     expect(domains.length).toBeGreaterThan(8)

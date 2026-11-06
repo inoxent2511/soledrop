@@ -43,6 +43,18 @@ beforeEach(() => {
 })
 
 describe("checkout on the fixtures driver", () => {
+  it.each(["remove", "reduce"])("releases checkout holds when a shopper changes the bag: %s", async (action) => {
+    const level = stockedVariant(2)
+    const carts = cartService()
+    const row = await bagWith(level.variantId, 2)
+    await carts.reserveForCheckout(row, 15)
+    expect(db().inventory.find((entry) => entry.variantId === level.variantId)?.reserved).toBe(2)
+    if (action === "remove") await carts.removeLine(row, row.lines[0].id)
+    else await carts.updateLine(row, row.lines[0].id, 1, shopper)
+    expect(db().inventory.find((entry) => entry.variantId === level.variantId)?.reserved).toBe(0)
+    expect(db().reservations.filter((entry) => entry.cartId === row.id)).toEqual([])
+  })
+
   it("prices on the server, takes stock and converts the bag", async () => {
     const level = stockedVariant()
     const before = level.onHand

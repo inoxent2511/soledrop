@@ -15,6 +15,17 @@ async function ready(page: Page, route: string) {
 const titles = (page: Page) =>
   page.locator("main ul li article h2, main ul li article h3").allInnerTexts()
 
+test.describe("sort without JavaScript", () => {
+  test.use({ javaScriptEnabled: false })
+
+  test("has an accessible name before hydration", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 })
+    await page.goto("/collections/new-arrivals")
+    await expect(sortBox(page)).toHaveAccessibleName("Sort by")
+    await expect(sortBox(page)).toContainText("Featured")
+  })
+})
+
 test.describe("listing sort", () => {
   test("offers every order and shows the chosen one", async ({ page }) => {
     await ready(page, "/collections/brand-new")

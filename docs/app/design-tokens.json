@@ -263,6 +263,10 @@
     [
       "subtle-foreground",
       "guide-minor-issue"
+    ],
+    [
+      "brand-foreground",
+      "brand-tint"
     ]
   ]
 }

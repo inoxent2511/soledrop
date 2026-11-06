@@ -74,6 +74,14 @@ test.describe("with a staff session", () => {
     // One demo account per browser, so parallel projects don't race for the same TOTP step.
     const role = { chromium: "owner", firefox: "admin", webkit: "store_manager" }[browserName] ?? "owner"
     const violations: string[] = []
+    await page.exposeFunction("reportCspViolation", (directive: string, blockedURI: string) => {
+      violations.push(`${directive}: ${blockedURI}`)
+    })
+    await page.addInitScript(() => {
+      document.addEventListener("securitypolicyviolation", (event) => {
+        void (window as unknown as { reportCspViolation: (directive: string, blockedURI: string) => Promise<void> }).reportCspViolation(event.effectiveDirective, event.blockedURI)
+      })
+    })
     page.on("console", (message) => {
       if (message.type() === "error" && /Content Security Policy|Content-Security-Policy|CSP/i.test(message.text())) violations.push(message.text())
     })

@@ -1,3 +1,4 @@
+import "@/lib/validation"
 import { z } from "zod"
 
 import { CONDITION_GRADES } from "@/server/catalog/types"

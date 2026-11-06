@@ -47,6 +47,20 @@ describe("next_order_number", () => {
 })
 
 describe("reserve_stock", () => {
+  it("releases one cart's holds idempotently with an empty replacement, preserving another cart's stock", async () => {
+    const first = await cart(db, [])
+    const second = await cart(db, [])
+    for (const [id, quantity] of [[first, 2], [second, 1]] as const) {
+      await db.query(`select public.reserve_stock($1, $2::jsonb, 15)`, [id, JSON.stringify([{ variant_id: ids.variantA, quantity }])])
+    }
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await db.query(`select public.reserve_stock($1, '[]'::jsonb, 15)`, [first])
+      expect(await level(db, ids.variantA)).toEqual({ on_hand: 3, reserved: 1 })
+    }
+    expect(await scalar<number>(`select count(*)::int as value from public.inventory_reservations where cart_id = $1`, [first])).toBe(0)
+    expect(await scalar<number>(`select quantity as value from public.inventory_reservations where cart_id = $1`, [second])).toBe(1)
+  })
+
   it("never holds more than is on hand when carts race for the last units", async () => {
     const carts = await Promise.all(Array.from({ length: 6 }, () => cart(db, [])))
     const results = await Promise.all(

@@ -22,7 +22,8 @@ export function createSupabaseInventoryRepository(): InventoryRepository {
       )
     },
     async release(cartId) {
-      unwrap(await supabase().from("inventory_reservations").delete().eq("cart_id", cartId))
+      // An empty replacement restores reserved counts as well as removing the holds.
+      unwrap(await supabase().rpc("reserve_stock", { p_cart_id: cartId, p_items: [], p_ttl_minutes: 15 }))
     },
     async onHand(variantIds) {
       if (variantIds.length === 0) return new Map()

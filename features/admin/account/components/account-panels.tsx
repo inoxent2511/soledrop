@@ -1,5 +1,7 @@
 "use client"
 
+import "@/lib/validation"
+
 import { useMutation } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useId, useState, type FormEvent } from "react"

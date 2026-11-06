@@ -110,3 +110,33 @@ Built / fixed:
 - `docs/app/admin/security.md`: threats, controls and the test that proves each.
 - Flaky test fixed: the content rename test could create and rename within one millisecond, so the stale save looked fresh.
 Verified: tsc ✓, eslint ✓, vitest 187/187 (×4 for the integration suites) ✓, `next build` ✓, Playwright Chromium admin suites incl. permission matrix and a11y ✓.
+
+## 2026-11-06 — Admin A12/A13 resume checkpoint (in progress)
+
+Resumed from local commit `8c52cd5` and Claude's interrupted QA/documentation session. Earlier admin entries use stage dates 2026-11-07…13; this continuation records the actual client date and leaves that history intact.
+
+- The interrupted Chromium pass was 966 passed / 2 failed (971 cases after expanding checkout coverage). BUG-018: bag savings contrast; BUG-019: keyboard test focused the dropdown rather than the tab. Both fixed with regression coverage.
+- The first resumed pass exposed BUG-020: a sort trigger's accessible name during hydration. Added a direct accessible label and a no-JavaScript regression check; a new production build and full reruns are required after that fix.
+- Completed the sample component gallery, added it to module smoke/axe sweeps and checked that its sample edits make no store writes.
+- `pnpm.cmd verify` passed typecheck, zero-warning lint, 187 tests and production build before the BUG-020 change. Theme sync/contrast passed. The separate design gate still fails G3 (missing Figma Theme collection, P2-12).
+- Firefox and WebKit installed for the remaining browser runs. Reports, final limitations and local commits are pending.
+
+### A12 follow-up checkpoint — CSP and inventory (full reruns pending)
+
+- The cross-browser attempt exposed BUG-021 (Zod's dynamic-code probe violates the nonce CSP in Firefox) and BUG-022 (checkout holds surviving bag changes, plus Supabase release deleting rows without restoring reserved counts). The red attempt was interrupted to apply fixes; it is not a clean pass. Its log is preserved locally as `qa/a12-before-csp-stock-fixes.log`.
+- Browser validation now runs the shared `lib/validation.ts` setup before Zod schema construction; it enables `jitless` without relaxing CSP. The architecture suite guards setup order. The auth browser test records actual `securitypolicyviolation` events as well as console messages.
+- Cart line/quantity changes release prior holds. Supabase uses the existing `reserve_stock` RPC with an empty replacement; integration and PGlite tests cover stock restoration, repeated release, and isolation from another cart's holds.
+- Typecheck, lint, 191 tests and production build passed with these fixes. The targeted production-browser regressions passed 18/18 across Chromium, Firefox and WebKit (no skips). The validation setup was then adjusted to preserve tree shaking; verify is running again before full reruns.
+- Admin script-size measurements are recorded as PERF-03. A namespace re-export temporarily increased bundle size; that form was removed, and final bundle sizes are still to be measured. The strict performance target remains open.
+
+### A12 follow-up checkpoint — WebKit hover
+
+The first completed cross-browser attempt was 2,867 passed / 48 existing skips / 1 failed in 17.9 minutes. Its remaining failure was BUG-023: the sort option intermittently lacked its hover colour in WebKit. Its report/log are preserved locally as `qa/out/a12-before-hover-fix.json` and `qa/a12-before-hover-fix.log`.
+
+Added CSS hover colours on the shared select item using the existing brand tokens, retaining data-driven keyboard highlighting. `pnpm.cmd verify` passed again (191 tests, typecheck, zero-warning lint, production build). The existing WebKit hover regression then passed 20/20 repetitions. Two full configured browser passes on this final code are now pending; no application code should change during those runs unless another failure requires it.
+
+### A12 final-code pass 1 — clean
+
+`pnpm.cmd verify` passed on the hover-fixed code: typecheck, zero-warning lint, 191 tests in 23 files and production build. The complete configured Playwright suite then passed with **2,868 passed / 48 existing skips / 0 failed** in 17.7 minutes. Report: local `qa/out/a12-full-pass1.json`. The skips are the existing duplicate TOTP-limited admin suites in Firefox/WebKit; core auth/CSP and all configured storefront suites ran in those browsers.
+
+The QA server is being reset and verify repeated before a second full browser pass. A12 implementation is being saved as a local checkpoint; final automated QA results and A13 documentation remain pending. The original strict zero-open-findings sign-off remains open for the documented performance/design/verification gaps.

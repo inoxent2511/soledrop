@@ -1,3 +1,4 @@
+import "@/lib/validation"
 import { z } from "zod"
 
 import { addressSchema, emailSchema, phoneSchema } from "@/features/checkout/schemas/checkout"

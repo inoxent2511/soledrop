@@ -32,6 +32,7 @@ const PAGES = [
   "/admin/staff/roles",
   "/admin/audit",
   "/admin/account",
+  "/admin/dev/gallery",
 ]
 
 const axe = (page: Page) => new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])

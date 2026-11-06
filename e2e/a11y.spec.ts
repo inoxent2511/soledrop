@@ -48,18 +48,34 @@ for (const theme of ["light", "dark"] as const) {
   })
 }
 
-test("axe checkout with a pair in the bag", async ({ page }) => {
-  await page.goto("/products/nike-air-max", { waitUntil: "load" })
-  await waitForHydration(page)
-  const size = page.getByRole("radio", { name: /42/ }).first()
-  await size.focus()
-  await page.keyboard.press("Space")
-  await page.getByRole("button", { name: "Add to cart", exact: true }).click()
-  await expect(page.getByRole("button", { name: "Bag, 1 item" })).toBeVisible()
-  for (const route of ["/cart", "/checkout"]) {
-    await page.goto(route, { waitUntil: "load" })
-    await waitForHydration(page)
-    await expect(page.getByText("NIKE Air Max").first()).toBeVisible()
-    expect(await violations(page), route).toEqual([])
-  }
-})
+for (const theme of ["light", "dark"] as const) {
+  test.describe(`checkout ${theme}`, () => {
+    test.use({ colorScheme: theme })
+    for (const width of WIDTHS) {
+      test(`axe checkout with a pair in the bag @ ${width}`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 })
+        await page.goto("/products/nike-air-max", { waitUntil: "load" })
+        await waitForHydration(page)
+        const size = page.getByRole("radio", { name: /42/ }).first()
+        await size.focus()
+        await page.keyboard.press("Space")
+        await page.getByRole("button", { name: "Add to cart", exact: true }).click()
+        await expect(page.getByRole("button", { name: "Bag, 1 item" })).toBeVisible()
+        try {
+          for (const route of ["/cart", "/checkout"]) {
+            await page.goto(route, { waitUntil: "load" })
+            await waitForHydration(page)
+            await expect(page.getByText("NIKE Air Max").first()).toBeVisible()
+            expect(await violations(page), route).toEqual([])
+          }
+        } finally {
+          const { cart } = await (await page.request.get("/api/cart")).json() as { cart: { lines: { id: string }[] } }
+          for (const line of cart.lines) {
+            const removed = await page.request.delete(`/api/cart/lines/${line.id}`, { headers: { origin: new URL(page.url()).origin } })
+            expect(removed.ok()).toBe(true)
+          }
+        }
+      })
+    }
+  })
+}

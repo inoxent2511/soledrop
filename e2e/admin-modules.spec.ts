@@ -36,6 +36,7 @@ const PAGES = [
   ["/admin/settings?view=health", "Settings"],
   ["/admin/audit", "Audit log"],
   ["/admin/account", "Your account"],
+  ["/admin/dev/gallery", "Component gallery"],
 ] as const
 
 test("the Owner can open every module, and the simulator and rate tester answer", async ({ page }) => {
@@ -61,5 +62,26 @@ test("the Owner can open every module, and the simulator and rate tester answer"
   await page.goto("/admin/shipping")
   await page.getByRole("button", { name: "Test", exact: true }).click()
   await expect(page.getByText(/^Zone: /)).toBeVisible()
+
+  await page.goto("/admin/dev/gallery")
+  const writes: string[] = []
+  page.on("request", (request) => {
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method())) writes.push(request.url())
+  })
+  await page.getByRole("button", { name: "ConfirmDialog", exact: true }).click()
+  const confirmation = page.getByRole("dialog", { name: "Cancel SD10001?" })
+  await expect(confirmation.getByRole("button", { name: "Cancel order", exact: true })).toBeDisabled()
+  await confirmation.getByLabel("Type SD10001 to confirm").fill("SD10001")
+  await confirmation.getByLabel("Reason", { exact: true }).fill("Gallery example")
+  await confirmation.getByRole("button", { name: "Cancel order", exact: true }).click()
+  await expect(confirmation).toBeHidden()
+  await page.getByRole("button", { name: "FormDialog", exact: true }).click()
+  const form = page.getByRole("dialog", { name: "A form in a dialog" })
+  await form.getByLabel("A field").fill("Sample value")
+  await form.getByRole("button", { name: "Save", exact: true }).click()
+  await expect(form).toBeHidden()
+  await page.getByRole("button", { name: "Add rule", exact: true }).click()
+  await expect(page.getByLabel("Rule 2", { exact: true })).toBeVisible()
+  expect(writes).toEqual([])
   expect(problems).toEqual([])
 })

@@ -173,7 +173,12 @@ export function createCartService(deps: Deps) {
   async function mutate(row: CartRow, change: (draft: CartRow) => void): Promise<CartRow> {
     const draft = structuredClone(row)
     change(draft)
-    return carts.save(draft)
+    const saved = await carts.save(draft)
+    const previous = new Map(row.lines.map((line) => [line.variantId, line.quantity]))
+    if (saved.lines.length !== row.lines.length || saved.lines.some((line) => previous.get(line.variantId) !== line.quantity)) {
+      await deps.inventory.release(row.id)
+    }
+    return saved
   }
 
   return {
