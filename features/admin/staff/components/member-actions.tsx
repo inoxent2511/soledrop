@@ -39,7 +39,7 @@ export function MemberActions({ userId, email, status, roles, allRoles, self }: 
 
   return (
     <div className="flex flex-col gap-4">
-      <fieldset className="flex flex-col gap-1.5">
+      <fieldset className="min-w-0 flex flex-col gap-1.5">
         <legend className="pb-1 text-14 font-bold">Roles</legend>
         {allRoles.map((role) => (
           <label key={role.key} className="flex items-center gap-2 text-16">

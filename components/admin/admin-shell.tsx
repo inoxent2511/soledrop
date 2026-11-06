@@ -29,7 +29,7 @@ function Nav({ permissions, onNavigate }: { permissions: string[]; onNavigate?: 
         if (modules.length === 0) return null
         return (
           <div key={group} className="flex flex-col gap-1">
-            {group !== "Overview" ? <p className="px-3 text-14 font-semibold text-faint-foreground uppercase">{group}</p> : null}
+            {group !== "Overview" ? <p className="px-3 text-14 font-semibold text-background/70 uppercase">{group}</p> : null}
             <ul className="flex flex-col gap-0.5">
               {modules.map((module) => {
                 const active = current?.key === module.key
@@ -119,14 +119,14 @@ export function AdminShell({ staff, children }: { staff: ShellStaff; children: R
             <NotificationBell />
 
             <Link href="/" className={adminButton({ tone: "ghost", size: "sm" })} target="_blank" rel="noopener">
-              <Store aria-hidden /> <span className="hidden sm:inline">View store</span>
+              <Store aria-hidden /> <span className="sr-only sm:not-sr-only">View store</span>
             </Link>
             <Link href="/admin/account" className={cn(adminButton({ tone: "ghost", size: "sm" }), "max-w-60")}>
               <UserRound aria-hidden />
-              <span className="hidden truncate md:inline">{staff.displayName}</span>
+              <span className="sr-only md:not-sr-only md:truncate">{staff.displayName}</span>
             </Link>
             <button type="button" onClick={() => void signOut()} disabled={signingOut} className={adminButton({ tone: "ghost", size: "sm" })}>
-              <LogOut aria-hidden /> <span className="hidden sm:inline">{signingOut ? "Signing out…" : "Sign out"}</span>
+              <LogOut aria-hidden /> <span className="sr-only sm:not-sr-only">{signingOut ? "Signing out…" : "Sign out"}</span>
             </button>
           </header>
 

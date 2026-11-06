@@ -100,3 +100,13 @@ Verified: tsc ✓, eslint ✓, vitest 185/185 ✓, `next build` ✓, Playwright 
 ## 2026-11-13 — Admin A10: dashboard
 Built: `/admin` shows today's net sales, orders and pairs against the 7-day daily average (reports:read), the last 7 days' totals, the attention list (A-019), latest orders (orders:read), this week's best sellers, and recent audit entries (audit:read); members without those permissions see their modules instead. New StatCard component.
 Verified: tsc ✓, eslint ✓, vitest 185/185 ✓, `next build` ✓, Playwright Chromium admin-auth + modules + orders 13/13 ✓.
+
+## 2026-11-13 — Admin A11: hardening
+Built / fixed:
+- `e2e/admin-permissions.spec.ts`: every preset role signs in for real and calls 24 admin APIs and opens 17 module pages; each answer matches `server/admin/permissions.ts` (10/10 roles pass).
+- `e2e/admin-a11y.spec.ts`: axe WCAG 2.2 A/AA on the sign-in screen and 22 admin pages at 1440 and 390 px, plus a no-sideways-scroll check at 390 px. Fixed on the way: sidebar group labels' contrast on the dark sidebar, unnamed top-bar buttons on phones (labels now `sr-only` below `sm`/`md`), the danger status pill's contrast, and wide tables pushing phone pages sideways (`min-w-0` on admin fieldsets, cards and grid columns).
+- `server/admin/route.ts`: 120 writes per minute per staff session.
+- Architecture: admin code can't be imported by storefront routes or components; DB: the anon role reads nothing from any admin table and nobody reads staff sessions.
+- `docs/app/admin/security.md`: threats, controls and the test that proves each.
+- Flaky test fixed: the content rename test could create and rename within one millisecond, so the stale save looked fresh.
+Verified: tsc ✓, eslint ✓, vitest 187/187 (×4 for the integration suites) ✓, `next build` ✓, Playwright Chromium admin suites incl. permission matrix and a11y ✓.

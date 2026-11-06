@@ -54,7 +54,7 @@ export function BlockEditor({ blocks, onChange, disabled, faqCategories }: { blo
                 </span>
               ) : null}
             </div>
-            <fieldset disabled={disabled} className="flex flex-col gap-2">
+            <fieldset disabled={disabled} className="min-w-0 flex flex-col gap-2">
               {block.type === "heading" ? (
                 <div className="flex gap-2">
                   <select aria-label="Heading size" value={block.level} onChange={(event) => set(index, { ...block, level: Number(event.target.value) as 2 | 3 })} className={cn(field, "w-28")}>

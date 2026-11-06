@@ -9,6 +9,7 @@ import type { RequestMeta } from "@/server/admin/service"
 import type { Permission } from "@/server/admin/permissions"
 import type { StaffContext } from "@/server/admin/types"
 import { errorResponse } from "@/server/http/route"
+import { platform } from "@/server/platform"
 import { DomainError } from "@/server/shared/errors"
 
 /**
@@ -23,6 +24,8 @@ import { DomainError } from "@/server/shared/errors"
  * Mutations must carry our own Origin (CSRF, on top of SameSite=Strict), and nothing is cached.
  */
 export type AdminAccess = Permission | { permission: Permission; stepUp: true } | "staff" | "pending" | "public"
+
+const WRITES_PER_MINUTE = 120
 
 type Handler<Context, Staff> = (input: { request: Request; context: Context; staff: Staff; meta: RequestMeta }) => Promise<Response>
 
@@ -55,6 +58,10 @@ export function adminRoute<Context = unknown>(access: AdminAccess, handler: Hand
     try {
       await assertOwnOrigin(request)
       const staff = await authorise(access)
+      // A runaway script or stolen session can't hammer writes: 120 per minute per session.
+      if (staff && request.method !== "GET" && request.method !== "HEAD" && (await platform().hit(`admin-write:${staff.session.id}`, 60)) > WRITES_PER_MINUTE) {
+        throw new DomainError("rate_limited", "Too many changes in a minute. Please wait a moment.", { retryAfter: 60 })
+      }
       // authorise() returns null exactly for "public", matching the overload the handler was typed with.
       const response = await (handler as Handler<Context, StaffContext | null>)({ request, context, staff, meta: await requestMeta() })
       response.headers.set("cache-control", "private, no-store")

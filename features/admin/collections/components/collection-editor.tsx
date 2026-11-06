@@ -96,7 +96,7 @@ export function CollectionEditor({ initial, canWrite }: { initial: CollectionDra
       }}
     >
       <AdminCard title="Details">
-        <fieldset disabled={!canWrite} className="flex flex-col gap-4">
+        <fieldset disabled={!canWrite} className="min-w-0 flex flex-col gap-4">
           <AdminField formId={id} name="title" label="Title" value={form.title} onChange={(event) => update({ title: event.target.value, ...(slugTouched ? {} : { slug: slugify(event.target.value) }) })} />
           <AdminField
             formId={id}
@@ -118,7 +118,7 @@ export function CollectionEditor({ initial, canWrite }: { initial: CollectionDra
       </AdminCard>
 
       <AdminCard title="Products">
-        <fieldset disabled={!canWrite} className="flex flex-col gap-4">
+        <fieldset disabled={!canWrite} className="min-w-0 flex flex-col gap-4">
           <div role="radiogroup" aria-label="How products are chosen" className="flex flex-wrap gap-4 text-16">
             <label className="flex items-center gap-2">
               <input type="radio" checked={form.kind === "manual"} onChange={() => update({ kind: "manual" })} className="size-4 accent-foreground" /> Pick products by hand
@@ -151,7 +151,7 @@ export function CollectionEditor({ initial, canWrite }: { initial: CollectionDra
       </AdminCard>
 
       <AdminCard title="Search engines">
-        <fieldset disabled={!canWrite} className="flex flex-col gap-4">
+        <fieldset disabled={!canWrite} className="min-w-0 flex flex-col gap-4">
           <AdminField formId={id} name="seoTitle" label="Page title" maxLength={70} value={form.seo.title ?? ""} onChange={(event) => update({ seo: { ...form.seo, title: event.target.value } })} />
           <AdminTextarea formId={id} name="seoDescription" label="Description" maxLength={160} value={form.seo.description ?? ""} onChange={(event) => update({ seo: { ...form.seo, description: event.target.value } })} />
         </fieldset>

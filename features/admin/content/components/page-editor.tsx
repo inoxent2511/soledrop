@@ -103,7 +103,7 @@ export function PageEditor({ initial, faqCategories, can }: { initial: Page | nu
       <div className="grid items-start gap-6 xl:grid-cols-2">
         <div className="flex flex-col gap-6">
           <AdminCard title="Page">
-            <fieldset disabled={!can.write} className="flex flex-col gap-4">
+            <fieldset disabled={!can.write} className="min-w-0 flex flex-col gap-4">
               <AdminField formId={id} name="title" label="Title" value={form.title} onChange={(event) => update({ title: event.target.value, ...(slugTouched ? {} : { slug: slugify(event.target.value) }) })} />
               <AdminField
                 formId={id}

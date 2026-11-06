@@ -168,7 +168,7 @@ export function OrderActions({ number, updatedAt, currency, outstanding, trackin
           void run(() => withStepUp(() => adminOrdersApi.refund(number, { amount, reason, lines: refundLines, restock: data.get("restock") === "on", idempotencyKey: attempt })))
         }}
       >
-        <fieldset className="flex flex-col gap-2">
+        <fieldset className="min-w-0 flex flex-col gap-2">
           <legend className="pb-1.5 text-14 font-bold">Items coming back (optional)</legend>
           {lines.map((line) => {
             const left = line.quantity - line.refundedQuantity

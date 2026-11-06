@@ -18,7 +18,7 @@ export function PermissionMatrix({ catalog, selected, onChange, disabled, allowe
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {catalog.map(({ group, permissions }) => (
-        <fieldset key={group} disabled={disabled} className="flex flex-col gap-1.5 rounded-md border border-border p-3">
+        <fieldset key={group} disabled={disabled} className="min-w-0 flex flex-col gap-1.5 rounded-md border border-border p-3">
           <legend className="px-1 text-14 font-bold">{group}</legend>
           {permissions.map((permission) => {
             const blocked = allowed !== undefined && !allowed.has(permission.key) && !selected.has(permission.key)

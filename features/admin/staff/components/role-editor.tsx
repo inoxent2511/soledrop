@@ -43,7 +43,7 @@ export function RoleEditor({ role, catalog, canManage, grantable }: { role: Role
   return (
     <div className="flex flex-col gap-6">
       <AdminCard title="Role" description={role.isSystem ? "A built-in role: it can't be changed or deleted. Create a custom role for a different mix." : undefined}>
-        <fieldset disabled={readOnly} className="grid gap-4 md:grid-cols-3">
+        <fieldset disabled={readOnly} className="min-w-0 grid gap-4 md:grid-cols-3">
           <AdminField formId={id} name="name" label="Name" value={name} onChange={(event) => setName(event.target.value)} maxLength={60} />
           <AdminField formId={id} name="description" label="What it's for" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={200} />
           <AdminField formId={id} name="limit" label="Refund limit per refund (Rs.)" hint="Empty: no limit." inputMode="decimal" value={limit} onChange={(event) => setLimit(event.target.value)} />

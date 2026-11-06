@@ -41,11 +41,12 @@ const PAGES = [
 test("the Owner can open every module, and the simulator and rate tester answer", async ({ page }) => {
   test.setTimeout(180_000)
   const problems: string[] = []
+  await signInAs(page, "admin")
+  // Listening starts after sign-in: a refused TOTP retry during sign-in is expected, not a page error.
   page.on("console", (message) => {
     if (message.type() === "error") problems.push(`${page.url()}: ${message.text()}`)
   })
   page.on("pageerror", (error) => problems.push(`${page.url()}: ${error.message}`))
-  await signInAs(page, "admin")
   for (const [path, heading] of PAGES) {
     const response = await page.goto(path)
     expect(response?.status(), path).toBe(200)

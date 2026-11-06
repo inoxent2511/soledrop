@@ -60,7 +60,7 @@ function ZoneForm({ zone, canWrite, onSaved }: { zone: ShippingZone | null; canW
 
   return (
     <AdminCard title={zone ? zone.name : "New zone"}>
-      <fieldset disabled={!canWrite} className="flex flex-col gap-4">
+      <fieldset disabled={!canWrite} className="flex min-w-0 flex-col gap-4">
         <div className="grid gap-4 sm:grid-cols-3">
           <AdminField formId={id} name="name" label="Zone name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
           <AdminField formId={id} name="countries" label="Countries (codes)" hint="PK, AE…" value={form.countries.join(", ")} onChange={(event) => setForm({ ...form, countries: list(event.target.value.toUpperCase()) })} />
@@ -158,7 +158,7 @@ function TaxTable({ rates: initial, canWrite, onSaved }: { rates: TaxRate[]; can
   }
   return (
     <AdminCard title="Tax" description="Prices in Pakistan include tax; the figure is worked out for the invoice. A province rate wins over the country rate.">
-      <fieldset disabled={!canWrite} className="flex flex-col gap-3">
+      <fieldset disabled={!canWrite} className="flex min-w-0 flex-col gap-3">
         <ul className="flex flex-col gap-2">
           {rates.map((rate, index) => (
             <li key={index} className="flex flex-wrap items-center gap-2 text-14">

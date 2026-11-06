@@ -7,7 +7,7 @@ export type StatusTone = "success" | "pending" | "danger" | "neutral" | "info"
 const tones: Record<StatusTone, string> = {
   success: "bg-success text-success-foreground",
   pending: "bg-brand-tint text-foreground",
-  danger: "bg-destructive/12 text-destructive",
+  danger: "bg-destructive text-background",
   neutral: "bg-surface-sunken text-foreground",
   info: "bg-foreground text-background",
 }

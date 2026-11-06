@@ -121,7 +121,7 @@ export function PromotionEditor({ initial, collections, canWrite }: { initial: P
         void save()
       }}
     >
-      <fieldset disabled={!canWrite} className="flex flex-col gap-6 lg:col-span-2">
+      <fieldset disabled={!canWrite} className="min-w-0 flex flex-col gap-6 lg:col-span-2">
         <AdminCard title="Basics">
           <AdminField formId={id} name="title" label="Title" hint="Staff-facing name, also shown in the bag when it applies." value={form.title} onChange={(event) => update({ title: event.target.value })} />
           <div className="flex items-end gap-2">

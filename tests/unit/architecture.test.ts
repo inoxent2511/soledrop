@@ -148,3 +148,11 @@ describe("admin access (A-006)", () => {
     for (const file of ["server/admin/dal.ts", "server/admin/route.ts", "server/admin/service.ts", "server/admin/index.ts"]) expect(read(file), file).toMatch(/^import "server-only"/)
   })
 })
+
+describe("admin isolation", () => {
+  it("keeps admin code out of the storefront's routes and components", () => {
+    const storefront = [...files(path.join("app", "(store)"), /\.(ts|tsx)$/), ...files(path.join("app", "(home)"), /\.(ts|tsx)$/), ...files(path.join("app", "(checkout)"), /\.(ts|tsx)$/), ...files(path.join("features"), /\.(ts|tsx)$/).filter((file) => !file.includes(`${path.sep}admin${path.sep}`)), ...files("components", /\.(ts|tsx)$/).filter((file) => !file.includes(`${path.sep}admin${path.sep}`))]
+    expect(storefront.length).toBeGreaterThan(30)
+    for (const file of storefront) expect(read(file), file).not.toMatch(/from "@\/(components|features)\/admin\/|from "@\/server\/admin/)
+  })
+})

@@ -49,6 +49,8 @@ describe("staff content", () => {
   it("renames safely, refuses stale saves, taken and reserved addresses, and off-site links", async () => {
     const editor = staffAs("content_editor")
     const created = await content().savePage(editor, meta, page(), {})
+    // Versions are millisecond timestamps: let the clock move so the rename gets a new one.
+    await new Promise((resolve) => setTimeout(resolve, 5))
     const renamed = await content().savePage(editor, meta, page("sizing"), { previousSlug: "size-help", expectedUpdatedAt: created.updatedAt })
     expect(renamed.slug).toBe("sizing")
     await expect(content().savePage(editor, meta, page("sizing"), { previousSlug: "sizing", expectedUpdatedAt: created.updatedAt })).rejects.toMatchObject({ code: "conflict" })

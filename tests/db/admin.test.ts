@@ -200,3 +200,21 @@ describe("admin catalogue (migration 20261109090000)", () => {
     })
   })
 })
+
+describe("admin tables and anonymous callers", () => {
+  it("gives the anon role nothing from any admin table, and staff nothing from sessions", async () => {
+    await as(db, "anon", null, async () => {
+      for (const table of ["permissions", "roles", "role_permissions", "staff_roles", "staff_invites", "staff_sessions", "order_notes", "media"]) {
+        const result = await attempt(`select * from public.${table}`)
+        expect(result.ok ? result.rows : [], table).toEqual([])
+      }
+      expect(await attempt(`select public.has_permission('${STORE}', 'orders:read') as ok`)).toMatchObject({ ok: false })
+    })
+    await as(db, "authenticated", owner, async () => {
+      expect(await attempt(`select * from public.staff_sessions`)).toMatchObject({ ok: false })
+      // RLS lets the statement run but match no rows: nothing changes.
+      await attempt(`update public.staff_members set status = 'active' where user_id = '${suspended}'`)
+    })
+    expect((await db.query<{ status: string }>(`select status from public.staff_members where user_id = '${suspended}'`)).rows[0].status).toBe("suspended")
+  })
+})

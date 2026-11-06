@@ -252,9 +252,9 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
       <FormAlert>{formError}</FormAlert>
 
       <div className="grid items-start gap-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-6 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
           <AdminCard title="Details">
-            <fieldset disabled={readOnly} className="flex flex-col gap-4">
+            <fieldset disabled={readOnly} className="flex min-w-0 flex-col gap-4">
               <AdminField
                 formId={id}
                 name="title"
@@ -386,16 +386,16 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
           </AdminCard>
 
           <AdminCard title="Search engines">
-            <fieldset disabled={readOnly} className="flex flex-col gap-4">
+            <fieldset disabled={readOnly} className="flex min-w-0 flex-col gap-4">
               <AdminField formId={id} name="seoTitle" label={`Page title (${(form.seo.title ?? "").length}/70)`} maxLength={70} value={form.seo.title ?? ""} onChange={(event) => update({ seo: { ...form.seo, title: event.target.value } })} />
               <AdminTextarea formId={id} name="seoDescription" label={`Description (${(form.seo.description ?? "").length}/160)`} maxLength={160} value={form.seo.description ?? ""} onChange={(event) => update({ seo: { ...form.seo, description: event.target.value } })} />
             </fieldset>
           </AdminCard>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <AdminCard title="Organise">
-            <fieldset disabled={readOnly} className="flex flex-col gap-4">
+            <fieldset disabled={readOnly} className="flex min-w-0 flex-col gap-4">
               <AdminSelect formId={id} name="brandId" label="Brand" value={form.brandId} error={err("brandId")} onChange={(event) => update({ brandId: event.target.value })}>
                 <option value="">Choose a brand</option>
                 {brands.map((brand) => (
@@ -453,7 +453,7 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
                   })
                 }
               />
-              <fieldset className="flex flex-col gap-1.5">
+              <fieldset className="min-w-0 flex flex-col gap-1.5">
                 <legend className="pb-1 text-14 font-bold">Collections</legend>
                 {collections.map((collection) => (
                   <label key={collection.slug} className="flex items-center gap-2 text-16">
