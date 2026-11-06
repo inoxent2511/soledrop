@@ -467,11 +467,11 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                 </p>
                 <p className="text-14 text-subtle-foreground md:text-16">
                   By placing your order you agree to our{" "}
-                  <Link href="/pages/terms" className="underline underline-offset-4">
+                  <Link href="/terms" className="underline underline-offset-4">
                     terms
                   </Link>{" "}
                   and{" "}
-                  <Link href="/pages/returns" className="underline underline-offset-4">
+                  <Link href="/returns" className="underline underline-offset-4">
                     returns policy
                   </Link>
                   .{data?.holdExpiresAt ? ` We're holding these pairs for you until ${new Date(data.holdExpiresAt).toLocaleTimeString("en-PK", { hour: "numeric", minute: "2-digit" })}.` : ""}

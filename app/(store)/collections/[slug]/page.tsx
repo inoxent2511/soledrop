@@ -11,8 +11,11 @@ import { getCollection, listingData } from "@/server/storefront"
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<RawParams> }
 
-/** Collections with their own designed page. */
-const DEDICATED_PAGES: Record<string, string> = { "pre-loved": "/pre-loved" }
+/** Collections with a page of their own; Sale keeps the shopper's Brand New / Pre-Loved choice (D-053). */
+const DEDICATED_PAGES: Record<string, (params: RawParams) => string> = {
+  "pre-loved": () => "/pre-loved",
+  sale: (params) => ([params.kind].flat()[0] === "preloved" ? "/sale?tab=preloved" : "/sale"),
+}
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug } = await params
@@ -29,8 +32,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 export default async function CollectionPage({ params, searchParams }: Props) {
   const { slug } = await params
-  if (DEDICATED_PAGES[slug]) permanentRedirect(DEDICATED_PAGES[slug])
   const raw = await searchParams
+  const dedicated = DEDICATED_PAGES[slug]
+  if (dedicated) permanentRedirect(dedicated(raw))
   const state = toListingState(raw)
   const data = await listingData({ ...parseProductQuery(raw), collection: slug })
   if (!data) notFound()

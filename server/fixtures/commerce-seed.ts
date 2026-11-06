@@ -10,7 +10,7 @@ const priceLists: PriceList[] = [
 ]
 
 /**
- * Store policies from the design: free delivery above PKR 5,000 (promo bar), Rs. 250 standard
+ * Store policies from the design: free delivery above Rs. 12,000 (promo bar, the owner's change D-060), Rs. 250 standard
  * delivery (cart summary), 7-day returns (PDP). Amounts are minor units.
  */
 const shippingZones: ShippingZone[] = [
@@ -21,7 +21,7 @@ const shippingZones: ShippingZone[] = [
     cities: [],
     position: 0,
     rates: [
-      { code: "standard", label: "Standard delivery", amount: 25000, freeOver: 500000, minDays: 2, maxDays: 5, cashOnDelivery: true },
+      { code: "standard", label: "Standard delivery", amount: 25000, freeOver: 1200000, minDays: 2, maxDays: 5, cashOnDelivery: true },
       { code: "express", label: "Express delivery (Karachi, Lahore, Islamabad)", amount: 60000, freeOver: null, minDays: 1, maxDays: 2, cashOnDelivery: true },
     ],
   },

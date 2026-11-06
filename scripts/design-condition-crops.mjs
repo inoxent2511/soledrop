@@ -16,10 +16,10 @@ const ORIGIN = { x: 124, y: 477 }
 const BAND = { top: 841, bottom: 1016 }
 const cards = [
   ["like-new", 168, 474],
-  ["excellent", 490, 793],
-  ["great", 808, 1112],
-  ["good", 1128, 1431],
-  ["minor-marks", 1447, 1752],
+  ["premium", 490, 793],
+  ["excellent", 808, 1112],
+  ["very-good", 1128, 1431],
+  ["minor-issue", 1447, 1752],
 ]
 
 if (!fs.existsSync(SOURCE)) throw new Error(`missing ${SOURCE} — run scripts/design-export-photos.mjs first`)

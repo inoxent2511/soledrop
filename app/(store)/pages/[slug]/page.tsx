@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 
 import { Container } from "@/components/shared/container"
 import { PageBand } from "@/components/shared/page-band"
@@ -8,6 +8,9 @@ import { formatDate } from "@/lib/format"
 import { getContentPage } from "@/server/storefront"
 
 type Props = { params: Promise<{ slug: string }> }
+
+/** Old content-page slugs → the designed pages that replaced them. */
+const MOVED_PAGES: Record<string, string> = { terms: "/terms", "privacy-policy": "/privacy", shipping: "/shipping", returns: "/returns" }
 
 /** Rendered on first visit and cached for five minutes (docs/app/caching.md). */
 export const revalidate = 300
@@ -28,11 +31,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * Content pages (derived: Shipping, Returns, Privacy, Terms, About, Our Story). The inside-page
+ * Content pages (derived: About, Our Story). The inside-page
  * band, then the page's blocks rendered by the block registry in a readable column.
  */
 export default async function ContentPage({ params }: Props) {
-  const page = await getContentPage((await params).slug)
+  const { slug } = await params
+  // The owner's legal pages left the block system for designed pages of their own (D-054 to D-057).
+  const moved = MOVED_PAGES[slug]
+  if (moved) permanentRedirect(moved)
+  const page = await getContentPage(slug)
   if (!page) notFound()
 
   return (

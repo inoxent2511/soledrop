@@ -113,19 +113,19 @@
       "value": "#f0fbeb",
       "description": "Condition Guide card, sampled from the guide raster (D-015)"
     },
-    "guide-excellent": {
+    "guide-premium": {
       "value": "#fef3ec",
       "description": "Condition Guide card, sampled from the guide raster (D-015)"
     },
-    "guide-great": {
+    "guide-excellent": {
       "value": "#eaf3fe",
       "description": "Condition Guide card, sampled from the guide raster (D-015)"
     },
-    "guide-good": {
+    "guide-very-good": {
       "value": "#f2f1fe",
       "description": "Condition Guide card, sampled from the guide raster (D-015)"
     },
-    "guide-minor-marks": {
+    "guide-minor-issue": {
       "value": "#fef9e3",
       "description": "Condition Guide card, sampled from the guide raster (D-015)"
     },
@@ -254,15 +254,15 @@
     ],
     [
       "subtle-foreground",
-      "guide-great"
+      "guide-excellent"
     ],
     [
       "subtle-foreground",
-      "guide-good"
+      "guide-very-good"
     ],
     [
       "subtle-foreground",
-      "guide-minor-marks"
+      "guide-minor-issue"
     ]
   ]
 }

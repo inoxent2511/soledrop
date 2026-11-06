@@ -9,11 +9,14 @@ moment it matters (add to bag, quote, place order).
 | Route | Mode | Freshness | Why |
 | --- | --- | --- | --- |
 | `/` | Static + ISR | 5 min (`revalidate = 300`) | New arrivals and drops change a few times a day. |
+| `/shipping` | Static + ISR | 5 min | Shows the store's live delivery rates (D-056). |
+| `/faq` | Static + ISR | 5 min | FAQs from the database, and the live delivery rate in one answer (D-066). |
 | `/products/[slug]` | ISR on first visit (`generateStaticParams` → `[]`) | 60 s | Size availability may be up to a minute old. Adding to the bag re-checks stock, and `place_order` locks inventory rows, so a stale page can't oversell. |
 | `/pages/[slug]` | ISR on first visit | 5 min | Policy text. |
-| `/contact`, `/faq`, `/size-guide`, `/orders/lookup`, `/account/forgot-password` | Static | build | No per-request data. The FAQ list is read at build time; rebuild or move it to ISR when staff can edit it (phase 2). |
+| `/contact`, `/size-guide`, `/condition-guide`, `/terms`, `/privacy`, `/returns`, `/orders/lookup`, `/account/forgot-password` | Static | build | No per-request data. |
 | `/sitemap.xml` | Static + ISR | 1 h | |
 | `/collections/[slug]`, `/pre-loved`, `/search` | Dynamic | per request | Filters live in the query string (each combination is its own URL, `noindex` when filtered). |
+| `/new-arrivals`, `/sale` | Dynamic | per request | The open tab and Load more count live in the query string (`?tab=preloved&show=24`); the canonical URL has neither. |
 | `/cart`, `/checkout`, `/orders/[number]`, `/account/*`, `/newsletter/unsubscribe` | Dynamic, `private, no-store` | per request | Personal. |
 
 Missing products/pages answer a real **404**, and guest `/account` and empty-bag `/checkout` answer a

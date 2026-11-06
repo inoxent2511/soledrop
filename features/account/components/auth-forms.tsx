@@ -101,11 +101,11 @@ export function RegisterForm({ next }: { next: string }) {
       <FormError>{formError}</FormError>
       <p className="text-16 text-subtle-foreground md:text-18">
         By creating an account you agree to our{" "}
-        <Link href="/pages/terms" className="underline underline-offset-4">
+        <Link href="/terms" className="underline underline-offset-4">
           terms
         </Link>{" "}
         and{" "}
-        <Link href="/pages/privacy-policy" className="underline underline-offset-4">
+        <Link href="/privacy" className="underline underline-offset-4">
           privacy policy
         </Link>
         . Already have one?{" "}

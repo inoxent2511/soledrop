@@ -5,7 +5,7 @@ export type Gender = "men" | "women" | "kids" | "unisex"
 export type ProductStatus = "draft" | "active" | "archived"
 
 /** Pre-loved condition grades, best first — the five cards of the Condition Guide on the Pre-Loved screen (D-015). */
-export const CONDITION_GRADES = ["like-new", "excellent", "great", "good", "minor-marks"] as const
+export const CONDITION_GRADES = ["like-new", "premium", "excellent", "very-good", "minor-issue"] as const
 export type ConditionGrade = (typeof CONDITION_GRADES)[number]
 
 /** Values a product or variant attribute can hold (attribute system; definitions in AttributeDefinition). */
@@ -119,7 +119,7 @@ export type ProductView = Product & {
   inStock: boolean
 }
 
-export type SortKey = "featured" | "newest" | "price-asc" | "price-desc"
+export type SortKey = "featured" | "title-asc" | "title-desc" | "newest" | "oldest" | "price-asc" | "price-desc" | "discount-desc"
 
 export type ProductQuery = {
   collection?: string

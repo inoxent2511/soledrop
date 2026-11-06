@@ -3,14 +3,14 @@ import type { Metadata } from "next"
 import { LightBulbIcon, WhatsappIcon } from "@/components/icons"
 import { Container } from "@/components/shared/container"
 import { PageBand } from "@/components/shared/page-band"
-import { sizeCharts } from "@/content/size-guide"
-import { SizeChartTabs } from "@/features/content/components/size-chart-tabs"
+import { sizeGuides } from "@/content/size-guide"
+import { SizeGuideTabs } from "@/features/content/components/size-guide-tabs"
 import { siteConfig } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
   title: "Size guide",
-  description: "Convert shoe sizes between EU, UK, US and centimetres for men, women and kids, and measure your foot at home.",
+  description: "Separate Brand New and Pre-Loved size charts for men and women: EU, UK, US and centimetres, plus how to measure your foot at home.",
   alternates: { canonical: "/size-guide" },
 }
 
@@ -19,7 +19,7 @@ const steps = ["Place your foot flat on a piece of paper.", "Trace or mark heel 
 /** Optical offsets of the step numbers, measured from the design (the "1" in 01 is narrower). */
 const numberOffset = ["md:ps-2.5", "md:ps-1.5", "md:ps-1.5", "md:ps-0.75"]
 
-/** Size Guide (screen 08): chart tabs, measuring steps and the "between two sizes" help strip. */
+/** Size Guide (screen 08; tabs per D-058): Brand New / Pre-Loved charts, measuring steps and the "between two sizes" help strip. */
 export default function SizeGuidePage() {
   return (
     <div className="bg-surface-sunken">
@@ -29,7 +29,7 @@ export default function SizeGuidePage() {
 
       <Container className="flex flex-col items-center pt-10 pb-16 md:pt-16.25 md:pb-18.25">
         <div className="flex w-full flex-col 3xl:w-320">
-          <SizeChartTabs charts={sizeCharts} />
+          <SizeGuideTabs guides={sizeGuides} />
 
           <section aria-labelledby="measure-title" className="pt-8 md:pt-12">
             <div className="flex flex-col gap-6 rounded-panel bg-foreground p-6 text-background md:gap-7.75 md:p-10">

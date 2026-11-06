@@ -73,17 +73,18 @@ test.describe("nav dropdown", () => {
     await women.focus()
     await page.keyboard.press("ArrowDown")
     await page.locator(`#${await women.getAttribute("aria-controls")}`).getByRole("link", { name: "Brand New" }).click()
-    await expect(page).toHaveURL(/\/collections\/women\?kind=new$/)
+    await expect(page).toHaveURL(/\/collections\/women\?kind=new&gender=women$/)
     await expect(page.locator("[id^=nav-panel-]:visible")).toHaveCount(0)
+    // D-067: the tab's gender arrives already ticked in the Gender filter.
+    await expect(page.getByRole("region", { name: "Filters" }).getByRole("checkbox", { name: "Women", exact: true })).toBeChecked()
   })
 
   // D-045: every dropdown tab offers the same two choices and nothing else, and neither leads to an empty listing.
   test("every tab's dropdown offers exactly Brand New and Pre-Loved for that tab", async ({ page, request }) => {
     await ready(page)
     for (const [label, brandNew, preLoved] of [
-      ["Men", "/collections/men?kind=new", "/pre-loved?gender=men"],
-      ["Women", "/collections/women?kind=new", "/pre-loved?gender=women"],
-      ["Sale", "/collections/sale?kind=new", "/collections/sale?kind=preloved"],
+      ["Men", "/collections/men?kind=new&gender=men", "/pre-loved?gender=men"],
+      ["Women", "/collections/women?kind=new&gender=women", "/pre-loved?gender=women"],
     ]) {
       const trigger = header(page).getByRole("button", { name: label, exact: true })
       await trigger.focus()
@@ -104,16 +105,16 @@ test.describe("nav dropdown", () => {
 
   // D-045: Brand New / Pre-Loved are pages of their own, never a filter the shopper can untick.
   test("a Brand New page offers no type filter and keeps its scope through filters and Clear All", async ({ page }) => {
-    await ready(page, "/collections/sale?kind=new")
+    await ready(page, "/collections/brand-new?kind=new")
     const filters = page.getByRole("region", { name: "Filters" })
     await expect(filters.getByRole("heading", { name: "Gender" })).toBeVisible()
     await expect(filters.getByText("Type", { exact: true })).toHaveCount(0)
     await expect(filters.getByRole("checkbox", { name: /Brand New|Pre-Loved/ })).toHaveCount(0)
     await expect(filters.getByRole("button", { name: "Clear All" })).toHaveCount(0)
     await filters.getByRole("checkbox", { name: "Men", exact: true }).click()
-    await expect(page).toHaveURL(/\/collections\/sale\?kind=new&gender=men$/)
+    await expect(page).toHaveURL(/\/collections\/brand-new\?kind=new&gender=men$/)
     await filters.getByRole("button", { name: "Clear All" }).click()
-    await expect(page).toHaveURL(/\/collections\/sale\?kind=new$/)
+    await expect(page).toHaveURL(/\/collections\/brand-new\?kind=new$/)
   })
 
   // Regression BUG-005: z-nav generated no CSS, so the page painted over the open panel.
@@ -137,17 +138,32 @@ test.describe("nav dropdown", () => {
   // D-049: the dropdown tabs only open their dropdown; a click never leaves the page.
   test("clicking a tab opens its dropdown and never navigates", async ({ page }) => {
     await ready(page)
-    for (const label of ["Men", "Women", "Sale"]) {
+    for (const label of ["Men", "Women"]) {
       await expect(header(page).getByRole("link", { name: label, exact: true })).toHaveCount(0)
     }
-    const sale = header(page).getByRole("button", { name: "Sale", exact: true })
-    await sale.click()
-    await expect(sale).toHaveAttribute("aria-expanded", "true")
+    const women = header(page).getByRole("button", { name: "Women", exact: true })
+    await women.click()
+    await expect(women).toHaveAttribute("aria-expanded", "true")
     await page.waitForTimeout(500)
     await expect(page).toHaveURL(/\/$/)
-    await sale.click()
-    await expect(sale).toHaveAttribute("aria-expanded", "true")
+    await women.click()
+    await expect(women).toHaveAttribute("aria-expanded", "true")
     await expect(page).toHaveURL(/\/$/)
+  })
+
+  // D-053: Sale is a page of its own, a plain link with no dropdown, like New Arrival.
+  test("Sale is a link that opens its page, with no dropdown", async ({ page }) => {
+    await ready(page)
+    await expect(header(page).getByRole("button", { name: "Sale", exact: true })).toHaveCount(0)
+    const link = header(page).getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Sale", exact: true })
+    await expect(link).toHaveAttribute("href", "/sale")
+    await link.hover()
+    await page.waitForTimeout(400)
+    await expect(page.locator("[id^=nav-panel-]:visible")).toHaveCount(0)
+    await link.click()
+    await expect(page).toHaveURL(/\/sale$/)
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/on\s*sale/i)
+    await expect(header(page).getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Sale", exact: true })).toHaveAttribute("aria-current", "page")
   })
 
   // D-052: New Arrival is a page of its own, a plain link with no dropdown.
@@ -339,6 +355,9 @@ test.describe("mobile drawer", () => {
     // D-052: New Arrival opens its page straight from the drawer root.
     await expect(drawer.getByRole("button", { name: "New Arrival", exact: true })).toHaveCount(0)
     await expect(drawer.getByRole("link", { name: "New Arrival", exact: true })).toHaveAttribute("href", "/new-arrivals")
+    // D-053: so does Sale.
+    await expect(drawer.getByRole("button", { name: "Sale", exact: true })).toHaveCount(0)
+    await expect(drawer.getByRole("link", { name: "Sale", exact: true })).toHaveAttribute("href", "/sale")
     await page.keyboard.press("Escape")
     await expect(drawer).toBeHidden()
     await expect(open).toBeFocused()
@@ -379,7 +398,7 @@ test.describe("without JavaScript", () => {
   test("header controls are links and /search works with a GET form", async ({ page }) => {
     await page.goto("/")
     const links = await header(page).locator("a[href]").evaluateAll((anchors) => anchors.map((anchor) => anchor.getAttribute("href")))
-    expect(links).toEqual(expect.arrayContaining(["/search", "/account", "/cart", "/collections/men?kind=new", "/pre-loved?gender=men"]))
+    expect(links).toEqual(expect.arrayContaining(["/search", "/account", "/cart", "/collections/men?kind=new&gender=men", "/pre-loved?gender=men"]))
     // D-049: without JavaScript a tab's dropdown shows while the tab is hovered or focused.
     const men = header(page).getByRole("button", { name: "Men", exact: true })
     const panel = page.locator(`#${await men.getAttribute("aria-controls")}`)

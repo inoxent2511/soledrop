@@ -4,6 +4,7 @@ import { siteConfig } from "@/lib/site"
 import { catalog } from "@/server/catalog"
 import { contentService } from "@/server/content"
 import { currentStoreId } from "@/server/db/driver"
+import { DEDICATED_COLLECTION_PAGES } from "@/server/storefront"
 
 /** Rebuilt hourly: new drops and sold pre-loved pairs reach search engines within the hour. */
 export const revalidate = 3600
@@ -16,16 +17,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const service = catalog()
   const [collections, products, pages] = await Promise.all([service.collections(storeId), service.allProducts(storeId), contentService().pages(storeId)])
 
-  const fixed = ["/", "/pre-loved", "/contact", "/faq", "/size-guide", "/condition-guide"].map((path) => ({
+  const daily = new Set(["/", "/pre-loved", "/sale"])
+  const fixed = ["/", "/pre-loved", "/sale", "/contact", "/faq", "/size-guide", "/condition-guide", "/terms", "/privacy", "/shipping", "/returns"].map((path) => ({
     url: url(path),
-    changeFrequency: path === "/" || path === "/pre-loved" ? ("daily" as const) : ("monthly" as const),
+    changeFrequency: daily.has(path) ? ("daily" as const) : ("monthly" as const),
     priority: path === "/" ? 1 : 0.6,
   }))
 
   return [
     ...fixed,
     ...collections
-      .filter((collection) => collection.slug !== "pre-loved")
+      .filter((collection) => !DEDICATED_COLLECTION_PAGES[collection.slug])
       .map((collection) => ({ url: url(`/collections/${collection.slug}`), changeFrequency: "daily" as const, priority: 0.8 })),
     ...products
       .filter((product) => product.status === "active")

@@ -72,15 +72,17 @@ test.describe("new arrivals", () => {
     await expect(page.locator("#arrivals-panel-preloved")).toBeVisible()
   })
 
-  test("the status line and LOAD MORE agree with the cards shown", async ({ page }) => {
+  test("no visible count lines, and LOAD MORE agrees with the cards shown", async ({ page }) => {
     await ready(page)
     for (const id of ["new", "preloved"] as const) {
       await page.getByRole("tab", { name: id === "new" ? /^Brand New/ : /^Pre-Loved/ }).click()
       const panel = page.locator(`#arrivals-panel-${id}`)
       const total = Number((await page.getByRole("tab", { selected: true }).locator("span").first().innerText()).match(/\d+/)![0])
       const shown = await cardsIn(page, id).count()
-      await expect(page.getByText(new RegExp(`^Showing ${shown} of ${total} `))).toBeVisible()
-      await expect(panel.getByText(`You've seen ${shown} of ${total}`)).toBeVisible()
+      // The owner removed both count lines from the screen; the "seen" line stays for screen readers only.
+      await expect(page.getByText(/^Showing \d+ of \d+/)).toHaveCount(0)
+      await expect(page.getByText("Newest first")).toHaveCount(0)
+      await expect(panel.getByText(`You've seen ${shown} of ${total}`)).toHaveClass(/sr-only/)
       const more = panel.getByRole("link", { name: "Load more" })
       if (total > shown) {
         await more.click()

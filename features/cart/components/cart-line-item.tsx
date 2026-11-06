@@ -29,12 +29,12 @@ export function CartLineItem({ line, currency, busy, onQuantity, onRemove }: Car
   const preLoved = line.kind === "preloved"
 
   return (
-    <li className="grid grid-cols-[6rem_minmax(0,1fr)] gap-x-4 gap-y-5 rounded-xl bg-background p-4 outline-1 outline-border-strong md:grid-cols-[13.75rem_minmax(0,1fr)] md:gap-x-7.5 md:p-5 xl:flex xl:h-65 xl:items-center xl:gap-0">
-      <Link href={`/products/${line.slug}`} tabIndex={-1} aria-hidden="true" className="relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-well xl:size-55">
+    <li className="grid grid-cols-[6rem_minmax(0,1fr)] gap-x-4 gap-y-5 rounded-xl bg-background p-4 outline-1 outline-border-strong md:grid-cols-[13.75rem_minmax(0,1fr)] md:gap-x-7.5 md:p-5 3xl:flex 3xl:h-65 3xl:items-center 3xl:gap-0">
+      <Link href={`/products/${line.slug}`} tabIndex={-1} aria-hidden="true" className="relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-well 3xl:size-55">
         <Image src={line.image.url} alt="" fill sizes="(min-width: 768px) 220px, 96px" className="object-cover" />
       </Link>
 
-      <div className="flex min-w-0 flex-col items-start xl:h-full xl:w-114.25 xl:shrink-0 xl:ps-7.5">
+      <div className="flex min-w-0 flex-col items-start 3xl:h-full 3xl:w-114.25 3xl:shrink-0 3xl:ps-7.5">
         <span
           className={cn(
             "flex h-9 items-center justify-center rounded-sm px-3 text-16 font-semibold md:h-12 md:w-37 md:px-0 md:text-20",
@@ -72,8 +72,8 @@ export function CartLineItem({ line, currency, busy, onQuantity, onRemove }: Car
         </div>
       </div>
 
-      <div className="col-span-2 flex flex-wrap items-center justify-between gap-4 xl:col-span-1 xl:h-full xl:flex-1 xl:flex-nowrap xl:gap-0">
-        <div className="flex flex-col items-center gap-4 xl:gap-10">
+      <div className="col-span-2 flex flex-wrap items-center justify-between gap-4 3xl:col-span-1 3xl:h-full 3xl:flex-1 3xl:flex-nowrap 3xl:gap-0">
+        <div className="flex flex-col items-center gap-4 3xl:gap-10">
           <p className="flex gap-2 text-18 font-medium whitespace-nowrap md:text-24">
             {line.compareAt ? (
               <>
@@ -101,7 +101,7 @@ export function CartLineItem({ line, currency, busy, onQuantity, onRemove }: Car
             />
           )}
         </div>
-        <p className="text-24 font-bold md:text-34 xl:pe-5">
+        <p className="text-24 font-bold md:text-34 3xl:pe-5">
           <span className="sr-only">Line total: </span>
           {price(line.lineTotal)}
         </p>

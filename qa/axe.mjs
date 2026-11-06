@@ -8,8 +8,8 @@ import { chromium } from "@playwright/test"
 
 const base = process.argv.find((arg) => arg.startsWith("--base="))?.slice(7) ?? "http://127.0.0.1:3200"
 const routes = [
-  "/", "/new-arrivals", "/collections/new-arrivals", "/pre-loved", "/products/asics-gel-kayano-30-black-silver", "/products/hoka-bondi-7-grey",
-  "/contact", "/faq", "/size-guide", "/cart", "/search?q=nike", "/pages/shipping", "/orders/lookup",
+  "/", "/new-arrivals", "/sale", "/terms", "/privacy", "/returns", "/collections/new-arrivals", "/pre-loved", "/products/asics-gel-kayano-30-black-silver", "/products/hoka-bondi-7-grey",
+  "/contact", "/faq", "/size-guide", "/cart", "/search?q=nike", "/shipping", "/orders/lookup",
   "/account/login", "/account/register", "/account/forgot-password", "/does-not-exist",
 ]
 

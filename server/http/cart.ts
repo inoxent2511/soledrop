@@ -15,7 +15,8 @@ export const EMPTY_CART: Cart = {
   promotions: [],
   rejectedCodes: [],
   totals: { subtotal: 0, discount: 0, shipping: 0, tax: 0, taxIncluded: true, total: 0 },
-  freeShippingThreshold: 500000,
+  // No cart yet, so no threshold to show; the real one comes from the shipping rates (server/cart/service.ts).
+  freeShippingThreshold: null,
   warnings: [],
 }
 

@@ -14,7 +14,7 @@ const item = "flex min-h-11 items-center rounded-md px-3 text-16 font-semibold t
 
 const signedInLinks = [
   { label: "Orders", href: "/account#orders" },
-  { label: "Returns & exchanges", href: "/pages/returns" },
+  { label: "Returns & exchanges", href: "/returns" },
   { label: "Addresses", href: "/account#addresses" },
   { label: "Account settings", href: "/account#details" },
 ]

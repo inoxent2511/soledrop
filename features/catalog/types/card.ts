@@ -1,4 +1,9 @@
-import { cardImage, type ConditionGrade, type ProductKind, type ProductView } from "@/server/catalog/types"
+import {
+  cardImage,
+  type ConditionGrade,
+  type ProductKind,
+  type ProductView,
+} from "@/server/catalog/types"
 import type { CurrencyCode } from "@/server/shared/money"
 
 /** What a product card needs — a slim, serialisable slice of ProductView for client components. */
@@ -8,10 +13,22 @@ export type CardProduct = {
   title: string
   kind: ProductKind
   image: { url: string; alt: string } | null
-  price: { amount: number; compareAt: number | null; currency: CurrencyCode; discountPercent: number | null }
+  price: {
+    amount: number
+    compareAt: number | null
+    currency: CurrencyCode
+    discountPercent: number | null
+  }
   condition: ConditionGrade | null
   inStock: boolean
-  sizes: { variantId: string; eu: string; available: boolean }[]
+  /** UK and US are the size on the pair's tag (pre-loved) or the catalogue conversion (new). */
+  sizes: {
+    variantId: string
+    eu: string
+    uk: string
+    us: string
+    available: boolean
+  }[]
 }
 
 export function toCardProduct(product: ProductView): CardProduct {
@@ -25,6 +42,12 @@ export function toCardProduct(product: ProductView): CardProduct {
     price: product.price,
     condition: product.condition,
     inStock: product.inStock,
-    sizes: product.variants.map((variant, index) => ({ variantId: variant.id, eu: variant.size.eu, available: (product.stock[index]?.available ?? 0) > 0 })),
+    sizes: product.variants.map((variant, index) => ({
+      variantId: variant.id,
+      eu: variant.size.eu,
+      uk: variant.size.uk,
+      us: variant.size.us,
+      available: (product.stock[index]?.available ?? 0) > 0,
+    })),
   }
 }

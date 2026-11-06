@@ -9,8 +9,8 @@ import { openPanel, PANELS, panelApplies, waitForHydration } from "./support/pan
  * pair in the bag. Each failure lists rule, impact and the first offending element.
  */
 const ROUTES = [
-  "/", "/new-arrivals", "/collections/new-arrivals", "/pre-loved", "/products/asics-gel-kayano-30-black-silver", "/products/hoka-bondi-7-grey",
-  "/contact", "/faq", "/size-guide", "/condition-guide", "/cart", "/search?q=nike", "/search?q=zzzzqx", "/pages/shipping", "/orders/lookup",
+  "/", "/new-arrivals", "/sale", "/terms", "/privacy", "/returns", "/collections/new-arrivals", "/pre-loved", "/products/asics-gel-kayano-30-black-silver", "/products/hoka-bondi-7-grey",
+  "/contact", "/faq", "/size-guide", "/condition-guide", "/cart", "/search?q=nike", "/search?q=zzzzqx", "/shipping", "/orders/lookup",
   "/account/login", "/account/register", "/account/forgot-password", "/does-not-exist",
 ]
 const WIDTHS = [390, 1440]

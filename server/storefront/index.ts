@@ -2,11 +2,11 @@ import "server-only"
 
 import { cache } from "react"
 
-import { menuOptions, popularCollections, popularSearches, preLovedLinks, primaryNav } from "@/content/navigation"
+import { menuOptions, popularCollections, popularSearches, primaryNav, tabGender } from "@/content/navigation"
 import type { FilterOptions } from "@/features/catalog/types/filters"
 import type { MenuSection } from "@/features/navigation/types"
 import type { SuggestProduct, SuggestResponse } from "@/features/search/types"
-import { conditionLabel } from "@/lib/format"
+import { conditionLabel, formatPrice } from "@/lib/format"
 import { catalog } from "@/server/catalog"
 import { CONDITION_GRADES, type ProductQuery, type ProductView } from "@/server/catalog/types"
 import { contentService } from "@/server/content"
@@ -34,15 +34,19 @@ export const getCollection = cache(async (slug: string) => catalog().getCollecti
 export async function homeData() {
   const service = catalog()
   const context = retailContext()
-  const [newArrivals, preloved, featuredNew, featuredPreloved] = await Promise.all([
+  const [newArrivals, newestPreloved, brandNew, preloved, featuredNew, featuredPreloved] = await Promise.all([
     service.queryProducts({ collection: "new-arrivals", pageSize: 4 }, context),
+    // The New Arrival row's Pre-Loved side (D-075): the newest listings, as the New Arrivals page counts them.
+    service.queryProducts({ kind: "preloved", sort: "newest", pageSize: 4 }, context),
+    // Brand New Drops (D-076): the brand-new range in featured order, like Pre-Loved Drops.
+    service.queryProducts({ collection: "brand-new", pageSize: 4 }, context),
     service.queryProducts({ kind: "preloved", pageSize: 4 }, context),
     service.queryProducts({ collection: "featured", kind: "new", pageSize: 1 }, context),
     service.queryProducts({ collection: "featured", kind: "preloved", pageSize: 1 }, context),
   ])
   // The Featured Drop slider: one brand-new and one pre-loved pair from the "featured" collection (D-048).
   const featured = [featuredNew.items[0], featuredPreloved.items[0]].filter((item) => item !== undefined)
-  return { newArrivals: newArrivals.items, preloved: preloved.items, featured }
+  return { newArrivals: newArrivals.items, newestPreloved: newestPreloved.items, brandNew: brandNew.items, preloved: preloved.items, featured }
 }
 
 /** How many pairs each New Arrivals tab loads; the page reveals them a few rows at a time (D-052). */
@@ -60,6 +64,30 @@ export async function newArrivalsData() {
   ])
   return { collection, brandNew, preloved }
 }
+
+/** Every pair on sale, so the Sale page never needs a second listing behind it (D-053). */
+export const SALE_LIMIT = 500
+
+/**
+ * The Sale page (D-053): the rule-based "sale" collection (any pair whose compare-at price is above
+ * its price, new or pre-loved), split into its brand-new and pre-loved pairs, newest first.
+ */
+export async function saleData() {
+  const service = catalog()
+  const context = retailContext()
+  const [collection, brandNew, preloved] = await Promise.all([
+    getCollection("sale"),
+    service.queryProducts({ collection: "sale", kind: "new", sort: "newest", pageSize: SALE_LIMIT }, context),
+    service.queryProducts({ collection: "sale", kind: "preloved", sort: "newest", pageSize: SALE_LIMIT }, context),
+  ])
+  return { collection, brandNew, preloved }
+}
+
+/** Collections served by a page of their own instead of /collections/<slug>. */
+export const DEDICATED_COLLECTION_PAGES: Record<string, string> = { "pre-loved": "/pre-loved", sale: "/sale" }
+
+/** Where a collection lives on the storefront. */
+export const collectionHref = (slug: string) => DEDICATED_COLLECTION_PAGES[slug] ?? `/collections/${slug}`
 
 /** The adult EU run the size filter always offers (design: 38–45); sizes stocked outside it are added. */
 const STANDARD_EU_SIZES = ["38", "39", "40", "41", "42", "43", "44", "45"]
@@ -104,22 +132,38 @@ export const freeDeliveryThreshold = cache(async () => {
   return thresholds.length ? Math.min(...thresholds) : null
 })
 
+/** A delivery rate as the Shipping & Delivery Policy shows it (D-056). */
+export type DeliveryRate = { code: string; label: string; amount: number; freeOver: number | null; cashOnDelivery: boolean }
+
 /**
- * The product page: the product, four related pairs, the delivery promise and the Shipping and
- * Returns policy pages shown in the Product Information panels. Null when the slug is unknown.
+ * The live delivery rates of the store's first zone, and the "Standard shipping" line built from its
+ * standard rate, so the policy always states what checkout charges. Null text when no rate exists.
+ */
+export const deliveryRates = cache(async (): Promise<{ rates: DeliveryRate[]; standardShipping: string | null }> => {
+  const zones = await shippingRepository().listZones(currentStoreId())
+  const zone = [...zones].sort((a, b) => a.position - b.position)[0]
+  const rates = (zone?.rates ?? []).map(({ code, label, amount, freeOver, cashOnDelivery }) => ({ code, label, amount, freeOver, cashOnDelivery }))
+  const standard = rates.find((rate) => rate.code === "standard") ?? rates[0]
+  if (!standard) return { rates, standardShipping: null }
+  const price = standard.amount === 0 ? "free" : `${formatPrice(standard.amount, "PKR", { symbol: true })} per order`
+  const free = standard.amount > 0 && standard.freeOver !== null ? `, free on orders above ${formatPrice(standard.freeOver, "PKR", { symbol: true })}` : ""
+  return { rates, standardShipping: `${price}${free}` }
+})
+
+/**
+ * The product page: the product, four related pairs, the delivery promise and the live delivery rate
+ * for the Delivery panel's policy excerpt (D-056). Null when the slug is unknown.
  */
 export async function productPageData(slug: string) {
   const product = await getProduct(slug)
   if (!product || product.status !== "active") return null
   const storeId = currentStoreId()
-  const content = contentService()
   const service = catalog()
-  const [related, attributes, freeDeliveryOver, shipping, returns] = await Promise.all([
+  const [related, attributes, freeDeliveryOver, delivery] = await Promise.all([
     service.related(product, retailContext()),
     service.attributeDefinitions(storeId),
     freeDeliveryThreshold(),
-    content.page(storeId, "shipping"),
-    content.page(storeId, "returns"),
+    deliveryRates(),
   ])
   /** Product-level attributes with their merchant labels, in definition order ("Colour: Black / Silver"). */
   const details = [...attributes]
@@ -131,7 +175,7 @@ export async function productPageData(slug: string) {
       const text = Array.isArray(value) ? value.map(option).join(", ") : typeof value === "boolean" ? (value ? "Yes" : "No") : option(String(value))
       return { label: definition.label, value: text }
     })
-  return { product, related, details, freeDeliveryOver, policies: { shipping, returns } }
+  return { product, related, details, freeDeliveryOver, standardShipping: delivery.standardShipping }
 }
 
 /** FAQs grouped by category, each with a stable anchor id for the jump links. */
@@ -193,7 +237,7 @@ export async function searchSuggest(rawQuery: string): Promise<SuggestResponse> 
     .filter((collection) => collection.slug !== "featured" && score(nameOnly(collection.title), query, synonyms) > 0)
     .sort((a, b) => a.position - b.position)
     .slice(0, SUGGEST_LINKS)
-    .map((collection) => ({ label: collection.title, href: collection.slug === "pre-loved" ? "/pre-loved" : `/collections/${collection.slug}` }))
+    .map((collection) => ({ label: collection.title, href: collectionHref(collection.slug) }))
   const brandLinks = brands
     .filter((brand) => score(nameOnly(brand.name), query, synonyms) > 0)
     .sort((a, b) => a.position - b.position)
@@ -241,16 +285,23 @@ export async function searchCount(query: string): Promise<number> {
  * lead. A direct item (New Arrival, D-052) has no choices: it is a plain link to its own page.
  */
 export const navigationData = cache(async (): Promise<MenuSection[]> =>
-  primaryNav.map((link) => ({
-    label: link.label,
-    href: link.href,
-    tone: link.tone,
-    options: link.direct ? [] : menuOptions.map((option) => ({
-      kind: option.kind,
-      label: option.label,
-      href: option.kind === "preloved" ? (preLovedLinks[link.href] ?? `${link.href}?kind=preloved`) : `${link.href}?kind=new`,
-    })),
-  })),
+  primaryNav.map((link) => {
+    // D-067: a gendered tab opens both choices with that Gender filter already ticked.
+    const gender = tabGender[link.href]
+    const withGender = gender ? `&gender=${gender}` : ""
+    return {
+      label: link.label,
+      href: link.href,
+      tone: link.tone,
+      options: link.direct
+        ? []
+        : menuOptions.map((option) => ({
+            kind: option.kind,
+            label: option.label,
+            href: option.kind === "preloved" ? (gender ? `/pre-loved?gender=${gender}` : `${link.href}?kind=preloved`) : `${link.href}?kind=new${withGender}`,
+          })),
+    }
+  }),
 )
 
 export function stockByVariant(product: ProductView): Record<string, number> {

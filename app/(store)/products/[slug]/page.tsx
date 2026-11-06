@@ -12,7 +12,9 @@ import { ProductRow } from "@/features/catalog/components/product-row"
 import { TrustRow } from "@/features/catalog/components/trust-row"
 import { CONDITION_GUIDE } from "@/features/catalog/lib/condition-grades"
 import { toCardProduct } from "@/features/catalog/types/card"
-import { Blocks } from "@/features/content/components/block-registry"
+import { PolicyExcerpt } from "@/features/content/components/policy-document"
+import { returnsDocument, returnsExcerptSections } from "@/content/returns"
+import { shippingDocument, shippingExcerptSections } from "@/content/shipping"
 import { RecordView } from "@/features/search/components/record-view"
 import { conditionLabel, formatPrice } from "@/lib/format"
 import { siteConfig } from "@/lib/site"
@@ -51,7 +53,7 @@ export default async function ProductPage({ params }: Props) {
   const data = await productPageData(slug)
   if (!data) notFound()
 
-  const { product, related, details, freeDeliveryOver, policies } = data
+  const { product, related, details, freeDeliveryOver, standardShipping } = data
   const preloved = product.kind === "preloved"
   const { amount, compareAt, currency, discountPercent } = product.price
   const sizes = product.variants.map((variant, index) => ({
@@ -101,8 +103,10 @@ export default async function ProductPage({ params }: Props) {
           },
         ]
       : []),
-    { title: "Delivery", content: policies.shipping ? <Blocks blocks={policies.shipping.blocks} compact /> : <PolicyFallback href="/contact" /> },
-    { title: "Returns", content: policies.returns ? <Blocks blocks={policies.returns.blocks} compact /> : <PolicyFallback href="/contact" /> },
+    // The Delivery panel shows the Shipping & Delivery Policy's charges and timing, with a link to the full page (D-056).
+    { title: "Delivery", content: <PolicyExcerpt document={shippingDocument} sectionIds={shippingExcerptSections} href="/shipping" values={standardShipping ? { standardShipping } : {}} /> },
+    // The Returns panel shows how to start a return and this kind of pair's requirements (D-057).
+    { title: "Returns", content: <PolicyExcerpt document={returnsDocument} sectionIds={returnsExcerptSections(product.kind)} href="/returns" /> },
   ]
 
   const { slug: viewedSlug, title, brand, image, price } = toSuggestProduct(product)
@@ -186,17 +190,5 @@ export default async function ProductPage({ params }: Props) {
         </section>
       ) : null}
     </>
-  )
-}
-
-function PolicyFallback({ href }: { href: string }) {
-  return (
-    <p className="text-16 text-subtle-foreground md:text-18">
-      Our team will confirm the details for your city —{" "}
-      <Link href={href} className="font-bold text-foreground underline underline-offset-4">
-        contact us
-      </Link>
-      .
-    </p>
   )
 }

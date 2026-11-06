@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 import { Container } from "@/components/shared/container"
-import { ARRIVALS_STEP, ArrivalsTabs, type ArrivalsTab } from "@/features/catalog/components/arrivals-tabs"
 import { CollectionBanner } from "@/features/catalog/components/collection-banner"
+import { KIND_TABS_STEP, KindTabs, type KindTab, type KindTabsPage } from "@/features/catalog/components/kind-tabs"
 import { ProductCard } from "@/features/catalog/components/product-card"
 import { toCardProduct } from "@/features/catalog/types/card"
 import type { ProductPage } from "@/server/catalog/types"
@@ -14,6 +14,15 @@ const DESCRIPTION = "Fresh releases and verified pre-loved pairs, every week."
 type Props = { searchParams: Promise<{ tab?: string | string[]; show?: string | string[] }> }
 
 const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value)
+
+const TABS_PAGE: KindTabsPage = {
+  pathname: PATHNAME,
+  idPrefix: "arrivals",
+  label: "New arrivals",
+  emptyTitle: "Nothing new just yet",
+}
+
+const emptyText = (noun: string) => `New ${noun} pairs land every week. Check back soon, or browse everything in stock.`
 
 export const metadata: Metadata = {
   title: "New Arrivals",
@@ -29,15 +38,15 @@ export default async function NewArrivalsPage({ searchParams }: Props) {
   const params = await searchParams
   const initialTab = first(params.tab) === "preloved" ? "preloved" : "new"
   const requested = Number(first(params.show))
-  const initialShown = Number.isInteger(requested) && requested > ARRIVALS_STEP ? requested : ARRIVALS_STEP
+  const initialShown = Number.isInteger(requested) && requested > KIND_TABS_STEP ? requested : KIND_TABS_STEP
 
   const { collection, brandNew, preloved } = await newArrivalsData()
   const cards = (page: ProductPage) =>
     page.items.map((product, index) => <ProductCard key={product.id} product={toCardProduct(product)} priority={index < 4} headingLevel="h2" />)
 
-  const tabs: ArrivalsTab[] = [
-    { id: "new", label: "Brand New", noun: "brand-new", total: brandNew.total, cards: cards(brandNew), seeAllHref: "/collections/new-arrivals?kind=new" },
-    { id: "preloved", label: "Pre-Loved", noun: "pre-loved", total: preloved.total, cards: cards(preloved), seeAllHref: "/pre-loved?sort=newest" },
+  const tabs: KindTab[] = [
+    { id: "new", label: "Brand New", noun: "brand-new", total: brandNew.total, cards: cards(brandNew), seeAllHref: "/collections/new-arrivals?kind=new", emptyText: emptyText("brand-new") },
+    { id: "preloved", label: "Pre-Loved", noun: "pre-loved", total: preloved.total, cards: cards(preloved), seeAllHref: "/pre-loved?sort=newest", emptyText: emptyText("pre-loved") },
   ]
   const total = brandNew.total + preloved.total
 
@@ -51,7 +60,7 @@ export default async function NewArrivalsPage({ searchParams }: Props) {
           description={DESCRIPTION}
           image={collection?.image ? { url: collection.image.url, alt: collection.image.alt } : null}
         />
-        <ArrivalsTabs tabs={tabs} initialTab={initialTab} initialShown={initialShown} />
+        <KindTabs page={TABS_PAGE} tabs={tabs} initialTab={initialTab} initialShown={initialShown} />
       </Container>
     </div>
   )

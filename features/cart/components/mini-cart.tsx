@@ -10,6 +10,7 @@ import { useId, useState, type FormEvent } from "react"
 import { BagIcon } from "@/components/icons"
 import { buttonVariants } from "@/components/ui/button"
 import { cartKeys, useCart } from "@/hooks/api/cart/queries"
+import { freeDeliveryProgress } from "@/features/cart/lib/free-delivery"
 import { useApplyCode, useOptimisticLine, useRemoveCode } from "@/hooks/api/cart/useCartMutations"
 import { useRouteState } from "@/hooks/use-route-state"
 import { conditionLabel, formatPrice } from "@/lib/format"
@@ -50,9 +51,7 @@ export function MiniCart({ className }: { className: string }) {
   }
 
   const price = (amount: number) => formatPrice(amount, cart?.currency ?? "PKR", { symbol: true })
-  const threshold = cart?.freeShippingThreshold ?? null
-  const subtotal = cart?.totals.subtotal ?? 0
-  const remaining = threshold === null ? null : Math.max(0, threshold - subtotal)
+  const progress = cart ? freeDeliveryProgress(cart) : null
   const pending = line.isPending || applyCode.isPending || removeCode.isPending
   const codes = (cart?.promotions ?? []).flatMap((promotion) => (promotion.code ? [{ ...promotion, code: promotion.code }] : []))
 
@@ -105,11 +104,11 @@ export function MiniCart({ className }: { className: string }) {
           ) : (
             <>
               <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-5 py-5">
-                {remaining !== null ? (
+                {progress ? (
                   <div className="flex flex-col gap-2">
-                    <p className="text-16 font-semibold">{remaining === 0 ? "You've unlocked free delivery." : `Add ${price(remaining)} more for free delivery.`}</p>
-                    <div role="progressbar" aria-label="Progress to free delivery" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(Math.min(1, subtotal / (threshold ?? 1)) * 100)} className="h-2 overflow-hidden rounded-full bg-surface-sunken">
-                      <div className="h-full origin-left rounded-full bg-success transition-transform rtl:origin-right" style={{ transform: `scaleX(${Math.min(1, subtotal / (threshold ?? 1))})` }} />
+                    <p className="text-16 font-semibold">{progress.remaining === 0 ? "You've unlocked free delivery." : `Add ${price(progress.remaining)} more for free delivery.`}</p>
+                    <div role="progressbar" aria-label="Progress to free delivery" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress.ratio * 100)} className="h-2 overflow-hidden rounded-full bg-surface-sunken">
+                      <div className="h-full origin-left rounded-full bg-success transition-transform rtl:origin-right" style={{ transform: `scaleX(${progress.ratio})` }} />
                     </div>
                   </div>
                 ) : null}

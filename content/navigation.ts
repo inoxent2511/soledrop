@@ -1,7 +1,7 @@
 /** A link in the site chrome. `href` is always an internal path. */
 export type NavLink = { label: string; href: string; tone?: "brand" }
 
-/** A primary-nav item; `direct` items are a page of their own and open no dropdown (D-052). */
+/** A primary-nav item; `direct` items are a page of their own and open no dropdown (D-052, D-053). */
 export type PrimaryNavLink = NavLink & { direct?: true }
 
 /** Primary navigation — the four-item nav used on 7 of the 10 designed screens (D-006). */
@@ -9,7 +9,7 @@ export const primaryNav: PrimaryNavLink[] = [
   { label: "New Arrival", href: "/new-arrivals", direct: true },
   { label: "Men", href: "/collections/men" },
   { label: "Women", href: "/collections/women" },
-  { label: "Sale", href: "/collections/sale", tone: "brand" },
+  { label: "Sale", href: "/sale", tone: "brand", direct: true },
 ]
 
 /**
@@ -22,11 +22,14 @@ export const menuOptions = [
   { kind: "preloved", label: "Pre-Loved" },
 ] as const
 
-/** Primary-nav href → where its Pre-Loved choice leads. */
-export const preLovedLinks: Record<string, string> = {
-  "/collections/men": "/pre-loved?gender=men",
-  "/collections/women": "/pre-loved?gender=women",
-  "/collections/sale": "/collections/sale?kind=preloved",
+/**
+ * Primary-nav href → its shopper gender (D-067). Both of that tab's choices open with the Gender
+ * filter ticked, so the shopper can see what they're looking at and untick it: Brand New narrows
+ * the tab's collection, and Pre-Loved goes to the Pre-Loved shop (one-off pairs live there, D-045).
+ */
+export const tabGender: Record<string, "men" | "women"> = {
+  "/collections/men": "men",
+  "/collections/women": "women",
 }
 
 /** Links below the category tree in the mobile drawer. */
@@ -39,14 +42,20 @@ export const shortcutNav: NavLink[] = [
 ]
 
 /** Search overlay: curated searches shown until the search log has enough history of its own. */
-export const popularSearches = ["Air Max", "Gel-Kayano", "Running", "Pre-loved", "Bondi"]
+export const popularSearches = [
+  "Air Max",
+  "Gel-Kayano",
+  "Running",
+  "Pre-loved",
+  "Bondi",
+]
 
 /** Search overlay: collections offered before the shopper types. */
 export const popularCollections: NavLink[] = [
   { label: "New Arrival", href: "/new-arrivals" },
   { label: "Brand New", href: "/collections/brand-new" },
   { label: "Pre-Loved", href: "/pre-loved" },
-  { label: "Sale", href: "/collections/sale" },
+  { label: "Sale", href: "/sale" },
 ]
 
 /** Footer link columns, in design order. */
@@ -57,7 +66,7 @@ export const footerColumns: { title: string; links: NavLink[] }[] = [
       { label: "New Arrival", href: "/new-arrivals" },
       { label: "Brand New", href: "/collections/brand-new" },
       { label: "Pre-Loved", href: "/pre-loved" },
-      { label: "Sale", href: "/collections/sale" },
+      { label: "Sale", href: "/sale" },
     ],
   },
   {
@@ -67,9 +76,10 @@ export const footerColumns: { title: string; links: NavLink[] }[] = [
       { label: "FAQ", href: "/faq" },
       { label: "Size Guide", href: "/size-guide" },
       { label: "Condition Guide", href: "/condition-guide" },
-      { label: "Shipping", href: "/pages/shipping" },
-      { label: "Returns", href: "/pages/returns" },
-      { label: "Privacy Policy", href: "/pages/privacy-policy" },
+      { label: "Shipping & Delivery Policy", href: "/shipping" },
+      { label: "Returns, Exchanges & Refunds Policy", href: "/returns" },
+      { label: "Terms & Conditions", href: "/terms" },
+      { label: "Privacy Policy", href: "/privacy" },
     ],
   },
   {
@@ -82,4 +92,8 @@ export const footerColumns: { title: string; links: NavLink[] }[] = [
 ]
 
 export const announcement = "🔥 NEW DROP IS LIVE — LIMITED PAIRS"
-export const promoBar = { text: "🚚 Free delivery on orders above PKR 5,000", cta: "SHOP NOW", href: "/new-arrivals" }
+export const promoBar = {
+  text: "🚚 Free delivery on orders above Rs. 12,000",
+  cta: "SHOP NOW",
+  href: "/new-arrivals",
+}

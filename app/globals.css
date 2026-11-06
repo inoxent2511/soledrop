@@ -22,12 +22,7 @@
   --color-input: var(--border-strong);
 }
 
-/* Derived (not in the design export): the Condition Guide page (D-046). */
-@theme {
-  --grid-template-columns-condition-explorer: minmax(0, 22rem) minmax(0, 1fr);
-}
-
-/* Condition Guide autoplay: the active grade's bar fills, then its animationend shows the next grade. */
+/* Featured Drop autoplay (D-061): the active drop's bar fills, then its animationend shows the next drop. */
 @keyframes grade-progress {
   from {
     transform: scaleX(0);
@@ -36,7 +31,7 @@
     transform: scaleX(1);
   }
 }
-@utility animate-grade-progress {
+@utility animate-drop-progress {
   transform-origin: left;
   animation: grade-progress 6s linear forwards;
   &:dir(rtl) {

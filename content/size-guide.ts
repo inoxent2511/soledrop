@@ -1,56 +1,150 @@
 /**
- * Size conversion charts for the Size Guide (screen 08). The men's chart is the design's table;
- * the women's and kids' charts are standard athletic-footwear conversions for the two tabs the
- * design shows but does not fill (D-026) and are listed for the owner to confirm.
+ * Size Guide charts (D-058, the owner's reference charts): Brand New and Pre-Loved each have their
+ * own men's and women's conversions. Values are copied from the owner's images as given; ranges
+ * such as "40-41" are half-EU sizes common on older pairs.
  */
-export type SizeRow = { eu: string; uk: string; us: string; cm: string }
+import type { SizeChart } from "@/server/catalog/types"
 
-export type SizeChartId = "men" | "women" | "kids"
+export type SizeGuideId = "new" | "preloved"
 
-export const sizeCharts: { id: SizeChartId; label: string; rows: SizeRow[] }[] = [
+export type SizeTable = {
+  id: "men" | "women"
+  title: string
+  /** Column keys in display order; the first is the row heading (EU). */
+  columns: { key: string; label: string }[]
+  rows: Record<string, string>[]
+}
+
+export type SizeGuide = {
+  id: SizeGuideId
+  label: string
+  summary: string
+  note: string
+  tables: SizeTable[]
+}
+
+const brandNewColumns = [
+  { key: "eu", label: "EU" },
+  { key: "us", label: "US" },
+  { key: "uk", label: "UK" },
+  { key: "cm", label: "CM" },
+]
+
+const preLovedColumns = [
+  { key: "eu", label: "EU" },
+  { key: "uk", label: "UK / PAK" },
+  { key: "us", label: "US" },
+]
+
+/** [eu, us, uk, cm] → row. */
+const brandNewRows = (rows: [string, string, string, string][]) =>
+  rows.map(([eu, us, uk, cm]) => ({ eu, us, uk, cm }))
+
+/** [eu, uk, us] → row. */
+const preLovedRows = (rows: [string, string, string][]) =>
+  rows.map(([eu, uk, us]) => ({ eu, uk, us }))
+
+export const sizeGuides: SizeGuide[] = [
   {
-    id: "men",
-    label: "Men",
-    rows: [
-      { eu: "40", uk: "6", us: "7", cm: "25" },
-      { eu: "41", uk: "7", us: "8", cm: "26" },
-      { eu: "42", uk: "8", us: "9", cm: "27" },
-      { eu: "43", uk: "9", us: "10", cm: "28" },
-      { eu: "44", uk: "10", us: "11", cm: "29" },
-      { eu: "45", uk: "11", us: "12", cm: "30" },
-      { eu: "46", uk: "12", us: "13", cm: "31" },
-      { eu: "47", uk: "13", us: "14", cm: "32" },
+    id: "new",
+    label: "Brand New",
+    summary: "EU · US · UK · CM",
+    note: "Brand-new pairs are listed in EU sizes. Foot length in centimetres is the surest match.",
+    tables: [
+      {
+        id: "men",
+        title: "Men",
+        columns: brandNewColumns,
+        rows: brandNewRows([
+          ["40", "7", "6", "25"],
+          ["41", "8", "7", "26"],
+          ["42", "8.5", "7.5", "26.5"],
+          ["43", "9", "8.5", "27"],
+          ["44", "10", "9", "28"],
+          ["45", "11", "10", "29"],
+          ["46", "12", "11", "30"],
+          ["47", "13", "12", "31"],
+        ]),
+      },
+      {
+        id: "women",
+        title: "Women",
+        columns: brandNewColumns,
+        rows: brandNewRows([
+          ["36", "5.5", "3", "22"],
+          ["37", "6", "3.5", "23"],
+          ["37.5", "6.5", "4", "23.5"],
+          ["38", "7", "4.5", "24"],
+          ["39", "8", "5.5", "25"],
+          ["40", "8.5", "6", "25"],
+          ["41", "9", "7", "26"],
+          ["42", "10", "7.5", "27"],
+        ]),
+      },
     ],
   },
   {
-    id: "women",
-    label: "Women",
-    rows: [
-      { eu: "35.5", uk: "3", us: "5", cm: "22" },
-      { eu: "36", uk: "3.5", us: "5.5", cm: "22.5" },
-      { eu: "37.5", uk: "4.5", us: "6.5", cm: "23.5" },
-      { eu: "38", uk: "5", us: "7", cm: "24" },
-      { eu: "39", uk: "6", us: "8", cm: "25" },
-      { eu: "40", uk: "6.5", us: "8.5", cm: "25.5" },
-      { eu: "41", uk: "7.5", us: "9.5", cm: "26.5" },
-      { eu: "42", uk: "8", us: "10", cm: "27" },
-    ],
-  },
-  {
-    id: "kids",
-    label: "Kids",
-    rows: [
-      { eu: "28", uk: "10.5", us: "11C", cm: "17" },
-      { eu: "30", uk: "12", us: "12.5C", cm: "18" },
-      { eu: "31", uk: "12.5", us: "13C", cm: "19" },
-      { eu: "32", uk: "13.5", us: "1Y", cm: "20" },
-      { eu: "33.5", uk: "1", us: "1.5Y", cm: "20.5" },
-      { eu: "35", uk: "2.5", us: "3Y", cm: "22" },
-      { eu: "36", uk: "3.5", us: "4Y", cm: "23" },
-      { eu: "38", uk: "5", us: "5.5Y", cm: "24" },
+    id: "preloved",
+    label: "Pre-Loved",
+    summary: "EU · UK / PAK · US",
+    note: "Every pre-loved listing shows the size printed on its tag. Find that size here to compare.",
+    tables: [
+      {
+        id: "men",
+        title: "Men",
+        columns: preLovedColumns,
+        rows: preLovedRows([
+          ["38", "5.5", "6"],
+          ["39", "6", "6.5"],
+          ["40", "6.5", "7"],
+          ["40-41", "7", "7.5"],
+          ["41", "7", "8"],
+          ["41-42", "7.5", "8.5"],
+          ["42", "8", "9"],
+          ["42-43", "8.5", "9.5"],
+          ["43", "9", "10"],
+          ["43-44", "10", "10.5"],
+          ["44", "10", "11"],
+          ["44-45", "10.5", "11.5"],
+          ["45", "11", "12"],
+          ["46", "12", "13"],
+          ["47", "12.5", "14"],
+          ["48", "13.5", "15"],
+          ["49", "14", "16"],
+        ]),
+      },
+      {
+        id: "women",
+        title: "Women",
+        columns: preLovedColumns,
+        rows: preLovedRows([
+          ["35", "2", "4"],
+          ["35", "2.5", "4.5"],
+          ["35-36", "3", "5"],
+          ["36", "3.5", "5.5"],
+          ["36-37", "4", "6"],
+          ["37", "4.5", "6.5"],
+          ["37-38", "5", "7"],
+          ["38", "5.5", "7.5"],
+          ["38-39", "6", "8"],
+          ["39", "6.5", "8.5"],
+          ["39-40", "7", "9"],
+          ["40", "7.5", "9.5"],
+          ["40-41", "8", "10"],
+          ["41", "8.5", "10.5"],
+          ["41-42", "9", "11"],
+          ["42", "9.5", "11.5"],
+          ["42-43", "10", "12"],
+        ]),
+      },
     ],
   },
 ]
 
-/** Men's chart keyed by EU size, the conversion the catalogue uses for every new pair. */
-export const mensSizeByEu: Record<string, SizeRow> = Object.fromEntries(sizeCharts[0].rows.map((row) => [row.eu, row]))
+/** Brand New men's chart keyed by EU size: the UK/US/CM labels the catalogue gives every new pair. */
+export const mensSizeByEu: Record<string, SizeChart> = Object.fromEntries(
+  sizeGuides[0].tables[0].rows.map((row) => [
+    row.eu,
+    { eu: row.eu, uk: row.uk, us: row.us, cm: row.cm },
+  ])
+)

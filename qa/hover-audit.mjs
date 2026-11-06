@@ -8,7 +8,7 @@ import { chromium } from "@playwright/test"
 
 const base = process.argv[2] ?? "http://localhost:3200"
 const routes = [
-  "/", "/new-arrivals", "/collections/new-arrivals", "/collections/sale?kind=new", "/pre-loved", "/products/asics-gel-kayano-30-black-silver",
+  "/", "/new-arrivals", "/collections/new-arrivals", "/sale", "/pre-loved", "/products/asics-gel-kayano-30-black-silver",
   "/products/hoka-bondi-7-grey", "/contact", "/faq", "/size-guide", "/condition-guide", "/cart", "/search?q=nike", "/search?q=zzzzqx",
   "/account/login", "/account/register", "/account/forgot-password", "/orders/lookup", "/pages/shipping", "/pages/about", "/does-not-exist",
 ]

@@ -123,7 +123,7 @@ export function OrderActions({ order, token }: { order: OrderDto; token: string 
           </button>
           <p className="text-14 text-subtle-foreground md:text-16">
             See our{" "}
-            <Link href="/pages/returns" className="underline underline-offset-4">
+            <Link href="/returns" className="underline underline-offset-4">
               returns policy
             </Link>
             .

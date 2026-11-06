@@ -138,8 +138,17 @@ export function createCatalogService({ catalog, pricing, inventory, synonyms = a
       items = [...items].sort((a, b) => {
         if (query.q && sort === "featured") return (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0) || a.position - b.position
         switch (sort) {
+          case "title-asc":
+            return a.title.localeCompare(b.title, "en", { sensitivity: "base" }) || a.position - b.position
+          case "title-desc":
+            return b.title.localeCompare(a.title, "en", { sensitivity: "base" }) || a.position - b.position
           case "newest":
             return Date.parse(b.publishedAt) - Date.parse(a.publishedAt)
+          case "oldest":
+            return Date.parse(a.publishedAt) - Date.parse(b.publishedAt)
+          // Biggest markdown first; full-price pairs follow in featured order.
+          case "discount-desc":
+            return (b.price.discountPercent ?? 0) - (a.price.discountPercent ?? 0) || a.position - b.position
           case "price-asc":
             return a.price.amount - b.price.amount || a.position - b.position
           case "price-desc":

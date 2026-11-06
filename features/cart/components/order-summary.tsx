@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { saleSavings } from "@/features/cart/lib/free-delivery"
 import { formatPrice } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { Cart } from "@/server/cart/types"
@@ -15,12 +16,12 @@ const action = "flex h-14 items-center justify-center rounded-lg text-20 font-se
 export function OrderSummary({ cart, blocked }: { cart: Cart; blocked: boolean }) {
   const price = (amount: number) => formatPrice(amount, cart.currency, { symbol: true })
   const { totals } = cart
-  const toFree = cart.freeShippingThreshold !== null && totals.shipping ? cart.freeShippingThreshold - (totals.subtotal - totals.discount) : null
+  const savings = saleSavings(cart)
 
   return (
     <section
       aria-labelledby="order-summary-title"
-      className="flex flex-col rounded-2xl bg-background px-5 pt-6 pb-8 shadow-summary-lift outline-1 outline-foreground md:px-7.5 md:pt-7.25 3xl:h-190"
+      className="flex flex-col rounded-2xl bg-background px-5 pt-6 pb-8 shadow-summary-lift outline-1 outline-foreground md:px-7.5 md:pt-7.25 3xl:min-h-190"
     >
       <h2 id="order-summary-title" tabIndex={-1} className="text-28 font-bold outline-none md:text-34">
         Order Summary
@@ -49,6 +50,14 @@ export function OrderSummary({ cart, blocked }: { cart: Cart; blocked: boolean }
           <dd>{price(totals.total)}</dd>
         </div>
       </dl>
+      {savings > 0 ? (
+        <div className="pt-6">
+          <p className="flex items-center justify-between gap-4 rounded-lg bg-brand-tint px-4 py-3 text-16 font-semibold md:text-18">
+            You&apos;re saving on sale prices
+            <span className="font-bold text-success">{price(savings)}</span>
+          </p>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-4 pt-8 md:pt-11">
         {blocked ? (
@@ -65,12 +74,9 @@ export function OrderSummary({ cart, blocked }: { cart: Cart; blocked: boolean }
         </Link>
       </div>
 
+      {/* Free-delivery progress has its own bar above the bag (D-059), so this line is about tax and payment only. */}
       <p className="pt-6 text-16 font-medium text-subtle-foreground md:pt-8 md:text-18">
-        {toFree !== null && toFree > 0
-          ? `Add ${price(toFree)} more for free delivery.`
-          : totals.taxIncluded
-            ? "Prices include GST. Cash on delivery and bank transfer at checkout."
-            : "GST is added at checkout."}
+        {totals.taxIncluded ? "Prices include GST. Cash on delivery and bank transfer at checkout." : "GST is added at checkout."}
       </p>
     </section>
   )
