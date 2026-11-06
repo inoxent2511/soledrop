@@ -11,4 +11,6 @@ export interface CartRepository {
   merge(guestCartId: string, customerCartId: string): Promise<CartRow>
   /** Deletes abandoned guest carts untouched for `olderThanDays`; returns how many. */
   purgeAbandoned(olderThanDays: number): Promise<number>
+  /** Active carts with something in them, untouched for `olderThanHours` (admin A8), newest first. */
+  listAbandoned(storeId: string, query: { olderThanHours: number; page: number; pageSize: number }): Promise<{ carts: CartRow[]; total: number }>
 }

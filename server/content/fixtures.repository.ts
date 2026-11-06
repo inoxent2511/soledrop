@@ -80,5 +80,12 @@ export function createFixturesContentRepository(): ContentRepository {
         })
       })
     },
+    async listSubscribers(_storeId, query) {
+      const found = db()
+        .newsletter.filter((row) => !query.status || row.status === query.status)
+        .sort((a, b) => b.consentAt.localeCompare(a.consentAt))
+      const start = (query.page - 1) * query.pageSize
+      return { subscribers: structuredClone(found.slice(start, start + query.pageSize)), total: found.length }
+    },
   }
 }

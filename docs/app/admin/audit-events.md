@@ -106,3 +106,11 @@ Entity `order`, `entity_id` = order number. The order service's own history (`or
 | `page.deleted` | page | `{ title }` |
 | `faq.created` / `faq.updated` / `faq.deleted` | faq | the question |
 | `faq.reordered` | faq (`*`) | `{ order }` |
+
+### Marketing, search and reports (A8)
+
+| Action | Entity | After | Reason |
+| --- | --- | --- | --- |
+| `newsletter.exported` | newsletter (`*`) | `{ rows }` | required |
+| `synonym.created` / `synonym.updated` / `synonym.deleted` | synonym | the group | — |
+| `report.exported` | report (`sales`) | `{ from, to }` | — |

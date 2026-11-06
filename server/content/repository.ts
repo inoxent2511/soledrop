@@ -20,4 +20,6 @@ export interface ContentRepository {
   deleteFaq(storeId: string, id: string): Promise<void>
   /** Sets positions in the given order. */
   reorderFaqs(storeId: string, ids: string[]): Promise<void>
+  /** Newsletter list (admin A8), newest first. */
+  listSubscribers(storeId: string, query: { status?: NewsletterSubscriber["status"]; page: number; pageSize: number }): Promise<{ subscribers: NewsletterSubscriber[]; total: number }>
 }

@@ -111,14 +111,17 @@ describe("admin access (A-006)", () => {
     expect(handlers.length).toBeGreaterThan(5)
     for (const file of handlers) {
       const text = read(file)
-      const exported = [...text.matchAll(/^export (?:async )?(?:const|function) (GET|POST|PUT|PATCH|DELETE)\b(.*)$/gm)]
+      // Formatting may wrap the call, so the declaration is read across lines.
+      const exported = [...text.matchAll(/^export (?:async )?(?:const|function) (GET|POST|PUT|PATCH|DELETE)\b([\s\S]{0,300})/gm)]
       expect(exported.length, file).toBeGreaterThan(0)
-      for (const [, method, rest] of exported) expect(rest, `${file} ${method}`).toMatch(/^ = adminRoute(?:<.*>)?\("(public|pending|staff|[a-z_]+:[a-z_]+)"|^ = adminRoute(?:<.*>)?\(\{ permission: "[a-z_]+:[a-z_]+", stepUp: true \}/)
+      for (const [, method, rest] of exported) {
+        expect(rest, `${file} ${method}`).toMatch(/^ = adminRoute(?:<[^(]*>)?\(\s*(?:"(public|pending|staff|[a-z_]+:[a-z_]+)"|\{\s*permission: "[a-z_]+:[a-z_]+",\s*stepUp: true,?\s*\})/)
+      }
     }
   })
 
   it("keeps public admin handlers to sign-in, invites and sign-out", () => {
-    const publicHandlers = handlers.filter((file) => /adminRoute(?:<.*>)?\("public"/.test(read(file))).map((file) => file.split(path.sep).join("/"))
+    const publicHandlers = handlers.filter((file) => /adminRoute(?:<[^(]*>)?\(\s*"public"/.test(read(file))).map((file) => file.split(path.sep).join("/"))
     expect(publicHandlers.sort()).toEqual(["app/api/admin/auth/invite/[token]/route.ts", "app/api/admin/auth/login/route.ts", "app/api/admin/auth/logout/route.ts"])
   })
 

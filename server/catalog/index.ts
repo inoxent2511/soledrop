@@ -1,7 +1,6 @@
 import "server-only"
 
-import { revalidatePath } from "next/cache"
-
+import { refreshStorefront } from "@/server/shared/revalidate"
 import { adminService } from "@/server/admin"
 import { createFixturesCatalogRepository } from "@/server/catalog/fixtures.repository"
 import { createStaffCatalog } from "@/server/catalog/staff"
@@ -12,10 +11,18 @@ import { inventory } from "@/server/inventory"
 import { pricing } from "@/server/pricing"
 import { searchService } from "@/server/search"
 
-const repository = selectRepository({ fixtures: createFixturesCatalogRepository, supabase: createSupabaseCatalogRepository })
+const repository = selectRepository({
+  fixtures: createFixturesCatalogRepository,
+  supabase: createSupabaseCatalogRepository,
+})
 
 export const catalog = () =>
-  createCatalogService({ catalog: repository(), pricing: pricing(), inventory: inventory(), synonyms: (storeId) => searchService().synonymMap(storeId) })
+  createCatalogService({
+    catalog: repository(),
+    pricing: pricing(),
+    inventory: inventory(),
+    synonyms: (storeId) => searchService().synonymMap(storeId),
+  })
 /** The raw catalogue repository, for staff operations that see every status (server/catalog/staff.ts). */
 export const catalogRepository = repository
 
@@ -25,7 +32,8 @@ export const staffCatalog = () =>
     catalog: repository(),
     pricing: pricing(),
     inventory: inventory(),
-    audit: (staff, meta, entry) => adminService().recordAudit(staff, meta, entry),
-    revalidate: () => revalidatePath("/", "layout"),
+    audit: (staff, meta, entry) =>
+      adminService().recordAudit(staff, meta, entry),
+    revalidate: () => refreshStorefront(),
   })
 export type * from "@/server/catalog/types"

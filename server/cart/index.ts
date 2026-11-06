@@ -13,6 +13,9 @@ import { shippingRepository } from "@/server/shipping"
 
 const repository = selectRepository({ fixtures: createFixturesCartRepository, supabase: createSupabaseCartRepository })
 
+/** The raw cart repository (admin abandoned-bag list). */
+export const cartRepository = repository
+
 export const cartService = () =>
   createCartService({
     carts: repository(),

@@ -78,5 +78,13 @@ export function createSupabaseContentRepository(): ContentRepository {
     async reorderFaqs(storeId, ids) {
       unwrap(await supabase().rpc("reorder_faqs", { p_store_id: storeId, p_ids: ids }))
     },
+    async listSubscribers(storeId, query) {
+      let request = supabase().from("newsletter_subscribers").select("email, status, source, consent_at", { count: "exact" }).eq("store_id", storeId)
+      if (query.status) request = request.eq("status", query.status)
+      const start = (query.page - 1) * query.pageSize
+      const result = await request.order("consent_at", { ascending: false }).range(start, start + query.pageSize - 1)
+      const rows = unwrap(result) as { email: string; status: "subscribed" | "unsubscribed"; source: string; consent_at: string }[]
+      return { subscribers: rows.map((row) => ({ email: row.email, status: row.status, source: row.source, consentAt: row.consent_at })), total: result.count ?? rows.length }
+    },
   }
 }

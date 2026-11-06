@@ -23,6 +23,10 @@ const PAGES = [
   ["/admin/content", "Pages & FAQs"],
   ["/admin/content/faqs", "FAQs"],
   ["/admin/content/pages/new", "New page"],
+  ["/admin/marketing", "Marketing"],
+  ["/admin/marketing?view=abandoned", "Marketing"],
+  ["/admin/search", "Search"],
+  ["/admin/reports", "Reports"],
   ["/admin/account", "Your account"],
 ] as const
 

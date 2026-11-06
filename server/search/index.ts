@@ -7,6 +7,9 @@ import { createSupabaseSearchRepository } from "@/server/search/supabase.reposit
 
 const repository = selectRepository({ fixtures: createFixturesSearchRepository, supabase: createSupabaseSearchRepository })
 
+/** The raw search repository (admin search tools). */
+export const searchRepository = repository
+
 export const searchService = () => createSearchService({ search: repository() })
 
 export type * from "@/server/search/types"

@@ -64,5 +64,13 @@ export function createFixturesCartRepository(): CartRepository {
         return stale.length
       })
     },
+    async listAbandoned(storeId, query) {
+      const cutoff = new Date(Date.now() - query.olderThanHours * 3_600_000).toISOString()
+      const found = db()
+        .carts.filter((cart) => cart.storeId === storeId && cart.status === "active" && cart.lines.length > 0 && cart.updatedAt < cutoff)
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      const start = (query.page - 1) * query.pageSize
+      return { carts: structuredClone(found.slice(start, start + query.pageSize)), total: found.length }
+    },
   }
 }

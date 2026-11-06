@@ -17,3 +17,12 @@ export type SearchEvent = {
 export type SynonymGroup = { id: string; term: string; synonyms: string[] }
 
 export type TrendingQuery = { query: string; count: number }
+
+/** Search analytics for the admin (A8). */
+export type SearchReport = {
+  searches: number
+  zeroResultSearches: number
+  clicks: number
+  top: { query: string; count: number; clicks: number }[]
+  zero: { query: string; count: number }[]
+}

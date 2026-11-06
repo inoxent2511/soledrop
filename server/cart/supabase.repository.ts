@@ -94,5 +94,19 @@ export function createSupabaseCartRepository(): CartRepository {
     async purgeAbandoned(olderThanDays) {
       return unwrap(await supabase().rpc("purge_abandoned_carts", { p_older_than_days: olderThanDays })) as number
     },
+    async listAbandoned(storeId, query) {
+      const cutoff = new Date(Date.now() - query.olderThanHours * 3_600_000).toISOString()
+      const start = (query.page - 1) * query.pageSize
+      const result = await supabase()
+        .from("carts")
+        .select(`${CART_SELECT}, has_lines:cart_lines!inner(id)`, { count: "exact" })
+        .eq("store_id", storeId)
+        .eq("status", "active")
+        .lt("updated_at", cutoff)
+        .order("updated_at", { ascending: false })
+        .range(start, start + query.pageSize - 1)
+      const rows = unwrap(result) as unknown as CartRecord[]
+      return { carts: rows.map(toCart), total: result.count ?? rows.length }
+    },
   }
 }

@@ -11,6 +11,9 @@ import { publish } from "@/server/platform/events"
 
 const repository = selectRepository({ fixtures: createFixturesCustomerRepository, supabase: createSupabaseCustomerRepository })
 
+/** The raw customer repository (admin lookups). */
+export const customerRepository = repository
+
 export const customerService = () => {
   const orders = orderService()
   return createCustomerService({ customers: repository(), publish, orders: { listForCustomer: orders.listForCustomer, anonymiseCustomer: orders.anonymiseCustomer } })
