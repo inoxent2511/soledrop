@@ -45,8 +45,9 @@ from the image (BUG-016, `e2e/images.spec.ts`).
    service-role key, `pnpm dev`. Run `pnpm test:db` (it runs the same migrations in PGlite).
 3. **Hosted project** (owner): create the project, then from a trusted machine
    `supabase link --project-ref <ref>` and `supabase db push`. Do not run `seed.sql`; import the
-   real catalogue with `POST /api/v1/products/import` (CSV or JSON, `write` scope).
-4. **Staff**: insert one `staff_members` row (`role = 'owner'`) for the owner's Supabase Auth user.
+   real catalogue with `POST /api/v1/products/import` (CSV, `write` scope).
+4. **First Owner** (admin, §8): create the `media` storage bucket, then make a one-time Owner invite
+   and open its link to set a password and enrol two-step verification.
 5. **Build and run**:
    `docker build -t soledrop --build-arg NEXT_PUBLIC_SITE_URL=https://<domain> .`
    `docker run -p 3000:3000 --env-file .env.production soledrop`
@@ -94,4 +95,36 @@ Example (any cron): `curl -fsS -X POST -H "Authorization: Bearer $JOBS_SECRET" h
 ## 7. Never
 
 Push a migration that disables RLS; edit an applied migration; run `seed.sql` on production; expose the
-service-role key; point a development machine at the production database.
+service-role key; point a development machine at the production database; set `ADMIN_DEMO_STAFF=on`
+anywhere but a local fixtures build.
+
+## 8. Admin
+
+The back-office is at `/admin` (docs/app/admin/). Staff sign in with their own accounts (A-001), always
+with two-step verification.
+
+- **First Owner, local Supabase**: `pnpm admin:create-owner --email you@example.com` writes a one-time
+  Owner invite (24 h) into the local database and prints `/admin/invite/<token>`. The script refuses any
+  non-local `SUPABASE_URL`.
+- **First Owner, hosted database**: in the Supabase SQL editor, insert the invite yourself (the token is
+  any long random string you choose; only its SHA-256 is stored), then open
+  `https://<domain>/admin/invite/<token>`:
+
+  ```sql
+  insert into staff_invites (store_id, email, role_key, token_hash, expires_at)
+  values ('<STORE_ID>', 'you@example.com', 'owner', encode(sha256(convert_to('<token>', 'UTF8')), 'hex'), now() + interval '1 day');
+  ```
+
+  Everyone else is invited from Staff & roles.
+- **Media**: create a private Storage bucket named `media`. Images are served by the app at
+  `/media/<id>.webp`, never from the bucket directly.
+- **Demo accounts** (`ADMIN_DEMO_STAFF=on`) exist only with the fixtures driver; the server refuses to
+  start with them and `DATA_DRIVER=supabase`.
+- **Locked out**: another Owner or Admin resets two-step verification or reactivates the account in
+  Staff & roles. If the last Owner loses both their authenticator and their recovery codes, insert an
+  invite for a new Owner address as above, then suspend the old account. The database never lets the
+  store lose its last active Owner.
+- **Sessions** end after 30 minutes idle and 12 hours in all. Rotating `SESSION_SECRET` also makes
+  every staff member's stored TOTP secret unreadable, so everyone re-enrols (reset MFA for each):
+  plan that rotation.
+- **Audit log**: append-only; query `audit_log` directly if you need it outside the admin.

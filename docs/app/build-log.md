@@ -140,3 +140,25 @@ Added CSS hover colours on the shared select item using the existing brand token
 `pnpm.cmd verify` passed on the hover-fixed code: typecheck, zero-warning lint, 191 tests in 23 files and production build. The complete configured Playwright suite then passed with **2,868 passed / 48 existing skips / 0 failed** in 17.7 minutes. Report: local `qa/out/a12-full-pass1.json`. The skips are the existing duplicate TOTP-limited admin suites in Firefox/WebKit; core auth/CSP and all configured storefront suites ran in those browsers.
 
 The QA server is being reset and verify repeated before a second full browser pass. A12 implementation is being saved as a local checkpoint; final automated QA results and A13 documentation remain pending. The original strict zero-open-findings sign-off remains open for the documented performance/design/verification gaps.
+
+## 2026-11-06 — A12 automated regression checkpoint complete; strict sign-off open
+
+Implementation: local commit `8777e34` (QA fixes and component gallery). Resolved BUG-018–BUG-023: sale-savings contrast, the New Arrival keyboard regression, sort naming during hydration, Zod/CSP compatibility, checkout reservation release (including Supabase counters), and WebKit sort hover. Shared components are previewed at `/admin/dev/gallery`; sample edits do not submit store writes.
+
+Verification on the final code:
+- `pnpm.cmd verify` passed before each full browser pass: typecheck, zero-warning lint, 191 Vitest tests across 23 files (including PGlite DB tests), production build.
+- Full configured Playwright pass 1: **2,868 passed / 48 existing skips / 0 failed**, 17.7 min.
+- Full configured Playwright pass 2, fresh fixtures: **2,868 passed / 48 existing skips / 0 failed**, 17.5 min.
+- Both reports have zero runner errors and zero reported flaky cases. Each pass: Chromium 972 passed; Firefox 948 passed + 24 existing skips; WebKit 948 passed + 24 existing skips.
+- Focused CSP/cart regressions: 18/18 across all three browsers. WebKit hover regression: 20/20 repetitions.
+- Gallery production screenshots reviewed at 390 and 1440 px. Theme sync/declared contrast pairs pass. The design gate still fails G3 (missing source Figma Theme collection, P2-12).
+
+Local raw reports: `qa/out/a12-full-pass1.json`, `qa/out/a12-full-pass2.json`, `qa/out/a12-targeted-final.json`, `qa/out/a12-sort-hover.json`. Generated test output/logs are ignored; obsolete generated error contexts were removed from Git tracking.
+
+Remaining requirements (not claimed complete): PERF-03 (final admin initial JS 338.5–343.2 KiB vs 250 KiB), prior storefront performance/design findings, source design gate G3, broad export step-up coverage, exhaustive mutation/role and failure-atomicity checks, real Postgres concurrency/hosted integrations, large-data latency/INP, committed full screenshot baselines and real-device/screen-reader checks. Details: `docs/app/admin/verification.md` and `qa/bugs.md`. The original strict zero-open-findings definition for A12 has therefore **not** been met.
+
+## 2026-11-06 — A13 documentation complete
+
+Completed the admin bootstrap/operations runbook, Admin API reference, current data model/RLS matrix and reservation semantics, cache invalidation notes, component capabilities, navigation registry description and security/verification limits. Corrected stale claims about compact tables, a shortcuts sheet, automatic draft recovery, policy editing, JSON product imports and which exports require step-up. Phase 2 and the build plan now distinguish the implemented core and clean automated regressions from outstanding sign-off requirements.
+
+Resume at the remaining A12 performance/security/coverage requirements in `docs/app/admin/verification.md`; the earlier module implementations and this completed regression checkpoint should not be rebuilt. Changes are local only. No push, deployment, remote database changes, real emails or live payments were performed.

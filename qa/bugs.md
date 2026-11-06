@@ -4,8 +4,9 @@ Reproduced with Playwright against the standalone production build (`next build`
 Widths 320 · 360 · 390 · 640 (200 % zoom of 1280) · 768 · 1024 · 1280 · 1440 · 1920, light and dark; the
 storefront is LTR-only (one locale), so RTL was not applicable. Screenshots: `qa/bugs/` (after-fix
 captures from `node qa/bug-shots.mjs`; the before state was captured only as failing assertions and
-violation lists, not as images). "Fix commit" is empty for every row: commits are blocked in this
-session, so the fixes are uncommitted in the working tree.
+violation lists, not as images). Phase 1 rows retain the original session's
+"uncommitted — session policy" labels. Those labels describe that earlier run, not the current
+working tree; current admin commits and verification are recorded in `docs/app/build-log.md`.
 
 | ID | Sev | Route / component | Steps | Expected | Actual | Root cause | Fix commit | Regression test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -40,7 +41,8 @@ session, so the fixes are uncommitted in the working tree.
 | BUG-022 | major (inventory) | Bag edits / checkout reservation release | Hold a pair at checkout, then remove it or reduce the quantity in the bag | Previous holds are released and stock is available to other shoppers | Holds survive cart edits; Supabase's release method deleted hold rows without restoring reserved counts | Cart changes release previous holds after saving. Supabase release uses the existing atomic `reserve_stock` RPC with an empty replacement, restoring counts and retaining other carts' holds. Checkout axe cases clean up their own carts. | `tests/integration/checkout.test.ts`: removal/reduction releases; `tests/db/rpc.test.ts`: idempotent release preserves another cart's hold; repeated full browser runs |
 | BUG-023 | minor (interaction) | Listing sort · WebKit hover | Open the sort list and hover Date: New to Old | Hovered option turns lime with black text | Intermittently transparent because no `data-highlighted` attribute appeared | Option hover styling depended entirely on the JavaScript highlight state. Added CSS hover colours using the same brand tokens; keyboard highlighting still uses `data-highlighted`. | `e2e/sort.spec.ts`: existing hover assertion, repeated WebKit runs and full cross-browser suite |
 
-The full A12 run results and remaining verification limits are recorded in `docs/app/build-log.md`.
+BUG-018–BUG-023 are fixed in local commit `8777e34`. Full A12 run results and remaining verification
+limits are recorded in `docs/app/build-log.md`.
 
 ## Open findings (not fixed in this round)
 

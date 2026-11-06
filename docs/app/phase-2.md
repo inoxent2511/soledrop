@@ -17,7 +17,7 @@ the owner's input or a staff UI. Each item has a recommendation.
 | P2-07 | **Card payments** | Start with COD + bank transfer. Turn on Stripe (or a local PSP via a new adapter in `server/adapters/payments`) when the business has a merchant account; Stripe availability in Pakistan needs a foreign entity. |
 | P2-08 | **Photo policy for pixel QA** (PX-01) | Accept geometry-only verification for photos; keep `next/image` optimisation. |
 | P2-09 | **Women's and Kids' size charts** (D-026) | Replace the standard conversions in `content/size-guide.ts` with the brands' charts. |
-| P2-10 | **Legal pages** (privacy, terms, returns) | Have a lawyer review `server/fixtures/content-seed.ts` text before launch. |
+| P2-10 | **Legal pages** (privacy, terms, returns) | Have a lawyer review the current policy documents in `content/privacy.ts`, `content/terms.ts`, `content/shipping.ts` and `content/returns.ts` before launch. |
 | P2-11 | **Real photography** | Replace `public/images` with owned photos; keep the card/gallery roles (D-016). |
 | P2-12 | **Theme collection in Figma** | Add a Figma variable collection named Theme so `scripts/check-design.mjs` gate G3 passes. |
 | P2-13 | **CSP hardening** (D-033) | Move to `experimental.sri` (hash-based `script-src 'self'`) once stable in Next; keep static rendering. |
@@ -25,10 +25,20 @@ the owner's input or a staff UI. Each item has a recommendation.
 
 ## Build in phase 2
 
-1. **Admin UI** (staff auth via Supabase Auth; the RLS roles and audit log already exist): catalogue
-   and stock editor, order desk (transition/payment/refund/return use the existing `/api/v1`
-   operations), promotions, pages/FAQs, flags, import/export screens. Saves call `revalidatePath`
-   (`caching.md`).
+1. **Admin UI** — core modules built and documented (`docs/app/admin/`; A12 automated regression
+   checkpoint passed twice, with full sign-off gaps in `admin/verification.md`): staff identity with mandatory TOTP, RBAC with ten preset roles and custom roles,
+   audit log, notifications, command palette, permission-matrix and accessibility sweeps. The
+   implemented component capabilities and remaining UX gaps are in `admin/admin-design.md`;
+   verification limits are in `build-log.md`. Owner decisions it raises:
+
+   | # | Decision | Recommendation |
+   | --- | --- | --- |
+   | P2-15 | Staff identity in-house (A-001) or Supabase Auth | Keep in-house until there's a reason (SSO, one login for several apps); the switch is contained in `server/admin`. |
+   | P2-16 | Invite emails | Once Resend is set up (P2-03), send the invite link by email instead of showing it to the inviter. |
+   | P2-17 | Who gets which role | Start with one Owner and one Admin; give everyone else the narrowest preset role (permissions.md). |
+   | P2-18 | API keys and webhook endpoints from the admin (A-018) | Keep them in the environment for now; build a hashed key table with one-time reveal if keys rotate often. |
+   | P2-19 | Policy pages in the admin (A-017) | Keep them in code with a lawyer-reviewed release, or move them to block pages if they change often. |
+   | P2-20 | Storage bucket and its region | Create the private `media` bucket in the same project and region (runbook §8). |
 2. **Low-stock alerts**: an `inventory.low` event when available stock crosses a threshold. The topic
    was removed from phase 1 because nothing emitted it.
 3. **Courier integration** (TCS / Leopards / PostEx): a provider registry like payments, driving

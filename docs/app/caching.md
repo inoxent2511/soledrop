@@ -18,10 +18,11 @@ moment it matters (add to bag, quote, place order).
 | `/collections/[slug]`, `/pre-loved`, `/search` | Dynamic | per request | Filters live in the query string (each combination is its own URL, `noindex` when filtered). |
 | `/new-arrivals`, `/sale` | Dynamic | per request | The open tab and Load more count live in the query string (`?tab=preloved&show=24`); the canonical URL has neither. |
 | `/cart`, `/checkout`, `/orders/[number]`, `/account/*`, `/newsletter/unsubscribe` | Dynamic, `private, no-store` | per request | Personal. |
+| `/admin/*` | Dynamic, `private, no-store` | per request | Staff session and permissions; per-request nonce CSP. |
 
 Missing products/pages answer a real **404**, and guest `/account` and empty-bag `/checkout` answer a
-real **307**. That is why `loading.tsx` exists only on `/search`: a streamed fallback above a page
-that 404s or redirects would commit status 200 first. This is enforced by
+real **307**. There are no `loading.tsx` boundaries: a streamed fallback above a page
+that 404s or redirects would commit status 200 first, and search must work without JavaScript (D-042). This is enforced by
 `tests/unit/architecture.test.ts`.
 
 ## HTTP headers
@@ -42,8 +43,9 @@ that 404s or redirects would commit status 200 first. This is enforced by
   `server/promotions`, `server/shipping`). The client never sends a price.
 - Exchange rates (`exchange_rates`) are display-only and carry `updated_at`; orders are charged in PKR.
 
-## Invalidation (phase 2)
+## Invalidation
 
-When the admin UI exists, product/page saves should call `revalidatePath('/products/<slug>')`,
-`revalidatePath('/pages/<slug>')` and `revalidatePath('/')`. Until then, freshness is bounded by the
-windows above. Listed in `phase-2.md`.
+Admin catalogue, stock, collection and content writes call `refreshStorefront()`
+(`server/shared/revalidate.ts`), which runs `revalidatePath('/', 'layout')` in a request (A-016).
+This invalidates the storefront so its next request sees the change; the ISR windows remain the
+fallback. Tests and jobs can call the same services outside a Next.js request.

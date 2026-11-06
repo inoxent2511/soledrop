@@ -1,13 +1,13 @@
 # Admin — information architecture
 
-The back-office lives at `/admin` in the same Next.js app, with its own route group (`app/(admin)/admin/**`), layout, login and error boundaries. Every screen belongs to one **module**; modules are declared in one registry (`features/admin/registry.ts`) with their routes, nav entry, required permission, search provider, dashboard widgets and audit actions, so the shell (sidebar, command palette, dashboard) is built from data and a new module plugs in without touching it.
+The back-office lives at `/admin` in the same Next.js app, with its own route group (`app/(admin)/admin/**`), layout and login. `features/admin/modules.ts` declares each business module's URL, label, group, icon, required permission and search keywords. The sidebar, command palette and no-access messages consume this registry. Dashboard widgets, entity-search queries and audit payloads live in their respective features and services.
 
 ## Navigation tree
 
 | Group | Module | Route | Needs | Main tasks |
 |---|---|---|---|---|
 | — | Dashboard | `/admin` | `dashboard:read` | today's numbers, pending work, recent activity |
-| Sales | Orders | `/admin/orders` | `orders:read` | find an order, fulfil, mark paid, refund, return, cancel, draft orders |
+| Sales | Orders | `/admin/orders` | `orders:read` | find an order, fulfil, mark paid, refund, return, cancel, notes, packing slip, export |
 | | Customers | `/admin/customers` | `customers:read` | look up a customer, their orders, addresses, consent; export / anonymise |
 | Catalogue | Products | `/admin/products` | `products:read` | create and edit pairs, variants, prices, media, publish, import/export |
 | | Collections | `/admin/collections` | `collections:read` | curate manual collections, build rule-based ones |
@@ -15,7 +15,7 @@ The back-office lives at `/admin` in the same Next.js app, with its own route gr
 | Marketing | Promotions | `/admin/promotions` | `promotions:read` | build and simulate promotions, generate codes, see redemptions |
 | | Marketing | `/admin/marketing` | `marketing:read` | newsletter subscribers, abandoned carts |
 | | Search | `/admin/search` | `search:read` | top and zero-result queries, synonyms |
-| Content | Pages & FAQs | `/admin/content` | `content:read` | edit policy pages and FAQs with preview, publish |
+| Content | Pages & FAQs | `/admin/content` | `content:read` | edit block pages and FAQs with preview, publish; link to code-managed policy pages (A-017) |
 | | Media | `/admin/media` | `media:read` | upload, alt text, usage |
 | Money | Payments | `/admin/payments` | `payments:read` | provider status, bank-transfer queue, payments and refunds ledger |
 | | Reports | `/admin/reports` | `reports:read` | sales, products, customers, promotions, refunds, inventory value |
@@ -24,7 +24,7 @@ The back-office lives at `/admin` in the same Next.js app, with its own route gr
 | | Staff & roles | `/admin/staff` | `staff:read` | invite, suspend, roles and permission matrix, sessions, MFA reset |
 | | Audit log | `/admin/audit` | `audit:read` | who changed what, with before/after |
 
-Global: ⌘K command palette (entities + actions the user may see), notification centre, account menu (profile, MFA, sessions, theme, sign out), keyboard shortcuts sheet (`?`).
+Global: ⌘K / Ctrl+K command palette (entities + actions the user may see), notification centre, account menu (profile, MFA, sessions, sign out). The admin is light-only (A-012); a `?` shortcuts sheet is not implemented.
 
 ## Roles → what they see
 

@@ -24,6 +24,12 @@ Done when: every action goes through `server/orders` and writes an audit entry a
 ### A10 — Dashboard
 ### A11 — Hardening
 ### A12 — QA loop
+Scope: production-build verification, all configured browser suites, gallery smoke/accessibility coverage, defect fixes and regression checks.
+Done when: two consecutive full production-build QA passes have zero findings, per the original brief. Record automated pass results separately from unresolved performance/design findings and unrunnable requirements; those prevent claiming the full target is complete.
 ### A13 — Documentation (runbook admin bootstrap, data-model RLS matrix, api.md)
+Scope: complete the admin runbook, API/RLS documentation, component gallery and implementation notes.
+Done when: docs describe the shipped code, QA evidence and operational limits, and changes are committed locally.
 
 Each later stage gets its "Done when:" written when it starts, from the module list in [admin/admin-ia.md](./admin/admin-ia.md).
+
+**Status:** A0–A11 and the A12 implementation fixes (`8777e34`) are committed. The A12 automated regression checkpoint passed twice; **strict A12 sign-off remains open** for the requirements listed in [admin/verification.md](./admin/verification.md). A13 documentation is complete. See [build-log.md](./build-log.md) for results and the resume point, and [admin/security.md](./admin/security.md) for the implemented controls. Resume at the remaining A12 gaps rather than rebuilding completed modules.
