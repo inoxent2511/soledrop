@@ -82,7 +82,12 @@ export type Product = {
   position: number
   publishedAt: string
   seo: { title?: string; description?: string }
+  /** Last save (optimistic concurrency in the admin); absent on seed rows. */
+  updatedAt?: string
 }
+
+/** Staff product search (admin): every status, paged. */
+export type AdminProductQuery = { q?: string; status?: ProductStatus[]; kind?: ProductKind; brandId?: string; page: number; pageSize: number }
 
 export type Collection = {
   id: string

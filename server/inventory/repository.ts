@@ -1,5 +1,8 @@
 export type StockRequest = { variantId: string; quantity: number }
 
+export type StockLevelRow = { variantId: string; onHand: number; reserved: number }
+export type StockMovement = { id: string; variantId: string; delta: number; reason: string; actor: string; at: string }
+
 export interface InventoryRepository {
   /** Available = on hand − reserved by other carts (a cart's own reservation counts as available to it). */
   availability(variantIds: string[], forCartId?: string): Promise<Map<string, number>>
@@ -12,4 +15,8 @@ export interface InventoryRepository {
   releaseExpired(): Promise<number>
   /** Manual stock adjustment (import, admin); refuses to take on-hand below reserved or zero. */
   adjust(variantId: string, delta: number, reason: string, actor: string): Promise<number>
+  /** On hand and reserved per variant (admin inventory). */
+  levels(variantIds: string[]): Promise<StockLevelRow[]>
+  /** The adjustment ledger, newest first. */
+  movements(variantIds: string[], limit: number): Promise<StockMovement[]>
 }

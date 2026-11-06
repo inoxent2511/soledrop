@@ -38,3 +38,9 @@ export function unwrap<T>(result: { data: T | null; error: { message: string; co
   }
   return result.data as T
 }
+
+/**
+ * A staff search term safe to put inside a PostgREST `or=(…ilike.*term*…)` filter: the filter
+ * syntax characters (, ( ) * % \ : . " ') become spaces. Search terms are plain words anyway.
+ */
+export const searchTerm = (value: string): string => value.replace(/[,()*%\\:."']/g, " ").trim().slice(0, 80)

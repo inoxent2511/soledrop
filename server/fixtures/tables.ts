@@ -3,6 +3,7 @@ import type { CartRow } from "@/server/cart/types"
 import type { AttributeDefinition, Brand, Collection, CustomFieldDefinition, Product } from "@/server/catalog/types"
 import type { ContactMessage, Faq, NewsletterSubscriber, Page } from "@/server/content/types"
 import type { Customer, CustomerAddress, PasswordReset, Session, StaffRole } from "@/server/customers/types"
+import type { MediaItem } from "@/server/media/types"
 import type { Order, OrderNote, Payment, Refund, ReturnRequest } from "@/server/orders/types"
 import type { AuditEntry, FeatureFlag, OutboxEvent, WebhookDelivery } from "@/server/platform/types"
 import type { ExchangeRates, PriceList, PriceRow } from "@/server/pricing/types"
@@ -12,6 +13,7 @@ import type { ShippingZone, TaxRate } from "@/server/shipping/types"
 import type { CurrencyCode } from "@/server/shared/money"
 
 export type InventoryRow = { variantId: string; onHand: number; reserved: number }
+export type MovementRow = { id: string; variantId: string; delta: number; reason: string; actor: string; at: string }
 export type ReservationRow = { id: string; cartId: string; variantId: string; quantity: number; expiresAt: string }
 
 /** Shape of the fixtures database — one property per Postgres table (docs/app/data-model.md). */
@@ -26,6 +28,7 @@ export type FixtureTables = {
   prices: PriceRow[]
   inventory: InventoryRow[]
   reservations: ReservationRow[]
+  inventoryMovements: MovementRow[]
   carts: CartRow[]
   promotions: Promotion[]
   promotionRedemptions: PromotionRedemption[]
@@ -36,6 +39,7 @@ export type FixtureTables = {
   refunds: Refund[]
   returns: ReturnRequest[]
   orderNotes: OrderNote[]
+  media: MediaItem[]
   orderSequence: { prefix: string; next: number }
   customers: Customer[]
   addresses: CustomerAddress[]

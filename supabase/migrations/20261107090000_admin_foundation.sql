@@ -256,7 +256,7 @@ begin
     select * into role_row from public.roles where store_id = p_store_id and key = p_key for update;
     if not found then raise exception 'not_found: Role not found.'; end if;
     if role_row.key = 'owner' then raise exception 'forbidden: The Owner role cannot be changed.'; end if;
-    if p_expected_updated_at is not null and role_row.updated_at <> p_expected_updated_at then
+    if p_expected_updated_at is not null and date_trunc('milliseconds', role_row.updated_at) <> date_trunc('milliseconds', p_expected_updated_at) then
       raise exception 'conflict: Someone else changed this role. Reload to see their changes.';
     end if;
     update public.roles set name = p_name, description = p_description, refund_limit = p_refund_limit, updated_at = now()

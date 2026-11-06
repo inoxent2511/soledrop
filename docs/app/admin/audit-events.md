@@ -57,3 +57,17 @@ Entity `order`, `entity_id` = order number. The order service's own history (`or
 | `return.approved` / `return.rejected` / `return.received` | — → `{ returnId, status }` | optional |
 | `order.note_added` | — → `{ noteId }` | — |
 | `order.exported` | — → `{ rows, filters }` | — |
+
+### Catalogue, stock and media (A3)
+
+| Action | Entity | Before → after | Reason |
+| --- | --- | --- | --- |
+| `product.created` / `product.updated` | product | changed fields only (`title`, `slug`, `brand`, `status`, sizes, photo count…) and `prices` when they changed | — |
+| `product.published` / `product.unpublished` / `product.archived` | product | `{ status }` → `{ status }` | — |
+| `product.deleted` | product | `{ title, slug, sizes }` | required |
+| `product.imported` / `product.exported` | product (`*`) | counts | — |
+| `brand.created` | brand | `{ name, slug }` | — |
+| `collection.created` / `collection.updated` | collection | `{ title, slug, kind, rules }`, product count | — |
+| `collection.deleted` | collection | `{ title, slug }` | optional |
+| `inventory.adjusted` | variant | `{ onHand }` → `{ onHand }` (the ledger in `inventory_movements` keeps the delta) | required |
+| `media.uploaded` / `media.alt_changed` / `media.deleted` | media | file name, size, alt | — |

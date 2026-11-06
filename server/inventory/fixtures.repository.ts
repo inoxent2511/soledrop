@@ -82,9 +82,18 @@ export function createFixturesInventoryRepository(): InventoryRepository {
         const before = level.onHand
         level.onHand += delta
         assertInventoryInvariants(tables)
+        tables.inventoryMovements.push({ id: newId(), variantId, delta, reason, actor, at: now() })
         tables.audit.push({ id: newId(), actor, action: "inventory.adjust", entity: "variant", entityId: variantId, before: { onHand: before }, after: { onHand: level.onHand, reason }, at: now() })
         return level.onHand
       })
+    },
+    async levels(variantIds) {
+      const wanted = new Set(variantIds)
+      return structuredClone(db().inventory.filter((row) => wanted.has(row.variantId)))
+    },
+    async movements(variantIds, limit) {
+      const wanted = new Set(variantIds)
+      return structuredClone(db().inventoryMovements.filter((row) => wanted.has(row.variantId)).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit))
     },
   }
 }

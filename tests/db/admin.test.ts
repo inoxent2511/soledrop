@@ -167,3 +167,36 @@ describe("admin orders (migration 20261108090000)", () => {
     })
   })
 })
+
+describe("admin catalogue (migration 20261109090000)", () => {
+  it("saves products atomically: stale saves, taken slugs and removing ordered sizes are refused", async () => {
+    const { ids } = await import("./harness")
+    const product = (variants: { id: string; sku: string }[], slug = "asics-gel-kayano") => ({
+      id: ids.product,
+      slug,
+      title: "ASICS Gel-Kayano 14",
+      brand: { id: ids.brand },
+      kind: "new",
+      gender: "men",
+      status: "active",
+      images: [{ url: "/media/x.webp", alt: "Side", width: 800, height: 600, role: "card" }],
+      variants: variants.map((variant, position) => ({ ...variant, size: { eu: "44", uk: "9", us: "10", cm: "28" }, position })),
+      collections: [],
+      tags: ["running"],
+    })
+    const save = (body: unknown, expected: string | null) => attempt(`select public.save_product('${STORE}', '${JSON.stringify(body)}'::jsonb, ${expected ? `'${expected}'` : "null"}) as at`)
+    const first = await save(product([{ id: ids.variantA, sku: "GK14-44" }, { id: ids.variantB, sku: "GK14-45" }]), null)
+    expect(first).toMatchObject({ ok: true })
+    const at = (first.rows?.[0] as { at: string }).at
+    expect(await save(product([{ id: ids.variantA, sku: "GK14-44" }, { id: ids.variantB, sku: "GK14-45" }]), "2000-01-01T00:00:00Z")).toMatchObject({ ok: false, message: expect.stringMatching(/^conflict: Someone else saved/) })
+    // Variant A was ordered earlier in this file.
+    expect(await save(product([{ id: ids.variantB, sku: "GK14-45" }]), null)).toMatchObject({ ok: false, message: expect.stringMatching(/can't be removed/) })
+    expect(await save(product([{ id: ids.variantA, sku: "GK14-44" }], "unreleased"), null)).toMatchObject({ ok: false, message: expect.stringMatching(/slug/) })
+    expect(await save(product([{ id: ids.variantA, sku: "GK14-44" }, { id: ids.variantB, sku: "GK14-45B" }]), new Date(at).toISOString())).toMatchObject({ ok: true })
+    const { rows } = await db.query<{ sku: string; images: number }>(`select v.sku, (select count(*)::int from public.product_images where product_id = '${ids.product}') as images from public.variants v where v.id = '${ids.variantB}'`)
+    expect(rows[0]).toEqual({ sku: "GK14-45B", images: 1 })
+    await as(db, "authenticated", owner, async () => {
+      expect(await attempt(`select public.save_product('${STORE}', '{}'::jsonb, null)`)).toMatchObject({ ok: false, message: expect.stringMatching(/permission denied/) })
+    })
+  })
+})

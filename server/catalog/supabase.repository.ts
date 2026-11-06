@@ -2,12 +2,13 @@ import "server-only"
 
 import type { CatalogRepository } from "@/server/catalog/repository"
 import type { AttributeDefinition, Brand, Collection, CustomFieldDefinition, Product } from "@/server/catalog/types"
-import { supabase, unwrap } from "@/server/db/supabase"
+import { searchTerm, supabase, unwrap } from "@/server/db/supabase"
+import { DomainError } from "@/server/shared/errors"
 
 /** Columns selected for a product, with brand, images, variants and collection slugs embedded. */
 const PRODUCT_SELECT = `
   id, store_id, slug, title, kind, gender, status, description, condition_grade, condition_notes,
-  attributes, custom_fields, tags, position, published_at, seo,
+  attributes, custom_fields, tags, position, published_at, seo, updated_at,
   brand:brands(id, slug, name, position),
   images:product_images(url, alt, width, height, role, position),
   variants(id, sku, size_eu, size_uk, size_us, size_cm, attributes, weight_grams, position),
@@ -31,6 +32,7 @@ type ProductRecord = {
   position: number
   published_at: string
   seo: Product["seo"]
+  updated_at: string
   brand: Brand
   images: { url: string; alt: string; width: number; height: number; role: "card" | "gallery"; position: number }[]
   variants: { id: string; sku: string; size_eu: string; size_uk: string; size_us: string; size_cm: string; attributes: Record<string, string>; weight_grams: number; position: number }[]
@@ -68,6 +70,7 @@ function toProduct(record: ProductRecord): Product {
     position: record.position,
     publishedAt: record.published_at,
     seo: record.seo,
+    updatedAt: record.updated_at,
   }
 }
 
@@ -121,6 +124,53 @@ export function createSupabaseCatalogRepository(): CatalogRepository {
         await supabase().rpc("import_products", { p_store_id: storeId, p_products: products }),
       ) as number
       return result
+    },
+
+    async searchProducts(storeId, query) {
+      let request = supabase().from("products").select(PRODUCT_SELECT, { count: "exact" }).eq("store_id", storeId)
+      const term = query.q ? searchTerm(query.q) : ""
+      if (term) request = request.or(`title.ilike.*${term}*,slug.ilike.*${term}*`)
+      if (query.status?.length) request = request.in("status", query.status)
+      if (query.kind) request = request.eq("kind", query.kind)
+      if (query.brandId) request = request.eq("brand_id", query.brandId)
+      const start = (query.page - 1) * query.pageSize
+      const result = await request.order("updated_at", { ascending: false }).range(start, start + query.pageSize - 1)
+      const rows = unwrap(result) as unknown as ProductRecord[]
+      return { products: rows.map(toProduct), total: result.count ?? rows.length }
+    },
+    async getProductById(storeId, id) {
+      const row = unwrap(await supabase().from("products").select(PRODUCT_SELECT).eq("store_id", storeId).eq("id", id).maybeSingle()) as unknown as ProductRecord | null
+      return row ? toProduct(row) : null
+    },
+    async saveProduct(storeId, product, expectedUpdatedAt) {
+      unwrap(await supabase().rpc("save_product", { p_store_id: storeId, p_product: product, p_expected_updated_at: expectedUpdatedAt }))
+      const saved = await this.getProductById(storeId, product.id)
+      if (!saved) throw new DomainError("not_found", "Product not found.")
+      return saved
+    },
+    async deleteProduct(storeId, id) {
+      const variants = unwrap(await supabase().from("variants").select("id").eq("product_id", id)) as { id: string }[]
+      if (variants.length) {
+        const ordered = unwrap(await supabase().from("order_lines").select("id").in("variant_id", variants.map((variant) => variant.id)).limit(1)) as { id: string }[]
+        if (ordered.length) throw new DomainError("conflict", "This product has been ordered, so it can't be deleted. Archive it instead.")
+      }
+      const deleted = unwrap(await supabase().from("products").delete().eq("store_id", storeId).eq("id", id).select("id")) as { id: string }[]
+      if (!deleted.length) throw new DomainError("not_found", "Product not found.")
+    },
+    async saveCollection(storeId, collection, productIds) {
+      unwrap(await supabase().rpc("save_collection", { p_store_id: storeId, p_collection: collection, p_product_ids: productIds }))
+      return collection
+    },
+    async deleteCollection(storeId, id) {
+      unwrap(await supabase().from("collections").delete().eq("store_id", storeId).eq("id", id))
+    },
+    async collectionProductIds(_storeId, collectionId) {
+      const rows = unwrap(await supabase().from("collection_products").select("product_id").eq("collection_id", collectionId).order("position")) as { product_id: string }[]
+      return rows.map((row) => row.product_id)
+    },
+    async createBrand(storeId, brand) {
+      unwrap(await supabase().from("brands").insert({ id: brand.id, store_id: storeId, slug: brand.slug, name: brand.name, position: brand.position }))
+      return brand
     },
   }
 }

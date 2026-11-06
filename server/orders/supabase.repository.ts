@@ -1,6 +1,6 @@
 import "server-only"
 
-import { supabase, unwrap } from "@/server/db/supabase"
+import { searchTerm, supabase, unwrap } from "@/server/db/supabase"
 import type { OrderRepository } from "@/server/orders/repository"
 import type { Order, OrderLine, OrderNote, Payment, Refund, ReturnRequest } from "@/server/orders/types"
 import { DomainError } from "@/server/shared/errors"
@@ -166,8 +166,6 @@ const toNote = (row: NoteRecord): OrderNote => ({ id: row.id, orderId: row.order
 
 const SORT_COLUMNS = { placed_desc: ["placed_at", false], placed_asc: ["placed_at", true], total_desc: ["total", false], total_asc: ["total", true] } as const
 
-/** PostgREST filter values can't contain its own syntax; search terms are plain words anyway. */
-const searchTerm = (value: string) => value.replace(/[,()*%\\:."']/g, " ").trim().slice(0, 80)
 
 export function createSupabaseOrderRepository(): OrderRepository {
   const byId = async (id: string) => {

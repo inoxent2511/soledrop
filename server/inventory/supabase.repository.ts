@@ -37,5 +37,15 @@ export function createSupabaseInventoryRepository(): InventoryRepository {
         await supabase().rpc("adjust_stock", { p_variant_id: variantId, p_delta: delta, p_reason: reason, p_actor: actor }),
       ) as number
     },
+    async levels(variantIds) {
+      if (variantIds.length === 0) return []
+      const rows = unwrap(await supabase().from("inventory_levels").select("variant_id, on_hand, reserved").in("variant_id", variantIds)) as { variant_id: string; on_hand: number; reserved: number }[]
+      return rows.map((row) => ({ variantId: row.variant_id, onHand: row.on_hand, reserved: row.reserved }))
+    },
+    async movements(variantIds, limit) {
+      if (variantIds.length === 0) return []
+      const rows = unwrap(await supabase().from("inventory_movements").select("id, variant_id, delta, reason, actor, at").in("variant_id", variantIds).order("at", { ascending: false }).limit(limit)) as { id: string; variant_id: string; delta: number; reason: string; actor: string; at: string }[]
+      return rows.map((row) => ({ id: row.id, variantId: row.variant_id, delta: row.delta, reason: row.reason, actor: row.actor, at: row.at }))
+    },
   }
 }

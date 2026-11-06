@@ -1,4 +1,4 @@
-import type { AttributeDefinition, Brand, Collection, CustomFieldDefinition, Product } from "@/server/catalog/types"
+import type { AdminProductQuery, AttributeDefinition, Brand, Collection, CustomFieldDefinition, Product } from "@/server/catalog/types"
 
 /** Catalogue reads. Both drivers return only `active` products unless `includeDrafts` is set. */
 export interface CatalogRepository {
@@ -11,4 +11,21 @@ export interface CatalogRepository {
   listCustomFieldDefinitions(storeId: string): Promise<CustomFieldDefinition[]>
   /** Import: insert or update by slug; returns the number of rows written. */
   upsertProducts(storeId: string, products: Product[]): Promise<number>
+
+  // ─── Staff (admin A3): every status ───────────────────────────────────────
+  searchProducts(storeId: string, query: AdminProductQuery): Promise<{ products: Product[]; total: number }>
+  getProductById(storeId: string, id: string): Promise<Product | null>
+  /**
+   * save_product: creates or updates one product by id with its images, variants and collection
+   * links, in one transaction. With `expectedUpdatedAt`, refuses (conflict) when someone saved
+   * first. A variant that was ever ordered can't be removed (archive the product instead).
+   */
+  saveProduct(storeId: string, product: Product, expectedUpdatedAt: string | null): Promise<Product>
+  /** Deletes a product that was never ordered (with its sizes, photos, prices and stock rows). */
+  deleteProduct(storeId: string, id: string): Promise<void>
+  /** save_collection: creates or updates a collection; for manual ones, replaces its product list. */
+  saveCollection(storeId: string, collection: Collection, productIds: string[] | null): Promise<Collection>
+  deleteCollection(storeId: string, id: string): Promise<void>
+  collectionProductIds(storeId: string, collectionId: string): Promise<string[]>
+  createBrand(storeId: string, brand: Brand): Promise<Brand>
 }
