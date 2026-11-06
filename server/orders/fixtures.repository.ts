@@ -272,6 +272,21 @@ export function createFixturesOrderRepository(): OrderRepository {
     async listNotes(orderId) {
       return structuredClone(db().orderNotes.filter((note) => note.orderId === orderId).sort((a, b) => a.createdAt.localeCompare(b.createdAt)))
     },
+    async ledger(storeId, query) {
+      const tables = db()
+      const numbers = new Map(tables.orders.filter((order) => order.storeId === storeId).map((order) => [order.id, order.number]))
+      const rows =
+        query.kind === "payments"
+          ? tables.payments
+              .filter((payment) => numbers.has(payment.orderId) && (!query.provider || payment.provider === query.provider))
+              .map((payment) => ({ id: payment.id, orderNumber: numbers.get(payment.orderId)!, provider: payment.provider, status: payment.status, amount: payment.amount, currency: payment.currency, reference: payment.providerRef, reason: null, at: payment.createdAt }))
+          : tables.refunds
+              .filter((refund) => numbers.has(refund.orderId))
+              .map((refund) => ({ id: refund.id, orderNumber: numbers.get(refund.orderId)!, provider: tables.payments.find((payment) => payment.id === refund.paymentId)?.provider ?? null, status: "refunded", amount: refund.amount, currency: "PKR", reference: null, reason: refund.reason, at: refund.createdAt }))
+      rows.sort((a, b) => b.at.localeCompare(a.at))
+      const start = (query.page - 1) * query.pageSize
+      return { rows: rows.slice(start, start + query.pageSize), total: rows.length }
+    },
     async nextOrderNumber() {
       return transaction((tables) => nextNumberIn(tables))
     },

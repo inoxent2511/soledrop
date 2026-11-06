@@ -1,4 +1,7 @@
 import type { EventTopic } from "@/server/platform/types"
+
+/** One line of the money ledger: a payment or a refund, with its order. */
+export type LedgerRow = { id: string; orderNumber: string; provider: string | null; status: string; amount: number; currency: string; reference: string | null; reason: string | null; at: string }
 import type { Order, OrderNote, OrderPage, OrderQuery, OrderStatus, Payment, Refund, ReturnRequest } from "@/server/orders/types"
 
 /** A fully priced order ready to persist; everything here was computed on the server. */
@@ -43,6 +46,8 @@ export interface OrderRepository {
   decideReturn(returnId: string, decision: "approved" | "rejected", actor: string): Promise<ReturnRequest>
   addNote(note: Omit<OrderNote, "id" | "createdAt">): Promise<OrderNote>
   listNotes(orderId: string): Promise<OrderNote[]>
+  /** The store-wide money ledger (admin A6): payments or refunds, newest first, with their order numbers. */
+  ledger(storeId: string, query: { kind: "payments" | "refunds"; provider?: string; page: number; pageSize: number }): Promise<{ rows: LedgerRow[]; total: number }>
   /** Removes personal data from orders of a deleted customer, keeping amounts for accounting. */
   anonymiseCustomer(customerId: string): Promise<number>
 }

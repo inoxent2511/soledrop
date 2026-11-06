@@ -272,6 +272,11 @@ export function createOrderService(deps: Deps) {
     addNote: orders.addNote,
     listNotes: orders.listNotes,
     findById: orders.findById,
+    ledger: orders.ledger,
+    providers: async () => {
+      const available = new Set((await deps.payments.available()).map((provider) => provider.code))
+      return ["cod", "bank_transfer", "stripe"].map((code) => ({ code, label: deps.payments.get(code)?.label ?? code, available: available.has(code) }))
+    },
 
     async refund(input: { orderId: string; amount: number; reason: string; lines: { orderLineId: string; quantity: number }[]; restock: boolean; idempotencyKey: string }) {
       const payments = await orders.listPayments(input.orderId)

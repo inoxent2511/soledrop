@@ -90,3 +90,9 @@ Entity `order`, `entity_id` = order number. The order service's own history (`or
 | `promotion.deleted` | promotion | `{ title, code }` (only never-used promotions) |
 | `shipping_zone.created` / `shipping_zone.updated` / `shipping_zone.deleted` | shipping_zone | the whole zone with its rates |
 | `tax_rates.updated` | tax_rates | the whole table before and after |
+
+### Payments (A6)
+
+| Action | Entity | After |
+| --- | --- | --- |
+| `payment.reconciled` | order | `{ amount, reference }` (a bank transfer matched from the statement) |

@@ -175,3 +175,27 @@ describe("staff orders", () => {
     expect(audits.filter((entry) => entry.action === "order.exported")).toHaveLength(2)
   })
 })
+
+describe("staff payments", () => {
+  it("queues bank transfers, reconciles them once, and keeps the ledger", async () => {
+    const order = await placeOrder({ paymentMethod: "bank_transfer" })
+    await placeOrder()
+    const finance = staffAs("finance")
+    const overview = await staff.paymentsOverview(finance)
+    expect(overview.queue.map((row) => row.number)).toEqual([order.number])
+    expect(overview.providers.find((provider) => provider.code === "cod")?.available).toBe(true)
+
+    const input = { amount: order.total, reference: "MEEZAN-0091", idempotencyKey: "reconcile-0001" }
+    await staff.reconcile(finance, meta, order.number, input)
+    await staff.reconcile(finance, meta, order.number, input)
+    expect((await staff.paymentsOverview(finance)).queue).toEqual([])
+    const ledger = await staff.ledger(finance, { kind: "payments", page: 1, pageSize: 50 })
+    expect(ledger.rows.filter((row) => row.reference === "MEEZAN-0091")).toHaveLength(1)
+    expect((await staff.detail(finance, order.number)).order).toMatchObject({ status: "confirmed", paymentStatus: "paid" })
+
+    const cod = (await staff.list(finance, { paymentMethod: "cod", page: 1, pageSize: 5 })).orders[0]
+    await expect(staff.reconcile(finance, meta, cod.number, { ...input, idempotencyKey: "reconcile-0002" })).rejects.toMatchObject({ code: "validation" })
+    await expect(staff.reconcile(staffAs("support_agent"), meta, order.number, input)).rejects.toMatchObject({ code: "forbidden" })
+    await expect(staff.paymentsOverview(staffAs("fulfilment"))).rejects.toMatchObject({ code: "forbidden" })
+  })
+})

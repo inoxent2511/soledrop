@@ -335,6 +335,19 @@ export function createSupabaseOrderRepository(): OrderRepository {
       const rows = unwrap(await supabase().from("order_notes").select("*").eq("order_id", orderId).order("created_at")) as NoteRecord[]
       return rows.map(toNote)
     },
+    async ledger(storeId, query) {
+      const start = (query.page - 1) * query.pageSize
+      if (query.kind === "payments") {
+        let request = supabase().from("payments").select("id, provider, status, amount, currency, provider_ref, created_at, orders!inner(number, store_id)", { count: "exact" }).eq("orders.store_id", storeId)
+        if (query.provider) request = request.eq("provider", query.provider)
+        const result = await request.order("created_at", { ascending: false }).range(start, start + query.pageSize - 1)
+        const rows = unwrap(result) as unknown as { id: string; provider: string; status: string; amount: number; currency: string; provider_ref: string | null; created_at: string; orders: { number: string } }[]
+        return { rows: rows.map((row) => ({ id: row.id, orderNumber: row.orders.number, provider: row.provider, status: row.status, amount: Number(row.amount), currency: row.currency, reference: row.provider_ref, reason: null, at: row.created_at })), total: result.count ?? rows.length }
+      }
+      const result = await supabase().from("refunds").select("id, amount, reason, created_at, payments(provider), orders!inner(number, store_id, currency)", { count: "exact" }).eq("orders.store_id", storeId).order("created_at", { ascending: false }).range(start, start + query.pageSize - 1)
+      const rows = unwrap(result) as unknown as { id: string; amount: number; reason: string; created_at: string; payments: { provider: string } | null; orders: { number: string; currency: string } }[]
+      return { rows: rows.map((row) => ({ id: row.id, orderNumber: row.orders.number, provider: row.payments?.provider ?? null, status: "refunded", amount: Number(row.amount), currency: row.orders.currency, reference: null, reason: row.reason, at: row.created_at })), total: result.count ?? rows.length }
+    },
     async nextOrderNumber(storeId) {
       return unwrap(await supabase().rpc("next_order_number", { p_store_id: storeId })) as string
     },

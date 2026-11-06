@@ -184,6 +184,40 @@ export function createStaffOrders(deps: Deps) {
       return note
     },
 
+    // ─── Payments (admin A6) ─────────────────────────────────────────────────
+    /** Providers, the bank-transfer queue (oldest first) and today's takings. */
+    async paymentsOverview(staff: StaffContext) {
+      need(staff, "payments:read")
+      const storeId = staff.member.storeId
+      const [providers, queue, today] = await Promise.all([
+        orders.providers(),
+        orders.search(storeId, { status: ["pending_payment"], paymentMethod: "bank_transfer", sort: "placed_asc", page: 1, pageSize: 100 }),
+        orders.ledger(storeId, { kind: "payments", page: 1, pageSize: 500 }),
+      ])
+      const startOfDay = new Date(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Karachi" }) + "T00:00:00+05:00").toISOString()
+      const captured = today.rows.filter((row) => row.status === "captured" && row.at >= startOfDay)
+      return {
+        providers,
+        queue: queue.orders.map((order) => ({ ...summary(visible(order, staff)), waitingHours: Math.floor((Date.now() - Date.parse(order.placedAt)) / 3_600_000) })),
+        today: { count: captured.length, amount: captured.reduce((sum, row) => sum + row.amount, 0) },
+      }
+    },
+
+    async ledger(staff: StaffContext, query: { kind: "payments" | "refunds"; provider?: string; page: number; pageSize: number }) {
+      need(staff, "payments:read")
+      return orders.ledger(staff.member.storeId, query)
+    },
+
+    /** A bank transfer seen on the statement: records it against the order (confirms it when paid in full). */
+    async reconcile(staff: StaffContext, meta: RequestMeta, number: string, input: { amount: number; reference: string; idempotencyKey: string }) {
+      need(staff, "payments:reconcile")
+      const order = await load(staff, number)
+      if (order.paymentMethod !== "bank_transfer") throw new DomainError("validation", "Only bank-transfer orders are reconciled here.")
+      const payment = await orders.recordPayment({ orderId: order.id, provider: "bank_transfer", status: "captured", amount: input.amount, currency: order.currency, providerRef: input.reference.trim(), idempotencyKey: `admin:${input.idempotencyKey}` })
+      await deps.audit(staff, meta, { action: "payment.reconciled", entity: "order", entityId: order.number, after: { amount: input.amount, reference: input.reference }, storeId: staff.member.storeId })
+      return payment
+    },
+
     /** CSV of every order matching the filters (up to 5,000 rows), formula-safe (CSV injection). */
     async exportCsv(staff: StaffContext, meta: RequestMeta, query: Omit<OrderQuery, "page" | "pageSize">) {
       need(staff, "orders:export")
