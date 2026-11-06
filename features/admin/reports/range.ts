@@ -10,3 +10,9 @@ export function reportRange(input: Record<string, string | undefined>, now = Dat
   const to = day.safeParse(input.to).success ? (input.to as string) : today
   return { from, to }
 }
+
+/** Today and seven days back, as Pakistan days (the dashboard's comparison window). */
+export function lastWeek(now = Date.now()) {
+  const day = (at: number) => new Date(at + 5 * 3_600_000).toISOString().slice(0, 10)
+  return { from: day(now - 7 * 86_400_000), to: day(now) }
+}
