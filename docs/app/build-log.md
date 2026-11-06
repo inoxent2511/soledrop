@@ -84,3 +84,7 @@ Verified: tsc ✓, eslint ✓, vitest 173/173 ✓, `next build` ✓, Playwright 
 ## 2026-11-10 — Admin A6: payments
 Built: the store-wide money ledger (payments and refunds with order numbers, both drivers), provider status (which methods checkout offers and what each needs), the bank-transfer queue (pending bank-transfer orders, oldest first, flagged after two days) with "Received" reconciliation (idempotent, audited, confirms the order when paid in full), and today's takings. Page `/admin/payments`. FilterBar search is now optional.
 Verified: tsc ✓, eslint ✓, vitest (all) ✓ incl. staff payments integration.
+
+## 2026-11-11 — Admin A7: content
+Built: staff content repository writes (both drivers; migration `20261111090000_admin_content.sql`: `save_page` with rename + millisecond optimistic concurrency, `reorder_faqs`, RBAC read of drafts). Pages now have a published flag (seed pages published; drafts hidden from `/pages/<slug>`). `server/content/staff.ts`: pages (draft → publish, rename, delete; policy slugs reserved, A-017), FAQs (add, edit, delete, reorder). UI: `/admin/content` (pages + policy links), block editor (heading, paragraph, list, callout, button link — on-site only, FAQ group) with a live preview in the storefront's own block renderer, `/admin/content/faqs`.
+Verified: tsc ✓, eslint ✓, vitest (all) ✓ incl. admin content integration 3.

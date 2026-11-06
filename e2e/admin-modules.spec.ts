@@ -19,6 +19,10 @@ const PAGES = [
   ["/admin/promotions", "Promotions"],
   ["/admin/promotions/new", "New promotion"],
   ["/admin/shipping", "Shipping & tax"],
+  ["/admin/payments", "Payments"],
+  ["/admin/content", "Pages & FAQs"],
+  ["/admin/content/faqs", "FAQs"],
+  ["/admin/content/pages/new", "New page"],
   ["/admin/account", "Your account"],
 ] as const
 

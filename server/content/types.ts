@@ -17,6 +17,8 @@ export type Page = {
   blocks: ContentBlock[]
   updatedAt: string
   seo: { title?: string; description?: string; noindex?: boolean }
+  /** Hidden from the storefront when false (admin drafts); seed pages are published. */
+  published?: boolean
 }
 
 export type Faq = { id: string; category: string; question: string; answer: string; position: number }

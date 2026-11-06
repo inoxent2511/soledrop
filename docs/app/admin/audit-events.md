@@ -96,3 +96,13 @@ Entity `order`, `entity_id` = order number. The order service's own history (`or
 | Action | Entity | After |
 | --- | --- | --- |
 | `payment.reconciled` | order | `{ amount, reference }` (a bank transfer matched from the statement) |
+
+### Content (A7)
+
+| Action | Entity | Before → after |
+| --- | --- | --- |
+| `page.created` / `page.updated` | page | `{ slug, title, blocks }` (block count) |
+| `page.published` / `page.unpublished` | page | `{ published }` |
+| `page.deleted` | page | `{ title }` |
+| `faq.created` / `faq.updated` / `faq.deleted` | faq | the question |
+| `faq.reordered` | faq (`*`) | `{ order }` |

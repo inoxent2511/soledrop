@@ -3,9 +3,10 @@ import "server-only"
 import type { ContentRepository } from "@/server/content/repository"
 import type { Faq, Page } from "@/server/content/types"
 import { supabase, unwrap } from "@/server/db/supabase"
+import { DomainError } from "@/server/shared/errors"
 
-type PageRecord = { slug: string; title: string; description: string; blocks: Page["blocks"]; updated_at: string; seo: Page["seo"] }
-const toPage = (row: PageRecord): Page => ({ slug: row.slug, title: row.title, description: row.description, blocks: row.blocks, updatedAt: row.updated_at, seo: row.seo })
+type PageRecord = { slug: string; title: string; description: string; blocks: Page["blocks"]; updated_at: string; seo: Page["seo"]; published: boolean }
+const toPage = (row: PageRecord): Page => ({ slug: row.slug, title: row.title, description: row.description, blocks: row.blocks, updatedAt: row.updated_at, seo: row.seo, published: row.published })
 
 export function createSupabaseContentRepository(): ContentRepository {
   return {
@@ -39,6 +40,43 @@ export function createSupabaseContentRepository(): ContentRepository {
           message: message.message,
         }),
       )
+    },
+
+    async staffPages(storeId) {
+      const rows = unwrap(await supabase().from("pages").select("*").eq("store_id", storeId).order("title")) as PageRecord[]
+      return rows.map(toPage)
+    },
+    async staffPage(storeId, slug) {
+      const row = unwrap(await supabase().from("pages").select("*").eq("store_id", storeId).eq("slug", slug).maybeSingle()) as PageRecord | null
+      return row ? toPage(row) : null
+    },
+    async savePage(storeId, page, previousSlug, expectedUpdatedAt) {
+      unwrap(
+        await supabase().rpc("save_page", {
+          p_store_id: storeId,
+          p_previous_slug: previousSlug,
+          p_page: { slug: page.slug, title: page.title, description: page.description, blocks: page.blocks, seo: page.seo, published: page.published !== false },
+          p_expected_updated_at: expectedUpdatedAt,
+        }),
+      )
+      const saved = await this.staffPage(storeId, page.slug)
+      if (!saved) throw new DomainError("not_found", "Page not found.")
+      return saved
+    },
+    async deletePage(storeId, slug) {
+      const rows = unwrap(await supabase().from("pages").delete().eq("store_id", storeId).eq("slug", slug).select("slug")) as { slug: string }[]
+      if (!rows.length) throw new DomainError("not_found", "Page not found.")
+    },
+    async saveFaq(storeId, faq) {
+      unwrap(await supabase().from("faqs").upsert({ id: faq.id, store_id: storeId, category: faq.category, question: faq.question, answer: faq.answer, position: faq.position }, { onConflict: "id" }))
+      return faq
+    },
+    async deleteFaq(storeId, id) {
+      const rows = unwrap(await supabase().from("faqs").delete().eq("store_id", storeId).eq("id", id).select("id")) as { id: string }[]
+      if (!rows.length) throw new DomainError("not_found", "Question not found.")
+    },
+    async reorderFaqs(storeId, ids) {
+      unwrap(await supabase().rpc("reorder_faqs", { p_store_id: storeId, p_ids: ids }))
     },
   }
 }
