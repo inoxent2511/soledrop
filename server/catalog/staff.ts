@@ -21,7 +21,7 @@ type Audit = (staff: StaffContext, meta: RequestMeta, entry: { action: string; e
 
 type Pricing = { priceLists: (storeId: string) => Promise<PriceList[]>; rawPrices: (variantIds: string[]) => Promise<PriceRow[]>; upsertPrices: (rows: PriceRow[]) => Promise<number> }
 
-type Deps = { catalog: CatalogRepository; pricing: Pricing; inventory: InventoryRepository; audit: Audit; revalidate: () => void }
+type Deps = { catalog: CatalogRepository; pricing: Pricing; inventory: InventoryRepository; audit: Audit; revalidate: () => void; assertImages?: (storeId: string, urls: string[]) => Promise<void> }
 
 const need = (staff: StaffContext, permission: Permission) => {
   if (!staff.permissions.includes(permission)) throw new DomainError("forbidden", "You don't have permission to do that.", { permission })
@@ -134,6 +134,7 @@ export function createStaffCatalog(deps: Deps) {
       need(staff, "products:write")
       const storeId = staff.member.storeId
       const before = options.id ? await load(staff, options.id) : null
+      await deps.assertImages?.(storeId, input.images.map((image) => image.url))
       const brand = (await catalog.listBrands(storeId)).find((entry) => entry.id === input.brandId)
       if (!brand) throw new DomainError("validation", "Choose a brand.", { fields: { brandId: ["Choose a brand"] } })
       const collections = await catalog.listCollections(storeId)
@@ -256,7 +257,7 @@ export function createStaffCatalog(deps: Deps) {
     async saveCollection(
       staff: StaffContext,
       meta: RequestMeta,
-      input: { id?: string; slug: string; title: string; headline: [string, string]; description: string; kind: "manual" | "rule"; rules: CollectionRule[]; seo: Collection["seo"]; productIds: string[] | null },
+      input: { id?: string; slug: string; title: string; headline: [string, string]; description: string; kind: "manual" | "rule"; rules: CollectionRule[]; seo: Collection["seo"]; productIds: string[] | null; image?: Collection["image"] },
     ) {
       need(staff, "collections:write")
       const storeId = staff.member.storeId
@@ -264,6 +265,7 @@ export function createStaffCatalog(deps: Deps) {
       const before = input.id ? existing.find((entry) => entry.id === input.id) : undefined
       if (input.id && !before) throw new DomainError("not_found", "Collection not found.")
       if (input.kind === "rule" && input.rules.length === 0) throw new DomainError("validation", "A rule-based collection needs at least one rule.")
+      await deps.assertImages?.(storeId, (input.image === undefined ? before?.image : input.image) ? [(input.image === undefined ? before?.image : input.image)!.url] : [])
       const collection: Collection = {
         id: before?.id ?? newId(),
         storeId,
@@ -273,7 +275,7 @@ export function createStaffCatalog(deps: Deps) {
         description: input.description,
         kind: input.kind,
         rules: input.kind === "rule" ? input.rules : [],
-        image: before?.image ?? null,
+        image: input.image === undefined ? before?.image ?? null : input.image,
         position: before?.position ?? existing.length,
         seo: input.seo,
       }

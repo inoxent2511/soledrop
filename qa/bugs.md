@@ -53,6 +53,20 @@ limits are recorded in `docs/app/build-log.md`.
 | PERF-03 | Admin initial JavaScript | A12 (2026-11-06), final code: dashboard 338.5 KiB, orders/products 339.9 KiB, gallery 343.2 KiB vs the brief's 250 KiB budget | Sum of gzip-compressed `script[src]` response bodies after each document load, as a Read-only staff member; excludes response headers and later interaction chunks. Report: local `qa/out/a12-admin-js.json`. This is a bundle-size measurement, not INP or large-data throughput. | Analyse shared and admin chunks, split optional editors/dialogs and remove unused client dependencies; remeasure before claiming the performance target passes. |
 | GEO-01 | Header nav at 1920, closed | Geometry audit: New Arrival +1.39 px, Men +0.5, Women −0.27, Sale −0.92 (x); widths exact | The design spaces fixed-width, centre-aligned Figma text boxes 74 px apart; the build spaces the glyph runs 74 px apart, so the sub-pixel box padding accumulates. No pre-mega-menu geometry baseline exists to prove "0 px change" | Designer confirmation: keep (≤ 1.4 px) or size each trigger to its Figma box width (build item 13) |
 
+## Catalogue and banner continuation (2026-11-07)
+
+| ID | Issue found | Fix and verification |
+| --- | --- | --- |
+| BUG-024 | Normal local preview edits and uploaded bytes disappeared when its fixture process restarted. | Saved local repository mode; explicit one-time import, private persisted media, checksummed atomic snapshots and exclusive writer lock. Private-copy hard-restart checks and `local-store.test.ts` pass. |
+| BUG-025 | Homepage merchandising was hardcoded and collection banner images had no editor control. | Banners & images sidebar, homepage editor and collection banner picker. Dedicated-page and collection edits pass in all three engines. |
+| BUG-026 | The media picker exposed only its first page of images. | Search and pagination, tested after more than 40 uploads in every engine. |
+| BUG-027 | Media deletion did not account for collection/homepage references or purchased photo snapshots. | Usage checks cover those references and the whole product catalogue. Usage is shown in Media details; deletion is guarded on the server and disabled in the UI. SQL scoping and browser checks pass. |
+| BUG-028 | Accepted long banner text widened the 320 px storefront to 10,582 px; category titles could clip their action. | Safe word wrapping, flexible CTA sizing and minimum category heights. Width and card-content bounds pass at 320/390/1440 in all engines. |
+| BUG-029 | WebKit could enter Media search before hydration and lose the query. | Server-rendered upload/search controls remain disabled until React handlers attach. The full banner suite and two repeated affected WebKit flows pass. |
+| BUG-030 | Local saved storage was labelled as Supabase in integration settings. | Explicit local label, checked on the running saved preview. |
+
+The broad regression's ambiguous `It applies.` selector was a QA assertion issue; it now requires exact text. The final broad run has 2,868 passes and 48 unchanged skips. Historical performance/design requirements above remain open; these fixes do not claim the older strict A12 sign-off.
+
 ## Investigated, not a defect
 
 - **Slow client navigation under CPU contention.** The header suite flaked once per run when all three

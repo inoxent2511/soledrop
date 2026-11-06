@@ -2,7 +2,7 @@
 
 Source of truth: `supabase/migrations/` (schema → RLS → functions, forward only), mirrored by the
 TypeScript domain types in `server/<domain>/types.ts`. Tests run the migrations in PGlite
-(`tests/db`). 52 tables (42 commerce, 2 search, 8 admin), all in `public`, all with RLS enabled and denied by default.
+(`tests/db`). 53 tables, all in `public`, all with RLS enabled and denied by default. The saved local driver mirrors domain rows in a versioned file snapshot; see [catalogue and banners](admin/catalogue-and-banners.md).
 
 ## Conventions
 
@@ -27,6 +27,7 @@ TypeScript domain types in `server/<domain>/types.ts`. Tests run the migrations 
 | Cart | `carts`, `cart_lines` | Quantity 1–10, one line per variant. Merged into the customer's cart on sign-in (`merge_carts`). |
 | Orders | `orders`, `order_lines`, `payments`, `refunds`, `returns` | Unique `(store_id, number)` and `(store_id, idempotency_key)`. Lines snapshot title/price. Refunds stay within the paid amount and line quantity (checks). One open return per order. |
 | Content | `pages`, `faqs`, `newsletter_subscribers`, `contact_messages` | Pages are block lists rendered by the block registry. |
+| Storefront merchandising | `storefront_content` | One published homepage configuration per store: announcement, title/buttons, hero slides, category cards and Instagram images. `save_home` serializes first saves and checks the previous version. |
 | Platform | `feature_flags`, `outbox_events`, `webhook_deliveries`, `audit_log`, `rate_limits`, `idempotency_keys` | `audit_log` is append-only (trigger). |
 
 ## Order state machine
@@ -97,5 +98,6 @@ in one transaction; deleting reservation rows directly would leave stock incorre
 | roles, role_permissions, staff_roles, staff_invites | — | — | `staff:read` / `staff:manage` | all |
 | staff_sessions, idempotency, rate limits | — | — | — | all |
 | audit_log | — | — | `audit:read` | insert only (append-only trigger) |
+| storefront_content | — | — | read with `content:read` | all; `save_home` service-only |
 
 Verified by `tests/db/rls.test.ts`.

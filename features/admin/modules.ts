@@ -48,6 +48,7 @@ export const ADMIN_MODULES: readonly AdminModule[] = [
   { key: "marketing", label: "Marketing", href: "/admin/marketing", group: "Marketing", permission: "marketing:read", icon: Megaphone, keywords: ["newsletter", "abandoned carts"] },
   { key: "search", label: "Search", href: "/admin/search", group: "Marketing", permission: "search:read", icon: Search, keywords: ["synonyms", "queries"] },
   { key: "content", label: "Pages & FAQs", href: "/admin/content", group: "Content", permission: "content:read", icon: FileText, keywords: ["policy", "terms", "faq"] },
+  { key: "banners", label: "Banners & images", href: "/admin/banners", group: "Content", permission: "content:read", icon: Image, keywords: ["homepage", "hero", "slides", "category", "banner", "instagram"] },
   { key: "media", label: "Media", href: "/admin/media", group: "Content", permission: "media:read", icon: Image, keywords: ["photos", "images"] },
   { key: "payments", label: "Payments", href: "/admin/payments", group: "Money", permission: "payments:read", icon: CreditCard, keywords: ["bank transfer", "reconcile"] },
   { key: "reports", label: "Reports", href: "/admin/reports", group: "Money", permission: "reports:read", icon: BarChart3, keywords: ["sales", "analytics"] },

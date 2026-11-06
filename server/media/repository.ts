@@ -10,4 +10,5 @@ export interface MediaRepository {
   updateAlt(storeId: string, id: string, alt: string): Promise<MediaItem>
   remove(storeId: string, id: string): Promise<void>
   read(path: string): Promise<Uint8Array | null>
+  hasOrderUsage(storeId: string, url: string): Promise<boolean>
 }

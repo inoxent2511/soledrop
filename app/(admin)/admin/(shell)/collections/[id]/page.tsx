@@ -26,7 +26,8 @@ export default async function EditCollectionPage({ params }: Props) {
       <CollectionEditor
         key={JSON.stringify([collection, productIds])}
         canWrite={can(staff, "collections:write")}
-        initial={{ id: collection.id, title: collection.title, slug: collection.slug, headline: collection.headline, description: collection.description, kind: collection.kind, rules: collection.rules ?? [], seo: collection.seo, products }}
+        canUpload={can(staff, "media:write")}
+        initial={{ id: collection.id, title: collection.title, slug: collection.slug, headline: collection.headline, description: collection.description, kind: collection.kind, rules: collection.rules ?? [], seo: collection.seo, products, image: collection.image }}
       />
     </>
   )

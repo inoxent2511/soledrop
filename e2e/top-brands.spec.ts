@@ -6,7 +6,8 @@ test.describe("top brands strip", () => {
     await page.goto("/")
     const section = page.locator("section[aria-labelledby='brands-title']")
     await expect(section.getByRole("link")).toHaveCount(0)
-    await expect(section.getByRole("listitem")).toHaveCount(8)
+    // The isolated catalogue has ten managed brands; the strip uses the saved brand registry.
+    await expect(section.getByRole("listitem")).toHaveCount(10)
     const nike = section.getByRole("listitem").filter({ hasText: "NIKE" })
     const before = await nike.evaluate((node) => getComputedStyle(node).color)
     await nike.hover()

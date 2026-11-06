@@ -7,8 +7,8 @@ import { attributeDefinitions, basePrices, brands, collections, customFieldDefin
 const json = (value: unknown) => `$seed$${JSON.stringify(value)}$seed$::jsonb`
 
 /**
- * supabase/seed.sql, built from the same fixtures the fixtures driver serves, so a local Supabase
- * (`supabase db reset`) shows exactly the catalogue, prices, stock, shipping, promotions and
+ * qa/fixtures/seed.sql, built from the same fixtures the isolated QA driver serves. It contains
+ * the catalogue, prices, stock, shipping, promotions and
  * content the storefront was built and tested against. Products go through import_products,
  * the same RPC the import API uses.
  */
@@ -16,7 +16,7 @@ export function seedSql(): string {
   const store = STORE_ID
   return [
     "-- GENERATED from server/fixtures by tests/db/seed.test.ts (WRITE_SEED=1 to refresh) — do not edit.",
-    "-- Local development only: `supabase db reset` runs migrations, then this file.",
+    "-- Isolated QA only. Never apply this sample catalogue to a merchant store.",
     "",
     `insert into public.stores (id, name, default_currency, order_prefix, next_order_number) values ('${store}', 'Sole Drop', 'PKR', 'SD', 10001);`,
     "",

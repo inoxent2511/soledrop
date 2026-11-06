@@ -10,7 +10,7 @@ const PHOTOS = ["/images/site/hero-2.jpg", "/images/products/asics-gel-kayano-30
 
 for (const photo of PHOTOS) {
   test(`/_next/image resizes and re-encodes ${photo}`, async ({ request }) => {
-    const original = fs.statSync(`public${photo}`).size
+    const original = fs.statSync(`qa/fixtures${photo}`).size
     const response = await request.get(`/_next/image?url=${encodeURIComponent(photo)}&w=828&q=75`, { headers: { accept: "image/avif,image/webp,*/*" } })
     expect(response.status()).toBe(200)
     expect(response.headers()["content-type"]).toMatch(/^image\/(avif|webp)$/)

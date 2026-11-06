@@ -26,6 +26,9 @@ const toItem = (row: MediaRecord): MediaItem => ({
 
 export function createSupabaseMediaRepository(): MediaRepository {
   return {
+    async hasOrderUsage(storeId, url) {
+      return unwrap(await supabase().rpc("media_has_order_usage", { p_store_id: storeId, p_url: url })) as boolean
+    },
     async list(storeId, query) {
       let request = supabase().from("media").select("*", { count: "exact" }).eq("store_id", storeId)
       const term = query.q ? searchTerm(query.q) : ""

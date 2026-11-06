@@ -1,6 +1,9 @@
 import type { ContactMessage, Faq, NewsletterSubscriber, Page } from "@/server/content/types"
+import type { HomeContent, HomeRecord } from "@/server/content/home-types"
 
 export interface ContentRepository {
+  home(storeId: string): Promise<HomeRecord | null>
+  saveHome(storeId: string, content: HomeContent, expectedUpdatedAt: string | null): Promise<HomeRecord>
   listPages(storeId: string): Promise<Page[]>
   getPage(storeId: string, slug: string): Promise<Page | null>
   listFaqs(storeId: string): Promise<Faq[]>

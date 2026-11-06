@@ -16,6 +16,7 @@ The back-office lives at `/admin` in the same Next.js app, with its own route gr
 | | Marketing | `/admin/marketing` | `marketing:read` | newsletter subscribers, abandoned carts |
 | | Search | `/admin/search` | `search:read` | top and zero-result queries, synonyms |
 | Content | Pages & FAQs | `/admin/content` | `content:read` | edit block pages and FAQs with preview, publish; link to code-managed policy pages (A-017) |
+| | Banners & images | `/admin/banners` | `content:read` | homepage hero, announcement, category/Instagram photos and links to every collection banner editor |
 | | Media | `/admin/media` | `media:read` | upload, alt text, usage |
 | Money | Payments | `/admin/payments` | `payments:read` | provider status, bank-transfer queue, payments and refunds ledger |
 | | Reports | `/admin/reports` | `reports:read` | sales, products, customers, promotions, refunds, inventory value |

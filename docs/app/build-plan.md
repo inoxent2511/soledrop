@@ -30,6 +30,12 @@ Done when: two consecutive full production-build QA passes have zero findings, p
 Scope: complete the admin runbook, API/RLS documentation, component gallery and implementation notes.
 Done when: docs describe the shipped code, QA evidence and operational limits, and changes are committed locally.
 
+### A14 — Saved catalogue and banner controls
+Scope: retain the live preview catalogue and uploads in durable local storage; remove runtime sample-product/merchandising fallbacks; expose controls for every displayed banner; isolate QA data and fix regressions.
+Done when: imported IDs/prices/stock/uploads/history are compared with the export; product and banner writes survive hard restarts; empty catalogues do not refill; banner edits work across three browsers, mobile widths and permissions; documentation and local commit capture the results. Hosted integration and the older strict A12 gaps remain separate.
+
 Each later stage gets its "Done when:" written when it starts, from the module list in [admin/admin-ia.md](./admin/admin-ia.md).
+
+A14 is complete (2026-11-07): the live catalogue is saved, every displayed photographic banner has an admin control, and migration/restart/browser evidence is recorded in [admin/verification.md](./admin/verification.md). The earlier strict A12 requirements remain separate.
 
 **Status:** A0–A11 and the A12 implementation fixes (`8777e34`) are committed. The A12 automated regression checkpoint passed twice; **strict A12 sign-off remains open** for the requirements listed in [admin/verification.md](./admin/verification.md). A13 documentation is complete. See [build-log.md](./build-log.md) for results and the resume point, and [admin/security.md](./admin/security.md) for the implemented controls. Resume at the remaining A12 gaps rather than rebuilding completed modules.

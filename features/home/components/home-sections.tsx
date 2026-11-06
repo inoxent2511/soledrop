@@ -14,45 +14,36 @@ import { ProductRow } from "@/features/catalog/components/product-row"
 import { BrandMarquee } from "@/features/home/components/brand-marquee"
 import { NewArrivalSwitch } from "@/features/home/components/new-arrival-switch"
 import type { CardProduct } from "@/features/catalog/types/card"
-import { siteConfig } from "@/lib/site"
+import type { HomeContent } from "@/server/content/home-types"
 import { cn } from "@/lib/utils"
 
-export function Hero({ children }: { children: ReactNode }) {
+export function Hero({ children, content }: { children: ReactNode; content: HomeContent }) {
   return (
     <section
       aria-labelledby="hero-title"
-      className="grid bg-foreground text-background lg:grid-cols-2 3xl:grid-cols-hero"
+      className="grid min-w-0 bg-foreground text-background lg:grid-cols-2 3xl:grid-cols-hero"
     >
-      <div className="flex flex-col items-start px-5 pt-10 pb-12 md:px-10 lg:pt-12 xl:px-16 3xl:ps-30 3xl:pe-0 3xl:pt-17.75 3xl:pb-17.75">
+      <div className="flex min-w-0 flex-col items-start px-5 pt-10 pb-12 md:px-10 lg:pt-12 xl:px-16 3xl:ps-30 3xl:pe-0 3xl:pt-17.75 3xl:pb-17.75">
         <h1
           id="hero-title"
-          className="flex flex-col text-60 leading-hero font-black uppercase md:text-100 xl:text-120 3xl:text-150"
+          className="flex max-w-full flex-col text-60 leading-hero font-black wrap-anywhere uppercase md:text-100 xl:text-120 3xl:text-150"
         >
-          <span>Find</span>
-          <span className="text-brand">Your.</span>
-          <span>Perfect</span>
-          <span className="text-brand">Pair.</span>
+          {content.heading.some(Boolean) ? content.heading.map((line, index) => <span key={index} className={index % 2 ? "text-brand" : undefined}>{line}</span>) : <span>Sole Drop</span>}
         </h1>
-        <p className="max-w-156 pt-4 text-18 font-medium text-muted-foreground md:text-24 3xl:pt-5.25 3xl:text-28">
-          Discover new and pre-loved footwear from the brands you love — at
-          prices that make sense.
+        <p className="max-w-156 pt-4 text-18 font-medium wrap-anywhere text-muted-foreground md:text-24 3xl:pt-5.25 3xl:text-28">
+          {content.description}
         </p>
-        <div className="flex flex-wrap gap-4 pt-8 md:gap-11 3xl:pt-13.5">
-          <Link
-            href="/collections/brand-new"
-            className={buttonVariants({ tone: "brand-on-ink", size: "hero" })}
-          >
-            New shoes
-          </Link>
-          <Link
-            href="/pre-loved"
+        <div className="flex max-w-full flex-wrap gap-4 pt-8 md:gap-11 3xl:pt-13.5">
+          {content.buttons.map((button, index) => <Link key={index}
+            href={button.href}
             className={cn(
-              buttonVariants({ tone: "paper", size: "hero" }),
-              "tracking-wide-2"
+              buttonVariants({ tone: index ? "paper" : "brand-on-ink", size: "hero" }),
+              index ? "tracking-wide-2" : "",
+              "h-auto min-h-14 max-w-full py-3 whitespace-normal wrap-anywhere md:h-auto md:min-h-16 3xl:h-auto 3xl:min-h-21"
             )}
           >
-            Pre-loved
-          </Link>
+            {button.label}
+          </Link>)}
         </div>
       </div>
       <div className="aspect-4/3 lg:aspect-auto">{children}</div>
@@ -60,20 +51,7 @@ export function Hero({ children }: { children: ReactNode }) {
   )
 }
 
-const categories = [
-  {
-    title: ["Brand", "New"],
-    href: "/collections/brand-new",
-    image: "/images/site/category-brand-new.png",
-  },
-  {
-    title: ["Pre-", "Loved"],
-    href: "/pre-loved",
-    image: "/images/site/category-pre-loved.png",
-  },
-]
-
-export function ShopByCategory() {
+export function ShopByCategory({ categories }: { categories: HomeContent["categories"] }) {
   return (
     <section
       aria-labelledby="categories-title"
@@ -82,20 +60,20 @@ export function ShopByCategory() {
       <Container className="flex flex-col gap-8 md:gap-10 3xl:gap-13.5">
         <SectionTitle id="categories-title">Shop by category</SectionTitle>
         <ul className="grid gap-8 pe-3.5 lg:grid-cols-2 3xl:gap-20 3xl:pe-0">
-          {categories.map((category) => (
-            <li key={category.href}>
+          {categories.map((category, index) => (
+            <li key={`${category.href}-${index}`}>
               <Link
                 href={category.href}
-                className="group relative flex h-80 flex-col items-start gap-6 overflow-hidden rounded-card border-2 border-subtle-foreground p-6 shadow-offset-brand md:h-128 md:gap-10 md:ps-14.5 md:pt-23"
+                className="group relative flex min-h-80 flex-col items-start gap-6 overflow-hidden rounded-card border-2 border-subtle-foreground p-6 shadow-offset-brand md:min-h-128 md:gap-10 md:ps-14.5 md:pt-23"
               >
                 <Image
-                  src={category.image}
-                  alt=""
+                  src={category.image.src}
+                  alt={category.image.alt}
                   fill
                   sizes="(min-width: 1024px) 50vw, 100vw"
                   className="-z-10 object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <h3 className="flex flex-col text-56 leading-none font-extrabold tracking-tight-2 text-foreground uppercase md:text-100">
+                <h3 className="flex max-w-full flex-col text-56 leading-none font-extrabold tracking-tight-2 wrap-anywhere text-foreground uppercase md:text-100">
                   <span>{category.title[0]}</span>
                   <span>{category.title[1]}</span>
                 </h3>
@@ -187,22 +165,11 @@ export function NewArrivalSection({
   )
 }
 
-const topBrands = [
-  "ASICS",
-  "ADIDAS",
-  "NIKE",
-  "PUMA",
-  "REEBOK",
-  "NEW BALANCE",
-  "JORDAN",
-  "HOKA",
-] as const
-
-export function TopBrands() {
+export function TopBrands({ brands }: { brands: string[] }) {
   return (
     <section aria-labelledby="brands-title" className="py-12 md:py-17.5">
       <Container>
-        <BrandMarquee title="TOP BRANDS" brands={topBrands} />
+        <BrandMarquee title="TOP BRANDS" brands={brands} />
       </Container>
     </section>
   )
@@ -280,44 +247,37 @@ export function WhySoleDrop() {
   )
 }
 
-const instagramImages = [
-  "/images/site/instagram-1.jpg",
-  "/images/site/instagram-2.jpg",
-  "/images/site/instagram-3.jpg",
-  "/images/site/instagram-4.jpg",
-]
-
-export function InstagramStrip() {
+export function InstagramStrip({ instagram }: { instagram: HomeContent["instagram"] }) {
   return (
     <section
       aria-labelledby="instagram-title"
       className="bg-surface py-14 md:py-20"
     >
       <Container className="flex flex-col items-center gap-10 md:gap-12.25">
-        <div className="flex flex-col items-center gap-2.25 text-center">
+        <div className="flex w-full min-w-0 flex-col items-center gap-2.25 text-center">
           <h2
             id="instagram-title"
             className="text-28 font-black uppercase md:text-40"
           >
             Follow SOLEDROP
           </h2>
-          <p className="text-18 font-bold text-faint-foreground md:text-20">
-            {siteConfig.social.instagramHandle}
+          <p className="max-w-full text-18 font-bold wrap-anywhere text-faint-foreground md:text-20">
+            {instagram.handle}
           </p>
         </div>
         <ul className="grid w-full max-w-376 grid-cols-2 gap-4 md:grid-cols-4 md:gap-12 md:pb-0.25">
-          {instagramImages.map((src, index) => (
-            <li key={src}>
+          {instagram.images.map(({ src, alt }, index) => (
+            <li key={`${src}-${index}`}>
               {/* Each post opens the Instagram profile; hover or focus dims the photo and shows the Instagram mark (D-051). */}
               <a
-                href={siteConfig.social.instagram}
+                href={instagram.href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group relative block aspect-340/440 overflow-hidden rounded-3xl bg-foreground"
               >
                 <Image
                   src={src}
-                  alt=""
+                  alt={alt}
                   fill
                   sizes="(min-width: 1920px) 340px, (min-width: 768px) 22vw, 45vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -327,14 +287,14 @@ export function InstagramStrip() {
                 </span>
                 <span className="sr-only">
                   Instagram post {index + 1} by{" "}
-                  {siteConfig.social.instagramHandle} (opens in a new tab)
+                  {instagram.handle} (opens in a new tab)
                 </span>
               </a>
             </li>
           ))}
         </ul>
         <a
-          href={siteConfig.social.instagram}
+          href={instagram.href}
           target="_blank"
           rel="noopener noreferrer"
           className={cn(

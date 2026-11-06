@@ -9,7 +9,7 @@ step below that touches a hosted service is for the owner (or someone they autho
 | --- | --- | --- |
 | Web app | `Dockerfile` (Next.js `output: "standalone"`, Node 22, non-root, `HEALTHCHECK /api/health`) | Any container host. Listens on `PORT` (3000). Stateless: scale horizontally. |
 | Database | `supabase/migrations/*.sql` (forward only) | Postgres 15+ with the Supabase `auth` schema (RLS helpers use `auth.uid()`). |
-| Seed | `supabase/seed.sql` (generated from `server/fixtures`) | Local and staging only. **Never** run against production after launch: it inserts the sample catalogue. |
+| Bootstrap | `supabase/seed.sql` | Empty store, retail price list, base-currency identity rate and disabled integration flags. Sample catalogue SQL and images live in `qa/fixtures` and are never production seeds. |
 | Scheduled jobs | `POST /api/jobs/*` | Driven by any scheduler (§5). |
 
 ## 2. Environment
@@ -29,7 +29,9 @@ Optional: `BANK_*` (bank transfer appears only when all three are set), `STRIPE_
 append to `X-Forwarded-For` (load balancer, CDN). Too high, and shoppers can forge their rate-limit
 address; too low, and every shopper behind the proxy shares one limit. Leave `COOKIE_SECURE` unset.
 
-After the first deploy, check `/_next/image?url=/images/site/hero-2.jpg&w=828&q=75` returns
+For saved local operation and banner controls, see [catalogue and banners](app/admin/catalogue-and-banners.md). `DATA_DRIVER=local` is a single-process local preview; hosted deployments use Supabase and remain stateless.
+
+After the first deploy, upload a photo and check `/_next/image?url=/media/<uploaded-id>.webp&w=828&q=75` returns
 `image/avif` or `image/webp`. A JPEG of the original size means sharp's native libraries are missing
 from the image (BUG-016, `e2e/images.spec.ts`).
 
@@ -44,8 +46,9 @@ from the image (BUG-016, `e2e/images.spec.ts`).
    + seed), set `DATA_DRIVER=supabase`, `SUPABASE_URL=http://127.0.0.1:54321` and the printed
    service-role key, `pnpm dev`. Run `pnpm test:db` (it runs the same migrations in PGlite).
 3. **Hosted project** (owner): create the project, then from a trusted machine
-   `supabase link --project-ref <ref>` and `supabase db push`. Do not run `seed.sql`; import the
-   real catalogue with `POST /api/v1/products/import` (CSV, `write` scope).
+   `supabase link --project-ref <ref>` and `supabase db push`. Apply the minimal `supabase/seed.sql`
+   bootstrap once for the configured store ID, then create the real catalogue and images through
+   the admin or the scoped import API. Never apply `qa/fixtures/seed.sql` to a merchant database.
 4. **First Owner** (admin, §8): create the `media` storage bucket, then make a one-time Owner invite
    and open its link to set a password and enrol two-step verification.
 5. **Build and run**:

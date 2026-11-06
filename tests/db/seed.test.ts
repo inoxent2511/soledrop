@@ -10,9 +10,9 @@ import { openingStock, products } from "@/server/fixtures/seed"
 import { freshDatabase } from "./harness"
 import { seedSql } from "./seed-sql"
 
-const SEED = path.resolve(import.meta.dirname, "../../supabase/seed.sql")
+const SEED = path.resolve(import.meta.dirname, "../../qa/fixtures/seed.sql")
 
-describe("supabase/seed.sql", () => {
+describe("isolated QA seed SQL", () => {
   it("is generated from the fixtures and up to date", () => {
     const sql = seedSql()
     if (process.env.WRITE_SEED === "1") fs.writeFileSync(SEED, sql)

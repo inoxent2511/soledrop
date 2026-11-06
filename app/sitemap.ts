@@ -7,7 +7,7 @@ import { currentStoreId } from "@/server/db/driver"
 import { DEDICATED_COLLECTION_PAGES } from "@/server/storefront"
 
 /** Rebuilt hourly: new drops and sold pre-loved pairs reach search engines within the hour. */
-export const revalidate = 3600
+export const dynamic = "force-dynamic"
 
 const url = (path: string) => new URL(path, siteConfig.url).toString()
 

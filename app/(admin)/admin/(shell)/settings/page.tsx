@@ -82,7 +82,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
             <p className="text-16">{integrations.turnstileConfigured ? "Cloudflare Turnstile is on for sign-up and contact forms." : "Turnstile isn't configured (TURNSTILE_SECRET_KEY); forms rely on rate limits."}</p>
           </AdminCard>
           <AdminCard title="Data">
-            <p className="text-16">Driver: {integrations.driver === "fixtures" ? "In-memory sample data (no database)" : "Supabase Postgres"}</p>
+            <p className="text-16">Driver: {integrations.driver === "fixtures" ? "In-memory sample data (no database)" : integrations.driver === "local" ? "Saved local store" : "Supabase Postgres"}</p>
           </AdminCard>
         </div>
       </>

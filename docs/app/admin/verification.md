@@ -1,5 +1,22 @@
 # Admin verification — A12/A13
 
+## 2026-11-07: saved catalogue and banner controls
+
+The current continuation adds a saved local store, imports the live preview catalogue and exposes **Banners & images** in the Content sidebar. Operational details and scope are in [catalogue-and-banners.md](catalogue-and-banners.md). This does not close the older strict A12 performance, hosted integration and design requirements below.
+
+- Typecheck and zero-warning lint passed. All **200 tests in 25 files** passed, including migration metadata recovery, saved uploads, publishing, deletion, failed-write rollback, locking/corruption handling and the homepage SQL/RLS checks.
+- **12 dedicated banner executions passed** in Chromium, Firefox and WebKit: homepage replacement/category creation, all dedicated/collection page banner paths, media pagination beyond 40 records, reader restrictions, stale-save rejection, long merchant text, and axe/overflow checks at 320/390/1440.
+- The private-copy persistence test passed through hard server restarts: uploaded bytes, staff session, prices, stock, homepage/page banners, existing orders, renaming, unpublishing and deletion. Empty catalogue pages remained usable and never refilled from fixtures. It also checked purchased-photo retention.
+- The import comparison verified all 20 product IDs/variants/prices/on-hand balances, all seven prior uploads byte for byte, the existing order/payments/return, the saved express-delivery flag and the recovered audited stock adjustment. The final library has 36 media records and eight collections.
+- The first broad browser pass had 2,867 passes, 48 existing skips and one ambiguous text-selector failure. The selector was corrected without weakening the simulator assertion. A separate stress test reproduced excessive width from long banner text; wrapping fixed it and the cross-browser banner regressions passed.
+- The fresh broad regression run passed: **2,868 passed / 48 existing skips / 0 failed**, 17.8 minutes, no runner errors or reported flaky cases. Closing changes to the local storage label, category text sizing and media hydration were rebuilt and checked with the dedicated banner suite and saved-store smoke checks; the entire broad suite was not repeated after those targeted fixes.
+- A closing WebKit Media-library check reproduced search text being lost before React attached its handlers. Upload/search controls now stay disabled until hydration completes. The rebuilt 12-case cross-browser banner suite passed with Media usage shown and used-photo deletion disabled; the affected WebKit flow then passed **two consecutive repetitions**.
+- The final saved preview passed readiness and live catalogue/order/banner/settings checks. An older development server on port 3000 was identified as another holder of the same data directory and stopped; the verified preview runs alone on 3200. The exclusive lock prevented simultaneous writers throughout.
+
+Local evidence: `.data/unit-final.json`, `.data/banners-final.json`, `.data/local-qa-result.json`, `.data/import-verification.json`, `.data/catalogue-regression-pass1.json`, `.data/catalogue-regression-final.json`, `.data/banners-media-before-fix.json`, and ignored `qa/out/banners-*.png` screenshots. Secrets, exported private data and generated reports are not committed.
+
+## Earlier A12/A13 checkpoint
+
 Continuation date: 2026-11-06. This records the shipped core admin and the remaining requirements from the original brief. Earlier stage dates in `../build-log.md` are preserved as written.
 
 ## Checks

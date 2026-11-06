@@ -1,20 +1,17 @@
 # Caching
 
-Rule: anything that depends on who is asking (bag, checkout, account, orders) is never cached. The
-catalogue and content are cached briefly, and every money decision is re-made on the server at the
-moment it matters (add to bag, quote, place order).
+Storefront layouts now use `dynamic = "force-dynamic"`: admin-managed catalogue, banners and content are read per request, including pages that previously used ISR. This also keeps build workers from opening a saved local store. Every money decision is still re-made on the server when adding to the bag, quoting and placing an order.
 
 ## Pages (from `next build`)
 
 | Route | Mode | Freshness | Why |
 | --- | --- | --- | --- |
-| `/` | Static + ISR | 5 min (`revalidate = 300`) | New arrivals and drops change a few times a day. |
-| `/shipping` | Static + ISR | 5 min | Shows the store's live delivery rates (D-056). |
-| `/faq` | Static + ISR | 5 min | FAQs from the database, and the live delivery rate in one answer (D-066). |
-| `/products/[slug]` | ISR on first visit (`generateStaticParams` → `[]`) | 60 s | Size availability may be up to a minute old. Adding to the bag re-checks stock, and `place_order` locks inventory rows, so a stale page can't oversell. |
-| `/pages/[slug]` | ISR on first visit | 5 min | Policy text. |
-| `/contact`, `/size-guide`, `/condition-guide`, `/terms`, `/privacy`, `/returns`, `/orders/lookup`, `/account/forgot-password` | Static | build | No per-request data. |
-| `/sitemap.xml` | Static + ISR | 1 h | |
+| `/` | Dynamic | per request | Saved homepage content and active products. |
+| `/shipping`, `/faq` | Dynamic | per request | Live rates and FAQs. |
+| `/products/[slug]` | Dynamic | per request | Current product status, photos, prices and availability. Checkout revalidates stock. |
+| `/pages/[slug]` | Dynamic | per request | Current published content. |
+| `/contact`, `/size-guide`, `/condition-guide`, `/terms`, `/privacy`, `/returns`, `/orders/lookup`, `/account/forgot-password` | Dynamic | per request | Shared layout reads live navigation/store data. |
+| `/sitemap.xml` | Dynamic | per request | Published products, collections and pages. |
 | `/collections/[slug]`, `/pre-loved`, `/search` | Dynamic | per request | Filters live in the query string (each combination is its own URL, `noindex` when filtered). |
 | `/new-arrivals`, `/sale` | Dynamic | per request | The open tab and Load more count live in the query string (`?tab=preloved&show=24`); the canonical URL has neither. |
 | `/cart`, `/checkout`, `/orders/[number]`, `/account/*`, `/newsletter/unsubscribe` | Dynamic, `private, no-store` | per request | Personal. |
@@ -27,18 +24,15 @@ that 404s or redirects would commit status 200 first, and search must work witho
 
 ## HTTP headers
 
-- ISR pages: `s-maxage=<revalidate>, stale-while-revalidate`. A CDN can serve them; personal pages send
-  `private, no-cache, no-store`.
+- Dynamic pages send private/no-store headers; no CDN page cache is assumed.
 - `/api/*`: `no-store` (from `next.config.ts`, plus `private, no-store` in `server/http/route.ts`).
   Headless `/api/v1/*` defaults to `no-store`.
 - `/_next/static/*`: immutable, hashed file names (Next default).
-- Images: `/_next/image` serves AVIF/WebP sized to the layout; the originals are in `public/images`.
+- Images: `/_next/image` serves AVIF/WebP sized to the layout. Product/banner originals are immutable `/media/{id}.webp` files; a replacement gets a new ID. Explanatory and brand assets remain in `public/images`; sample product/merchandising assets exist only in the isolated QA preview.
 
 ## Data
 
-- No application-level cache sits in front of the database. With `DATA_DRIVER=fixtures` the data is
-  in-process memory, and with `supabase` every server render queries Postgres through the service
-  role.
+- No application-level cache sits in front of the database. `DATA_DRIVER=local` reads the saved local store through a serialized repository queue; `fixtures` is in-process QA data; `supabase` queries Postgres through the server's service role.
 - Prices, promotions, shipping and tax are always computed fresh on the server (`server/pricing`,
   `server/promotions`, `server/shipping`). The client never sends a price.
 - Exchange rates (`exchange_rates`) are display-only and carry `updated_at`; orders are charged in PKR.
@@ -47,5 +41,4 @@ that 404s or redirects would commit status 200 first, and search must work witho
 
 Admin catalogue, stock, collection and content writes call `refreshStorefront()`
 (`server/shared/revalidate.ts`), which runs `revalidatePath('/', 'layout')` in a request (A-016).
-This invalidates the storefront so its next request sees the change; the ISR windows remain the
-fallback. Tests and jobs can call the same services outside a Next.js request.
+This invalidates relevant client navigation caches; dynamic server requests already read current data. Tests and jobs can call the same services outside a Next.js request. Dynamic rendering trades the previous ISR cache for immediate admin freshness; hosted performance remains a separate verification item.

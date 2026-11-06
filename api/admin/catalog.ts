@@ -39,5 +39,6 @@ export const adminCatalogApi = {
     return body.item as MediaView
   },
   setAlt: (id: string, alt: string) => request<{ item: MediaView }>(`/api/admin/media/${id}`, { method: "PATCH", body: { alt } }),
+  mediaUsage: (id: string, signal?: AbortSignal) => request<{ usedBy: string[] }>(`/api/admin/media/${id}`, { signal }),
   deleteMedia: (id: string) => request<void>(`/api/admin/media/${id}`, { method: "DELETE" }),
 }

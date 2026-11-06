@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 /**
- * Creates a one-time Owner invite in the LOCAL Supabase database and prints its link (A-013).
+ * Creates a one-time Owner invite in a saved local store or LOCAL Supabase and prints its link.
  *
  *   pnpm admin:create-owner --email you@example.com [--site http://localhost:3000]
  *
- * Reads SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from the environment (or .env.local). Refuses any
+ * DATA_DRIVER=local delegates to the file-store bootstrap and refuses an existing Owner.
+ * For Supabase, reads its URL and service-role key from the environment (or .env.local). Refuses any
  * URL that isn't localhost / 127.0.0.1: production owners are bootstrapped from their own database
  * console (docs/DEPLOYMENT-RUNBOOK.md, "Admin bootstrap"). With DATA_DRIVER=fixtures use the demo
  * accounts instead (ADMIN_DEMO_STAFF=on, A-011).
  */
 import { createHash, randomBytes } from "node:crypto"
 import fs from "node:fs"
+import { spawnSync } from "node:child_process"
 
 function loadEnvFile(file) {
   if (!fs.existsSync(file)) return
@@ -20,6 +22,11 @@ function loadEnvFile(file) {
   }
 }
 loadEnvFile(".env.local")
+
+if ((process.env.DATA_DRIVER ?? "local") === "local") {
+  const result = spawnSync(process.execPath, ["--conditions=react-server", "--import", "./scripts/register.mjs", "scripts/create-local-owner.ts", ...process.argv.slice(2)], { stdio: "inherit", env: process.env })
+  process.exit(result.status ?? 1)
+}
 
 const args = process.argv.slice(2)
 const option = (name) => {

@@ -7,6 +7,14 @@ import { now } from "@/server/shared/ids"
 
 export function createFixturesContentRepository(): ContentRepository {
   return {
+    async home() { return structuredClone(db().home) },
+    async saveHome(_storeId, content, expectedUpdatedAt) {
+      return transaction((tables) => {
+        if ((tables.home?.updatedAt ?? null) !== expectedUpdatedAt) throw new DomainError("conflict", "Someone else saved the homepage. Reload before saving.")
+        tables.home = { content: structuredClone(content), updatedAt: new Date(Math.max(Date.now(), Date.parse(tables.home?.updatedAt ?? "1970-01-01") + 1)).toISOString() }
+        return structuredClone(tables.home)
+      })
+    },
     async listPages() {
       return structuredClone(db().pages.filter((page) => page.published !== false))
     },

@@ -1,4 +1,5 @@
 .git
+.data
 .next
 node_modules
 .qa-tmp

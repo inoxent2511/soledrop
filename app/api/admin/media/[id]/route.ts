@@ -6,7 +6,7 @@ import { parseBody } from "@/server/http/route"
 
 type Context = { params: Promise<{ id: string }> }
 
-/** Which products use this image. */
+/** Products, collections, homepage sections or order history that use this image. */
 export const GET = adminRoute<Context>("media:read", async ({ context, staff }) => Response.json({ usedBy: await mediaService().usage(staff, (await context.params).id) }))
 
 export const PATCH = adminRoute<Context>("media:write", async ({ request, context, staff, meta }) => {
@@ -14,7 +14,7 @@ export const PATCH = adminRoute<Context>("media:write", async ({ request, contex
   return Response.json({ item: await mediaService().setAlt(staff, meta, (await context.params).id, alt) })
 })
 
-/** Deletes an image no product uses. */
+/** Deletes an unused image; referenced and historical photos are retained. */
 export const DELETE = adminRoute<Context>("media:write", async ({ context, staff, meta }) => {
   await mediaService().remove(staff, meta, (await context.params).id)
   return new Response(null, { status: 204 })

@@ -7,17 +7,11 @@
  * Usage: node node_modules/next/dist/bin/next build   then   node qa/serve.mjs [port]   (default 3200)
  */
 import { spawn } from "node:child_process"
-import fs from "node:fs"
-import path from "node:path"
+import { prepareStandalone } from "./standalone.mjs"
 
 const port = process.argv[2] ?? "3200"
-const standalone = path.resolve(".next/standalone")
-if (!fs.existsSync(path.join(standalone, "server.js"))) {
-  console.error("No standalone build: run next build first.")
-  process.exit(1)
-}
-fs.cpSync("public", path.join(standalone, "public"), { recursive: true })
-fs.cpSync(".next/static", path.join(standalone, ".next/static"), { recursive: true })
+if (!/^\d+$/.test(port) || Number(port) < 1024 || Number(port) > 65535) throw new Error("Use a local port from 1024 to 65535.")
+const standalone = prepareStandalone(port, true)
 
 const server = spawn(process.execPath, ["server.js"], {
   cwd: standalone,
@@ -25,6 +19,7 @@ const server = spawn(process.execPath, ["server.js"], {
   env: {
     ...process.env,
     NODE_ENV: "production",
+    DATA_DRIVER: "fixtures",
     PORT: port,
     HOSTNAME: "127.0.0.1",
     SESSION_SECRET: "qa-only-session-secret-not-for-deployment-0000",

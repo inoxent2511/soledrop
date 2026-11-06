@@ -31,6 +31,7 @@ export default async function AdminContentPage() {
         description="Information pages built from blocks, and the questions on the FAQ page."
         actions={
           <>
+            <Link href="/admin/content/home" className={adminButton({ tone: "secondary", size: "sm" })}>Homepage</Link>
             <Link href="/admin/content/faqs" className={adminButton({ tone: "secondary", size: "sm" })}>
               FAQs
             </Link>

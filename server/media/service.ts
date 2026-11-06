@@ -102,7 +102,7 @@ export function createMediaService(deps: { media: MediaRepository; audit: Audit;
       const item = await media.find(staff.member.storeId, id)
       if (!item) throw new DomainError("not_found", "Image not found.")
       const usedBy = await deps.usage(staff.member.storeId, mediaUrl(item))
-      if (usedBy.length) throw new DomainError("conflict", `This image is used by ${usedBy.length} product${usedBy.length === 1 ? "" : "s"}. Remove it there first.`, { usedBy })
+      if (usedBy.length) throw new DomainError("conflict", "This image is in use. Replace it on the relevant products or pages first. Images in order history must be kept.", { usedBy })
       await media.remove(staff.member.storeId, id)
       await deps.audit(staff, meta, { action: "media.deleted", entity: "media", entityId: id, before: { filename: item.filename }, storeId: staff.member.storeId })
     },

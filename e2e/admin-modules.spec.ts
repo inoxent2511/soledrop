@@ -21,6 +21,8 @@ const PAGES = [
   ["/admin/shipping", "Shipping & tax"],
   ["/admin/payments", "Payments"],
   ["/admin/content", "Pages & FAQs"],
+  ["/admin/banners", "Banners & images"],
+  ["/admin/content/home", "Homepage banners"],
   ["/admin/content/faqs", "FAQs"],
   ["/admin/content/pages/new", "New page"],
   ["/admin/marketing", "Marketing"],
@@ -57,7 +59,7 @@ test("the Owner can open every module, and the simulator and rate tester answer"
   await page.goto("/admin/promotions/new")
   await page.getByLabel("Title").fill("E2E ten percent")
   await page.getByRole("button", { name: "Run test" }).click()
-  await expect(page.getByText("It applies.")).toBeVisible()
+  await expect(page.getByText("It applies.", { exact: true })).toBeVisible()
 
   await page.goto("/admin/shipping")
   await page.getByRole("button", { name: "Test", exact: true }).click()

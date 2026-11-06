@@ -6,7 +6,8 @@ import { createFixturesCatalogRepository } from "@/server/catalog/fixtures.repos
 import { createStaffCatalog } from "@/server/catalog/staff"
 import { createCatalogService } from "@/server/catalog/service"
 import { createSupabaseCatalogRepository } from "@/server/catalog/supabase.repository"
-import { selectRepository } from "@/server/db/driver"
+import { localService, selectRepository } from "@/server/db/driver"
+import { assertMediaReferences } from "@/server/media/validate"
 import { inventory } from "@/server/inventory"
 import { pricing } from "@/server/pricing"
 import { searchService } from "@/server/search"
@@ -28,12 +29,13 @@ export const catalogRepository = repository
 
 /** Staff catalogue operations; a save refreshes every cached storefront page (ISR) at once. */
 export const staffCatalog = () =>
-  createStaffCatalog({
+  localService(createStaffCatalog({
+    assertImages: assertMediaReferences,
     catalog: repository(),
     pricing: pricing(),
     inventory: inventory(),
     audit: (staff, meta, entry) =>
       adminService().recordAudit(staff, meta, entry),
     revalidate: () => refreshStorefront(),
-  })
+  }))
 export type * from "@/server/catalog/types"

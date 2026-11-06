@@ -10,10 +10,15 @@
 
 # testing
 /coverage
+/.data/
 /qa/out/e2e/
 /qa/out/e2e-results.json
 /qa/out/a12-*.json
 /qa/out/a12-*.png
+/qa/out/banners-*.json
+/qa/out/banners-*.png
+/qa/out/banners/
+/qa/qa/
 /qa/*.log
 /debug.log
 

@@ -11,6 +11,7 @@ export default defineConfig({
     ],
   },
   test: {
+    env: { DATA_DRIVER: "fixtures" },
     include: ["tests/**/*.test.ts"],
     environment: "node",
     // PGlite boots a WASM Postgres per database suite.

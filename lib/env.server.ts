@@ -11,7 +11,8 @@ const optionalSecret = z.string().min(1).optional()
 const serverSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-    DATA_DRIVER: z.enum(["fixtures", "supabase"]).default("fixtures"),
+    DATA_DRIVER: z.enum(["local", "fixtures", "supabase"]).default("local"),
+    LOCAL_DATA_DIR: z.string().min(1).default(".data/store"),
     SUPABASE_URL: z.url().optional(),
     SUPABASE_SERVICE_ROLE_KEY: optionalSecret,
     SESSION_SECRET: z.string().min(32).default("local-development-session-secret-change-me-0000"),
@@ -58,7 +59,7 @@ const serverSchema = z
     if (env.NODE_ENV === "production" && env.JOBS_SECRET.startsWith("local-")) {
       context.addIssue({ code: "custom", message: "Set a real JOBS_SECRET in production" })
     }
-    if (env.ADMIN_DEMO_STAFF === "on" && env.DATA_DRIVER === "supabase") {
+    if (env.ADMIN_DEMO_STAFF === "on" && env.DATA_DRIVER !== "fixtures") {
       context.addIssue({ code: "custom", message: "ADMIN_DEMO_STAFF=on is for the fixtures driver only; never with a real database" })
     }
   })

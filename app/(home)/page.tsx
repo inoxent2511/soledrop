@@ -12,34 +12,26 @@ import {
   WhySoleDrop,
 } from "@/features/home/components/home-sections"
 import { homeData, stockByVariant } from "@/server/storefront"
+import { catalog } from "@/server/catalog"
+import { contentRepository } from "@/server/content"
+import { emptyHome } from "@/server/content/home-types"
+import { currentStoreId } from "@/server/db/driver"
 
 export const revalidate = 300
 
-const heroSlides = [
-  {
-    src: "/images/site/hero-1.jpg",
-    alt: "Volt green Nike trainer on a lime background",
-  },
-  {
-    src: "/images/site/hero-2.jpg",
-    alt: "Runner wearing neon Reebok running shoes on a concrete floor",
-  },
-  {
-    src: "/images/site/collection-banner.jpg",
-    alt: "Neon adidas running shoe lit in green and violet",
-  },
-]
-
 export default async function HomePage() {
+  const storeId = currentStoreId()
+  const [record, brands] = await Promise.all([contentRepository().home(storeId), catalog().brands(storeId)])
+  const home = record?.content ?? emptyHome
   const { newArrivals, newestPreloved, brandNew, preloved, featured } =
     await homeData()
 
   return (
     <>
-      <Hero>
-        <HeroCarousel slides={heroSlides} initial={1} />
+      <Hero content={home}>
+        {home.slides.length ? <HeroCarousel slides={home.slides} initial={Math.min(1, home.slides.length - 1)} /> : null}
       </Hero>
-      <ShopByCategory />
+      {home.categories.length ? <ShopByCategory categories={home.categories} /> : null}
       <NewArrivalSection
         brandNew={newArrivals.map(toCardProduct)}
         preloved={newestPreloved.map(toCardProduct)}
@@ -72,9 +64,9 @@ export default async function HomePage() {
         display
         viewAll={{ href: "/pre-loved", label: "pre-loved pairs" }}
       />
-      <TopBrands />
+      {brands.length ? <TopBrands brands={brands.map((brand) => brand.name.toUpperCase())} /> : null}
       <WhySoleDrop />
-      <InstagramStrip />
+      {home.instagram.images.length ? <InstagramStrip instagram={home.instagram} /> : null}
     </>
   )
 }

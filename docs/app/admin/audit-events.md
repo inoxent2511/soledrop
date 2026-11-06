@@ -4,6 +4,8 @@ Every admin mutation writes one `audit_log` row through a domain service (`recor
 
 ## Row shape
 
+Homepage publishing adds `homepage.updated` (entity `homepage`, store ID, new version only). The one-time local catalogue import records `catalogue.migrated` with entity counts, never credentials or customer data. See [catalogue and banners](catalogue-and-banners.md).
+
 | Column | Meaning |
 | --- | --- |
 | `actor` | staff `user_id` (or `system` for jobs) |

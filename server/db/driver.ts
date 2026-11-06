@@ -1,8 +1,9 @@
 import "server-only"
 
 import { serverEnv } from "@/lib/env.server"
+import { localStore } from "@/server/fixtures/store"
 
-export type DataDriver = "fixtures" | "supabase"
+export type DataDriver = "local" | "fixtures" | "supabase"
 
 /** Active data driver (DATA_DRIVER). Each domain's index.ts picks its repository from this. */
 export function dataDriver(): DataDriver {
@@ -14,11 +15,32 @@ export function currentStoreId(): string {
   return serverEnv.STORE_ID
 }
 
+/** Keep multi-repository staff writes and media reference checks in one local transaction. */
+export function localService<T extends object>(service: T): T {
+  if (dataDriver() !== "local") return service
+  return new Proxy(service, {
+    get(target, key, receiver) {
+      const value = Reflect.get(target, key, receiver)
+      return typeof value === "function" ? (...args: unknown[]) => localStore().run(() => value.apply(receiver, args)) : value
+    },
+  })
+}
+
 /** Picks the repository implementation for the active driver, creating it once. */
-export function selectRepository<T>(implementations: { fixtures: () => T; supabase: () => T }): () => T {
+export function selectRepository<T extends object>(implementations: { fixtures: () => T; supabase: () => T }): () => T {
   let instance: T | undefined
   return () => {
-    instance ??= implementations[dataDriver()]()
+    if (!instance) {
+      const driver = dataDriver()
+      const repository = implementations[driver === "local" ? "fixtures" : driver]()
+      // Reuse the tested domain operations with durable storage and one queue across all domains.
+      instance = driver !== "local" ? repository : new Proxy(repository, {
+        get(target, key, receiver) {
+          const value = Reflect.get(target, key, receiver)
+          return typeof value === "function" ? (...args: unknown[]) => localStore().run(async () => structuredClone(await value.apply(receiver, args))) : value
+        },
+      })
+    }
     return instance
   }
 }

@@ -1,4 +1,5 @@
 import type { Role, StaffInvite, StaffMember, StaffSession } from "@/server/admin/types"
+import type { HomeRecord } from "@/server/content/home-types"
 import type { CartRow } from "@/server/cart/types"
 import type { AttributeDefinition, Brand, Collection, CustomFieldDefinition, Product } from "@/server/catalog/types"
 import type { ContactMessage, Faq, NewsletterSubscriber, Page } from "@/server/content/types"
@@ -18,6 +19,7 @@ export type ReservationRow = { id: string; cartId: string; variantId: string; qu
 
 /** Shape of the fixtures database — one property per Postgres table (docs/app/data-model.md). */
 export type FixtureTables = {
+  home: HomeRecord | null
   stores: { id: string; slug: string; name: string; defaultCurrency: CurrencyCode; defaultLocale: string }[]
   brands: Brand[]
   products: Product[]

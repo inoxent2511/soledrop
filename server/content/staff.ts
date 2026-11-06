@@ -8,6 +8,7 @@ import type { ContentRepository } from "@/server/content/repository"
 import type { Page } from "@/server/content/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
+import type { HomeContent } from "@/server/content/home-types"
 
 /**
  * Staff content (admin A7): block pages under /pages/<slug> and the FAQs. Saving keeps a page's
@@ -24,7 +25,7 @@ const need = (staff: StaffContext, permission: Permission) => {
 /** Slugs the storefront routes elsewhere (app/(store)/pages/[slug] redirects them to the designed pages). */
 export const RESERVED_PAGE_SLUGS = ["terms", "privacy-policy", "shipping", "returns"]
 
-export function createStaffContent(deps: { content: ContentRepository; audit: Audit; revalidate: () => void }) {
+export function createStaffContent(deps: { content: ContentRepository; audit: Audit; revalidate: () => void; assertImages?: (storeId: string, urls: string[]) => Promise<void> }) {
   const { content } = deps
 
   async function load(staff: StaffContext, slug: string) {
@@ -34,6 +35,18 @@ export function createStaffContent(deps: { content: ContentRepository; audit: Au
   }
 
   return {
+    async home(staff: StaffContext) {
+      need(staff, "content:read")
+      return content.home(staff.member.storeId)
+    },
+    async saveHome(staff: StaffContext, meta: RequestMeta, input: HomeContent, expectedUpdatedAt: string | null) {
+      need(staff, "content:publish")
+      await deps.assertImages?.(staff.member.storeId, [...input.slides, ...input.instagram.images, ...input.categories.map((category) => category.image)].map((image) => image.src))
+      const saved = await content.saveHome(staff.member.storeId, input, expectedUpdatedAt)
+      await deps.audit(staff, meta, { action: "homepage.updated", entity: "homepage", entityId: staff.member.storeId, after: { updatedAt: saved.updatedAt }, storeId: staff.member.storeId })
+      deps.revalidate()
+      return saved
+    },
     async pages(staff: StaffContext) {
       need(staff, "content:read")
       return (await content.staffPages(staff.member.storeId)).sort((a, b) => a.title.localeCompare(b.title))

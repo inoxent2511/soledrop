@@ -14,10 +14,12 @@ import { adminControl, AdminField, AdminTextarea, FormAlert } from "@/components
 import { RuleBuilder } from "@/components/admin/rule-builder"
 import { collectionInput } from "@/features/admin/collections/schema"
 import { slugify } from "@/features/admin/products/schema"
-import type { CollectionRule } from "@/server/catalog/types"
+import type { Collection, CollectionRule } from "@/server/catalog/types"
+import { MediaPicker } from "@/features/admin/media/components/media-library"
 import type { StaffProductRow } from "@/server/catalog/staff"
 
 export type CollectionDraft = {
+  image?: Collection["image"]
   id?: string
   title: string
   slug: string
@@ -60,7 +62,7 @@ function ProductSearch({ chosen, onAdd }: { chosen: Set<string>; onAdd: (product
   )
 }
 
-export function CollectionEditor({ initial, canWrite }: { initial: CollectionDraft; canWrite: boolean }) {
+export function CollectionEditor({ initial, canWrite, canUpload = false }: { initial: CollectionDraft; canWrite: boolean; canUpload?: boolean }) {
   const id = useId()
   const router = useRouter()
   const [form, setForm] = useState(initial)
@@ -68,6 +70,7 @@ export function CollectionEditor({ initial, canWrite }: { initial: CollectionDra
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [picker, setPicker] = useState(false)
   const update = (changes: Partial<CollectionDraft>) => setForm((current) => ({ ...current, ...changes }))
 
   async function save() {
@@ -116,6 +119,17 @@ export function CollectionEditor({ initial, canWrite }: { initial: CollectionDra
           <AdminTextarea formId={id} name="description" label="Description" maxLength={1000} value={form.description} onChange={(event) => update({ description: event.target.value })} />
         </fieldset>
       </AdminCard>
+
+      <AdminCard title="Banner image">
+        {form.image ? <div className="flex flex-col items-start gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element -- admin media preview */}
+          <img src={form.image.url} alt={form.image.alt} width={240} height={120} className="h-32 w-60 rounded-md bg-surface object-contain" />
+          <AdminField formId={id} name="image-alt" label="Banner alt text" value={form.image.alt} disabled={!canWrite || busy} onChange={(event) => update({ image: { ...form.image!, alt: event.target.value } })} />
+          {canWrite ? <button type="button" disabled={busy} onClick={() => update({ image: null })} className={adminButton({ tone: "ghost" })}>Remove banner</button> : null}
+        </div> : <p className="text-16 text-subtle-foreground">No banner image.</p>}
+        {canWrite ? <button type="button" disabled={busy} onClick={() => setPicker(true)} className={adminButton({ tone: "secondary" })}>Choose banner image</button> : null}
+      </AdminCard>
+      <MediaPicker open={picker} onOpenChange={setPicker} chosen={form.image ? [form.image.url] : []} canUpload={canUpload} onPick={(item) => { update({ image: { url: item.url, alt: item.alt, width: item.width, height: item.height } }); setPicker(false) }} />
 
       <AdminCard title="Products">
         <fieldset disabled={!canWrite} className="min-w-0 flex flex-col gap-4">

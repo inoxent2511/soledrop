@@ -15,6 +15,7 @@ const INTERVAL_MS = 6000
  */
 export function HeroCarousel({ slides, initial = 0 }: { slides: HeroSlide[]; initial?: number }) {
   const [active, setActive] = useState(initial)
+  const current = Math.min(active, Math.max(0, slides.length - 1))
   const [paused, setPaused] = useState(false)
 
   useEffect(() => {
@@ -37,12 +38,12 @@ export function HeroCarousel({ slides, initial = 0 }: { slides: HeroSlide[]; ini
     >
       {slides.map((slide, index) => (
         <div
-          key={slide.src}
+          key={`${slide.src}-${index}`}
           role="group"
           aria-roledescription="slide"
           aria-label={`${index + 1} of ${slides.length}`}
-          aria-hidden={index !== active}
-          className={cn("absolute inset-0 transition-opacity duration-700", index === active ? "opacity-100" : "opacity-0")}
+          aria-hidden={index !== current}
+          className={cn("absolute inset-0 transition-opacity duration-700", index === current ? "opacity-100" : "opacity-0")}
         >
           <Image src={slide.src} alt={slide.alt} fill priority={index === initial} sizes="(min-width: 1024px) 56vw, 100vw" className="object-cover" />
         </div>
@@ -51,14 +52,14 @@ export function HeroCarousel({ slides, initial = 0 }: { slides: HeroSlide[]; ini
         <div className="absolute inset-x-0 bottom-11.25 flex items-center justify-center gap-3.5">
           {slides.map((slide, index) => (
             <button
-              key={slide.src}
+              key={`${slide.src}-${index}`}
               type="button"
               aria-label={`Show slide ${index + 1}`}
-              aria-current={index === active}
+              aria-current={index === current}
               onClick={() => setActive(index)}
               className={cn(
                 "relative h-4.5 rounded-full bg-background transition-[width,opacity] duration-300 after:absolute after:-inset-3",
-                index === active ? "w-9" : "w-4.5 hover:bg-brand",
+                index === current ? "w-9" : "w-4.5 hover:bg-brand",
               )}
             />
           ))}

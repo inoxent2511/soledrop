@@ -17,6 +17,8 @@ import { commerceSeed } from "@/server/fixtures/commerce-seed"
 import { searchSeed } from "@/server/fixtures/search-seed"
 import type { FixtureTables } from "@/server/fixtures/tables"
 import { serverEnv } from "@/lib/env.server"
+import { LocalStore } from "@/server/db/local-store"
+import { homeSeed } from "@/server/fixtures/home-seed"
 
 /**
  * The in-memory database behind DATA_DRIVER=fixtures. Tables mirror the Postgres schema
@@ -39,6 +41,7 @@ function adminTables() {
 
 function createTables(): FixtureTables {
   return {
+    home: { content: structuredClone(homeSeed), updatedAt: "2026-11-07T00:00:00.000Z" },
     stores: [
       {
         id: STORE_ID,
@@ -105,6 +108,31 @@ function createTables(): FixtureTables {
 const globalStore = globalThis as unknown as {
   __soledropFixtures?: FixtureTables
   __soledropSettingsApplied?: string
+  __soledropLocal?: LocalStore<FixtureTables>
+}
+
+/** Local stores start empty. The catalogue migration is explicit and runs once, never on boot. */
+export function createLocalTables(): FixtureTables {
+  const tables = createTables()
+  tables.stores[0].id = serverEnv.STORE_ID
+  tables.adminRoles = tables.adminRoles.map((role) => ({ ...role, storeId: serverEnv.STORE_ID }))
+  Object.assign(tables, {
+    brands: [], products: [], collections: [], attributeDefinitions: [], customFieldDefinitions: [],
+    prices: [], inventory: [], promotions: [], shippingZones: [], taxRates: [], pages: [], faqs: [], searchSynonyms: [],
+    staffMembers: [], staffRoleLinks: [],
+    home: null,
+  })
+  return tables
+}
+
+export function localStore(): LocalStore<FixtureTables> {
+  return globalStore.__soledropLocal ??= new LocalStore(serverEnv.LOCAL_DATA_DIR, createLocalTables)
+}
+
+/** Graceful shutdown for local maintenance and restart verification. */
+export async function closeLocalStore() {
+  await globalStore.__soledropLocal?.close()
+  delete globalStore.__soledropLocal
 }
 
 /**
@@ -133,6 +161,7 @@ function settingsSeed() {
  * new seed on the next request instead of waiting for a server restart; carts and orders stay.
  */
 export function db(): FixtureTables {
+  if (serverEnv.DATA_DRIVER === "local") return localStore().value
   const fresh = globalStore.__soledropFixtures === undefined
   const tables = (globalStore.__soledropFixtures ??= createTables())
   // Only `next dev` reloads modules; a production process keeps the seed it started with.
