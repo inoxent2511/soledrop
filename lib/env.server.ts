@@ -1,6 +1,7 @@
 import "server-only"
 
 import { z } from "zod"
+import { adminNetworkPolicy } from "@/server/admin/network-policy"
 
 const optionalSecret = z.string().min(1).optional()
 
@@ -45,8 +46,16 @@ const serverSchema = z
     // Demo staff accounts (one per preset role, known password and TOTP secret) for local work and
     // the e2e suite; fixtures driver only, refused with the real database (A-011).
     ADMIN_DEMO_STAFF: z.enum(["on", "off"]).default("off"),
+    ADMIN_IP_ALLOWLIST: z.string().default("").refine((value) => { try { adminNetworkPolicy(value); return true } catch { return false } }, "ADMIN_IP_ALLOWLIST must contain valid comma-separated IP/CIDR rules"),
+    AUTH_MAGIC_LINK: z.enum(["on", "off"]).default("off"),
+    AUTH_EMAIL_VERIFICATION: z.enum(["on", "off"]).default("off"),
+    OIDC_ISSUER: z.url().optional(),
+    OIDC_CLIENT_ID: optionalSecret,
+    OIDC_CLIENT_SECRET: optionalSecret,
   })
   .superRefine((env, context) => {
+    const oidc = [env.OIDC_ISSUER, env.OIDC_CLIENT_ID, env.OIDC_CLIENT_SECRET]
+    if (oidc.some(Boolean) && !oidc.every(Boolean)) context.addIssue({ code: "custom", message: "OIDC needs OIDC_ISSUER, OIDC_CLIENT_ID and OIDC_CLIENT_SECRET together" })
     if (env.DATA_DRIVER === "supabase" && (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY)) {
       context.addIssue({ code: "custom", message: "DATA_DRIVER=supabase needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY" })
     }

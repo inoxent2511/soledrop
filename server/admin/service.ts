@@ -1,14 +1,16 @@
 import "server-only"
 
-import { hashToken, newRecoveryCodes, newToken, seal, unseal } from "@/server/admin/crypto"
+import { hashToken, newRecoveryCodes, newToken, sameTokenHash, seal, unseal } from "@/server/admin/crypto"
 import { ALL_PERMISSIONS, OWNER_ROLE_KEY, PERMISSIONS, PRESET_ROLES, isPermission, isSensitive, type Permission } from "@/server/admin/permissions"
 import type { AdminRepository } from "@/server/admin/repository"
 import { generateTotpSecret, otpauthUri, verifyTotp } from "@/server/admin/totp"
 import type { Role, StaffContext, StaffMember, StaffSession, StaffSummary } from "@/server/admin/types"
-import { decoyHash, hashPassword, verifyPassword } from "@/server/customers/password"
+import { decoyHash, hashPassword, passwordNeedsRehash, verifyPassword } from "@/server/customers/password"
 import type { AuditEntry } from "@/server/platform/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId } from "@/server/shared/ids"
+import { direct, type Atomic } from "@/server/shared/atomic"
+import { assertPasswordPolicy } from "@/server/customers/password-policy"
 
 /**
  * Staff identity, sessions and RBAC (docs/app/admin/admin-decisions.md A-001…A-008). Every admin
@@ -40,7 +42,11 @@ type Deps = {
   audit: (entry: Omit<AuditEntry, "id" | "at">) => Promise<void>
   /** Seals TOTP secrets at rest (SESSION_SECRET). */
   secret: string
+  rehashPassword?: (member: StaffMember, passwordHash: string) => Promise<void>
   clock?: () => number
+  atomic?: Atomic
+  notifySecurity?: (email: string, action: string) => Promise<void>
+  allowIp?: (ip: string | null) => boolean
 }
 
 export type IssuedSession = { token: string; expiresAt: string; aal: 1 | 2; needs: "enrol" | "verify" | null }
@@ -76,6 +82,7 @@ export const toSummary = (member: StaffMember, roles: Pick<Role, "key" | "name">
 export function createAdminService(deps: Deps) {
   const { repo } = deps
   const clock = deps.clock ?? Date.now
+  const atomic = deps.atomic ?? direct
   const iso = (at = clock()) => new Date(at).toISOString()
   const synced = new Set<string>()
 
@@ -93,7 +100,7 @@ export function createAdminService(deps: Deps) {
     if ((await deps.hit(key, windowSeconds)) > max) throw new DomainError("rate_limited", message, { retryAfter: windowSeconds })
   }
 
-  async function issueSession(member: StaffMember, aal: 1 | 2, meta: RequestMeta): Promise<IssuedSession> {
+  async function issueSession(member: StaffMember, aal: 1 | 2, meta: RequestMeta, provenMfaAt?: string): Promise<IssuedSession> {
     const token = newToken()
     const at = clock()
     const expiresAt = iso(at + (aal === 2 ? SESSION_ABSOLUTE_HOURS * 3_600_000 : minutes(MFA_PENDING_MINUTES)))
@@ -103,7 +110,7 @@ export function createAdminService(deps: Deps) {
       storeId: member.storeId,
       tokenHash: hashToken(token),
       aal,
-      mfaAt: aal === 2 ? iso(at) : null,
+      mfaAt: aal === 2 ? provenMfaAt ?? iso(at) : null,
       ip: meta.ip,
       userAgent: meta.userAgent?.slice(0, 300) ?? null,
       createdAt: iso(at),
@@ -120,12 +127,13 @@ export function createAdminService(deps: Deps) {
     const session = await repo.findSessionByTokenHash(hashToken(token))
     if (!session || session.revokedAt) return null
     const at = clock()
-    if (Date.parse(session.expiresAt) <= at || Date.parse(session.lastSeenAt) + minutes(SESSION_IDLE_MINUTES) <= at) {
+    const absolute = session.aal === 2 ? SESSION_ABSOLUTE_HOURS * 3_600_000 : minutes(MFA_PENDING_MINUTES)
+    if (Date.parse(session.expiresAt) <= at || Date.parse(session.createdAt) + absolute <= at || Date.parse(session.lastSeenAt) + minutes(SESSION_IDLE_MINUTES) <= at) {
       await repo.updateSession(session.id, { revokedAt: iso(at) })
       return null
     }
     const member = await repo.findMember(session.storeId, session.userId)
-    if (!member || member.status !== "active") return null
+    if (!member || member.status !== "active" || session.aal === 2 && (!session.mfaAt || !member.totpEnabledAt || Date.parse(session.mfaAt) > at + 30_000)) return null
     return { session, member }
   }
 
@@ -155,17 +163,18 @@ export function createAdminService(deps: Deps) {
     if (/^\d{6}$/.test(cleaned)) {
       const step = verifyTotp(unseal(member.totpSecret, deps.secret), cleaned, clock())
       if (step === null || (member.totpLastStep !== null && step <= member.totpLastStep)) return false
-      await repo.updateMember(member.storeId, member.userId, { totpLastStep: step })
-      return true
+      try { await repo.updateMember(member.storeId, member.userId, { totpLastStep: step }, member.updatedAt); return true }
+      catch (error) { if (error instanceof DomainError && ["conflict", "unauthorized"].includes(error.code)) return false; throw error }
     }
     const hashed = hashToken(cleaned.toLowerCase())
-    if (!member.recoveryCodes.includes(hashed)) return false
-    await repo.updateMember(member.storeId, member.userId, { recoveryCodes: member.recoveryCodes.filter((entry) => entry !== hashed) })
-    return true
+    let matched = -1
+    member.recoveryCodes.forEach((entry, index) => { if (sameTokenHash(entry, hashed)) matched = index })
+    if (matched < 0) return false
+    try { await repo.updateMember(member.storeId, member.userId, { recoveryCodes: member.recoveryCodes.filter((_entry, index) => index !== matched) }, member.updatedAt); return true }
+    catch (error) { if (error instanceof DomainError && ["conflict", "unauthorized"].includes(error.code)) return false; throw error }
   }
 
   async function recordAudit(actor: StaffContext | null, meta: RequestMeta, entry: { action: string; entity: string; entityId: string; before?: unknown; after?: unknown; reason?: string | null; storeId: string; actorId?: string }) {
-    try {
       await deps.audit({
         actor: actor?.member.userId ?? entry.actorId ?? "system",
         actorRole: actor ? actor.roles.map((role) => role.key).join(",") : null,
@@ -180,9 +189,6 @@ export function createAdminService(deps: Deps) {
         requestId: meta.requestId,
         reason: entry.reason ?? null,
       })
-    } catch (error) {
-      console.error("audit write failed", error)
-    }
   }
 
   const requireIn = (staff: StaffContext, permission: Permission) => {
@@ -218,26 +224,43 @@ export function createAdminService(deps: Deps) {
 
     /** Password step (A-005). Same error for unknown email, wrong password and disabled accounts. */
     async login(storeId: string, emailAddress: string, password: string, meta: RequestMeta): Promise<IssuedSession> {
+      if (deps.allowIp && !deps.allowIp(meta.ip)) {
+        await recordAudit(null, meta, { action: "staff.network_denied", entity: "staff", entityId: "network-policy", storeId })
+        throw new DomainError("forbidden", "Admin access isn't available from this network.")
+      }
       const email = emailAddress.trim().toLowerCase()
       await limit(`admin-login-ip:${meta.ip ?? "unknown"}`, 10, 300)
-      await limit(`admin-login-email:${email}`, LOCKOUT_AFTER * 2, LOCKOUT_MINUTES * 60)
+      await limit(`admin-login-email:${email}`, LOCKOUT_AFTER, LOCKOUT_MINUTES * 60)
       await ensureRegistry(storeId)
       const member = await repo.findMemberByEmail(storeId, email)
       const valid = await verifyPassword(password, member?.passwordHash || (await decoyHash()))
       if (member?.lockedUntil && Date.parse(member.lockedUntil) > clock()) {
-        throw new DomainError("rate_limited", "Too many attempts. Please wait 15 minutes and try again.", { retryAfter: LOCKOUT_MINUTES * 60 })
-      }
-      if (!member || !valid || member.status !== "active") {
-        if (member) {
-          const failedLogins = member.failedLogins + 1
-          await repo.updateMember(storeId, member.userId, { failedLogins, lockedUntil: failedLogins >= LOCKOUT_AFTER ? iso(clock() + minutes(LOCKOUT_MINUTES)) : member.lockedUntil })
-          if (failedLogins === LOCKOUT_AFTER) await recordAudit(null, meta, { action: "staff.locked_out", entity: "staff", entityId: member.userId, storeId, actorId: member.userId })
-        }
         throw new DomainError("unauthorized", BAD_LOGIN)
       }
+      if (!member || !valid || member.status !== "active") {
+        await atomic(async () => {
+          const current = member ? await repo.findMember(storeId, member.userId) : null
+          if (current && (!current.lockedUntil || Date.parse(current.lockedUntil) <= clock())) {
+            const failedLogins = (current.lockedUntil ? 0 : current.failedLogins) + 1
+            await repo.updateMember(storeId, current.userId, { failedLogins, lockedUntil: failedLogins >= LOCKOUT_AFTER ? iso(clock() + minutes(LOCKOUT_MINUTES)) : null })
+            if (failedLogins === LOCKOUT_AFTER) await recordAudit(null, meta, { action: "staff.locked_out", entity: "staff", entityId: current.userId, storeId, actorId: current.userId })
+          }
+          await recordAudit(null, meta, { action: "staff.login_failed", entity: "staff", entityId: member?.userId ?? hashToken(email), storeId, actorId: member?.userId })
+        })
+        throw new DomainError("unauthorized", BAD_LOGIN)
+      }
+      return atomic(async () => {
+      const current = await repo.findMember(storeId, member.userId)
+      if (!current || current.status !== "active" || current.passwordHash !== member.passwordHash || current.lockedUntil && Date.parse(current.lockedUntil) > clock()) throw new DomainError("unauthorized", BAD_LOGIN)
       await repo.updateMember(storeId, member.userId, { failedLogins: 0, lockedUntil: null })
+      if (member.passwordHash && passwordNeedsRehash(member.passwordHash)) {
+        const passwordHash = await hashPassword(password)
+        if (deps.rehashPassword) await deps.rehashPassword(member, passwordHash)
+        else await repo.updateMember(storeId, member.userId, { passwordHash })
+      }
       await recordAudit(null, meta, { action: "staff.signed_in", entity: "staff", entityId: member.userId, storeId, actorId: member.userId })
       return issueSession(member, 1, meta)
+      })
     },
 
     /** The signed-in staff member, or null. AAL1 sessions resolve too, so they can finish MFA. */
@@ -253,18 +276,22 @@ export function createAdminService(deps: Deps) {
     },
 
     async logout(token: string | undefined) {
+      return atomic(async () => {
       const live = await liveSession(token)
       if (live) await repo.updateSession(live.session.id, { revokedAt: iso() })
+      })
     },
 
     /** Starts (or restarts) TOTP enrolment on an AAL1 session of a member without MFA. */
     async beginEnrolment(token: string | undefined) {
+      return atomic(async () => {
       const live = await liveSession(token)
       if (!live) throw new DomainError("unauthorized", "Your sign-in expired. Please sign in again.")
       if (live.member.totpEnabledAt) throw new DomainError("conflict", "Two-step verification is already set up.")
       const secret = generateTotpSecret()
       await repo.updateMember(live.member.storeId, live.member.userId, { totpSecret: seal(secret, deps.secret), totpLastStep: null })
       return { secret, uri: otpauthUri(secret, live.member.email, ISSUER) }
+      })
     },
 
     /** Confirms enrolment with a first code: MFA on, recovery codes issued once, session upgraded. */
@@ -272,14 +299,18 @@ export function createAdminService(deps: Deps) {
       const live = await liveSession(token)
       if (!live) throw new DomainError("unauthorized", "Your sign-in expired. Please sign in again.")
       await limit(`admin-mfa:${live.session.id}`, 5, 300)
-      const { member, session } = live
+      return atomic(async () => {
+      const current = await liveSession(token)
+      if (!current) throw new DomainError("unauthorized", "Your sign-in expired. Please sign in again.")
+      const { member, session } = current
       if (member.totpEnabledAt || !member.totpSecret) throw new DomainError("conflict", "Start setting up two-step verification first.")
       const step = verifyTotp(unseal(member.totpSecret, deps.secret), code.replace(/\s/g, ""), clock())
       if (step === null) throw new DomainError("validation", BAD_CODE)
       const codes = newRecoveryCodes()
-      const enrolled = await repo.updateMember(member.storeId, member.userId, { totpEnabledAt: iso(), totpLastStep: step, recoveryCodes: codes.map((entry) => hashToken(entry)) })
+      const enrolled = await repo.updateMember(member.storeId, member.userId, { totpEnabledAt: iso(), totpLastStep: step, recoveryCodes: codes.map((entry) => hashToken(entry)) }, member.updatedAt)
       await recordAudit(null, meta, { action: "staff.mfa_enrolled", entity: "staff", entityId: member.userId, storeId: member.storeId, actorId: member.userId })
       return { session: await upgrade(session, enrolled, meta), recoveryCodes: codes }
+      })
     },
 
     /** Second step of sign-in for enrolled members: TOTP or a recovery code. */
@@ -287,36 +318,49 @@ export function createAdminService(deps: Deps) {
       const live = await liveSession(token)
       if (!live) throw new DomainError("unauthorized", "Your sign-in expired. Please sign in again.")
       await limit(`admin-mfa:${live.session.id}`, 5, 300)
-      if (live.session.aal === 2) return { token: token as string, expiresAt: live.session.expiresAt, aal: 2 as const, needs: null }
-      if (!(await checkSecondFactor(live.member, code))) throw new DomainError("validation", BAD_CODE)
-      return upgrade(live.session, live.member, meta)
+      return atomic(async () => {
+        const current = await liveSession(token)
+        if (!current) throw new DomainError("unauthorized", "Your sign-in expired. Please sign in again.")
+        if (current.session.aal === 2) return { token: token as string, expiresAt: current.session.expiresAt, aal: 2 as const, needs: null }
+        if (!(await checkSecondFactor(current.member, code))) throw new DomainError("validation", BAD_CODE)
+        return upgrade(current.session, current.member, meta)
+      })
     },
 
     /** Re-proves the second factor on an AAL2 session for sensitive actions (A-003). */
     async stepUp(staff: StaffContext, code: string, meta: RequestMeta) {
       await limit(`admin-mfa:${staff.session.id}`, 5, 300)
+      return atomic(async () => {
       const member = await repo.findMember(staff.member.storeId, staff.member.userId)
       if (!member || !(await checkSecondFactor(member, code))) throw new DomainError("validation", BAD_CODE)
       await repo.updateSession(staff.session.id, { mfaAt: iso() })
       await recordAudit(staff, meta, { action: "staff.stepped_up", entity: "staff", entityId: member.userId, storeId: member.storeId })
+      })
     },
 
     async regenerateRecoveryCodes(staff: StaffContext, meta: RequestMeta) {
       assertSteppedUp(staff)
+      return atomic(async () => {
       const codes = newRecoveryCodes()
       await repo.updateMember(staff.member.storeId, staff.member.userId, { recoveryCodes: codes.map((entry) => hashToken(entry)) })
       await recordAudit(staff, meta, { action: "staff.recovery_codes_regenerated", entity: "staff", entityId: staff.member.userId, storeId: staff.member.storeId })
       return codes
+      })
     },
 
     async changePassword(staff: StaffContext, current: string, next: string, meta: RequestMeta) {
+      return atomic(async () => {
       const member = await repo.findMember(staff.member.storeId, staff.member.userId)
       if (!member?.passwordHash || !(await verifyPassword(current, member.passwordHash))) throw new DomainError("validation", "Your current password isn't right.")
       const problem = passwordProblem(next, member.email)
       if (problem) throw new DomainError("validation", problem, { fields: { password: [problem] } })
+      assertPasswordPolicy(next, 12)
       await repo.updateMember(member.storeId, member.userId, { passwordHash: await hashPassword(next) })
-      await repo.revokeSessions(member.storeId, member.userId, staff.session.id)
+      await repo.revokeSessions(member.storeId, member.userId)
       await recordAudit(staff, meta, { action: "staff.password_changed", entity: "staff", entityId: member.userId, storeId: member.storeId })
+      await deps.notifySecurity?.(member.email, "password_changed")
+      return issueSession(member, 2, meta, staff.session.mfaAt ?? undefined)
+      })
     },
 
     // ─── Sessions ──────────────────────────────────────────────────────────
@@ -390,11 +434,13 @@ export function createAdminService(deps: Deps) {
     /** Creates the account from an invite; the person then enrols MFA before anything else. */
     async acceptInvite(token: string, input: { displayName: string; password: string }, meta: RequestMeta): Promise<IssuedSession> {
       await limit(`admin-invite:${meta.ip ?? "unknown"}`, 10, 300)
+      return atomic(async () => {
       const invite = await repo.findInviteByTokenHash(hashToken(token))
       if (!invite || invite.acceptedAt || invite.revokedAt || Date.parse(invite.expiresAt) <= clock()) throw new DomainError("not_found", "This invite link has expired or was already used. Ask for a new one.")
       await ensureRegistry(invite.storeId)
       const problem = passwordProblem(input.password, invite.email)
       if (problem) throw new DomainError("validation", problem, { fields: { password: [problem] } })
+      assertPasswordPolicy(input.password, 12)
       if (await repo.findMemberByEmail(invite.storeId, invite.email)) throw new DomainError("conflict", "This invite was already used.")
       const at = iso()
       const member = await repo.createMember({
@@ -418,6 +464,7 @@ export function createAdminService(deps: Deps) {
       await repo.updateInvite(invite.id, { acceptedAt: at })
       await recordAudit(null, meta, { action: "staff.invite_accepted", entity: "staff", entityId: member.userId, after: { email: member.email, role: invite.roleKey }, storeId: invite.storeId, actorId: member.userId })
       return issueSession(member, 1, meta)
+      })
     },
 
     // ─── Staff ─────────────────────────────────────────────────────────────

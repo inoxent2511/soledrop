@@ -30,7 +30,7 @@ function keepingAnOwner<T>(tables: FixtureTables, storeId: string, change: () =>
   return result
 }
 
-export function createFixturesAdminRepository(): AdminRepository {
+export function createFixturesAdminRepository(clock: () => number = Date.now): AdminRepository {
   return {
     async findMemberByEmail(storeId, email) {
       return structuredClone(db().staffMembers.find((row) => row.storeId === storeId && row.email === email.toLowerCase()) ?? null)
@@ -56,7 +56,7 @@ export function createFixturesAdminRepository(): AdminRepository {
           const member = tables.staffMembers.find((row) => row.storeId === storeId && row.userId === userId)
           if (!member) throw new DomainError("not_found", "Staff member not found.")
           if (expectedUpdatedAt && member.updatedAt !== expectedUpdatedAt) throw new DomainError("conflict", "Someone else changed this staff member. Reload to see their changes.")
-          Object.assign(member, structuredClone(changes), { updatedAt: now() })
+          Object.assign(member, structuredClone(changes), { updatedAt: new Date(Math.max(Date.now(), Date.parse(member.updatedAt) + 1)).toISOString() })
           return structuredClone(member)
         }),
       )
@@ -91,7 +91,7 @@ export function createFixturesAdminRepository(): AdminRepository {
         const role = tables.adminRoles.find((row) => row.storeId === storeId && row.key === key)
         if (!role) throw new DomainError("not_found", "Role not found.")
         if (expectedUpdatedAt && role.updatedAt !== expectedUpdatedAt) throw new DomainError("conflict", "Someone else changed this role. Reload to see their changes.")
-        Object.assign(role, structuredClone(changes), { updatedAt: now() })
+        Object.assign(role, structuredClone(changes), { updatedAt: new Date(Math.max(Date.now(), Date.parse(role.updatedAt) + 1)).toISOString() })
         return structuredClone(role)
       })
     },
@@ -137,6 +137,7 @@ export function createFixturesAdminRepository(): AdminRepository {
     },
     async updateInvite(id, changes) {
       const invite = db().staffInvites.find((row) => row.id === id)
+      if (changes.acceptedAt && (!invite || invite.acceptedAt || invite.revokedAt || Date.parse(invite.expiresAt) <= clock())) throw new DomainError("conflict", "This invite was already used.")
       if (invite) Object.assign(invite, structuredClone(changes))
     },
     async listInvites(storeId) {
@@ -144,6 +145,8 @@ export function createFixturesAdminRepository(): AdminRepository {
     },
 
     async createSession(session) {
+      const owner = db().staffMembers.find((row) => row.userId === session.userId && row.storeId === session.storeId && row.status === "active")
+      if (!owner || session.aal === 2 && (!session.mfaAt || !owner.totpEnabledAt) || session.aal === 1 && session.mfaAt !== null) throw new DomainError("unauthorized", "Finish two-step verification first.")
       db().staffSessions.push(structuredClone(session))
     },
     async findSessionByTokenHash(tokenHash) {

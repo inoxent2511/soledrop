@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, asc, eq, getTableColumns, inArray, isNull, ne } from "drizzle-orm"
+import { and, asc, eq, getTableColumns, gt, inArray, isNull, ne } from "drizzle-orm"
 import { isPermission, OWNER_ROLE_KEY, type Permission } from "./permissions"
 import type { AdminRepository } from "./repository"
 import type { Role, StaffInvite, StaffMember, StaffSession } from "./types"
@@ -240,7 +240,7 @@ export function createMysqlAdminRepository(): ActorScoped<AdminRepository> {
       if (!auth(actor) && changes.acceptedAt !== undefined) throw new DomainError("forbidden", "Only invite acceptance can consume an invite.")
       const db = await database()
       const values = { ...(changes.acceptedAt !== undefined ? { acceptedAt: nullableSqlDate(changes.acceptedAt) } : {}), ...(changes.revokedAt !== undefined ? { revokedAt: nullableSqlDate(changes.revokedAt) } : {}), ...(changes.expiresAt !== undefined ? { expiresAt: sqlDate(changes.expiresAt) } : {}) }
-      const where = and(eq(staffInvites.id, id), eq(staffInvites.storeId, actor.storeId), changes.acceptedAt ? isNull(staffInvites.acceptedAt) : undefined)
+      const where = and(eq(staffInvites.id, id), eq(staffInvites.storeId, actor.storeId), changes.acceptedAt ? and(isNull(staffInvites.acceptedAt), isNull(staffInvites.revokedAt), gt(staffInvites.expiresAt, sqlNow())) : undefined)
       const [result] = await db.update(staffInvites).set(values).where(where)
       if (!result.affectedRows && changes.acceptedAt) throw new DomainError("conflict", "This invite was already used.")
     },
@@ -252,8 +252,9 @@ export function createMysqlAdminRepository(): ActorScoped<AdminRepository> {
     async createSession(actor, input) {
       requireStore(actor, input.storeId); requireSystem(actor, ["auth:staff", "bootstrap", "migration"])
       await withTransaction(async (db) => {
-        const [owner] = await db.select({ id: staffMembers.userId }).from(staffMembers).where(and(eq(staffMembers.storeId, actor.storeId), eq(staffMembers.userId, input.userId), eq(staffMembers.status, "active"))).for("update")
+        const [owner] = await db.select({ id: staffMembers.userId, enabled: staffMembers.totpEnabledAt }).from(staffMembers).where(and(eq(staffMembers.storeId, actor.storeId), eq(staffMembers.userId, input.userId), eq(staffMembers.status, "active"))).for("update")
         if (!owner) throw new DomainError("unauthorized", "Your sign-in expired. Please sign in again.")
+        if (input.aal === 2 && (!input.mfaAt || !owner.enabled) || input.aal === 1 && input.mfaAt !== null) throw new DomainError("unauthorized", "Finish two-step verification first.")
         await db.insert(staffSessions).values({ ...input, createdAt: sqlDate(input.createdAt), lastSeenAt: sqlDate(input.lastSeenAt), expiresAt: sqlDate(input.expiresAt), mfaAt: nullableSqlDate(input.mfaAt), revokedAt: nullableSqlDate(input.revokedAt) })
       })
     },
@@ -282,4 +283,11 @@ export function createMysqlAdminRepository(): ActorScoped<AdminRepository> {
       await db.update(staffSessions).set({ revokedAt: sqlNow() }).where(and(eq(staffSessions.storeId, actor.storeId), eq(staffSessions.userId, userId), isNull(staffSessions.revokedAt), keepSessionId ? ne(staffSessions.id, keepSessionId) : undefined))
     },
   }
+}
+
+/** Parameter upgrades are not a credential change and must preserve other valid sessions. */
+export async function rehashStaffPassword(actor: Actor, userId: string, previous: string, passwordHash: string) {
+  requireSystem(actor, ["auth:staff"])
+  const db = await database()
+  await db.update(staffMembers).set({ passwordHash }).where(and(eq(staffMembers.storeId, actor.storeId), eq(staffMembers.userId, userId), eq(staffMembers.passwordHash, previous)))
 }

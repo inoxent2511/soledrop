@@ -22,14 +22,19 @@ export function createFixturesCustomerRepository(): CustomerRepository {
         return structuredClone(customer)
       })
     },
-    async update(id, changes) {
+    async update(id, changes, expectedPasswordHash) {
       return transaction((tables) => {
         const customer = tables.customers.find((row) => row.id === id)
         if (!customer) throw new DomainError("not_found", "Account not found.")
+        if (expectedPasswordHash !== undefined && customer.passwordHash !== expectedPasswordHash) throw new DomainError("unauthorized", "Your credentials changed. Please sign in again.")
         if (changes.email && tables.customers.some((row) => row.id !== id && row.storeId === customer.storeId && row.email === changes.email)) {
           throw new DomainError("conflict", "An account with this email already exists.")
         }
         Object.assign(customer, changes)
+        if (changes.email !== undefined) {
+          const security = tables.customerSecurity?.find((row) => row.customerId === id)
+          if (security) security.emailVerifiedAt = null
+        }
         return structuredClone(customer)
       })
     },
@@ -88,10 +93,11 @@ export function createFixturesCustomerRepository(): CustomerRepository {
       })
     },
 
-    async scrub(customerId) {
+    async scrub(customerId, expectedPasswordHash) {
       transaction((tables) => {
         const customer = tables.customers.find((row) => row.id === customerId)
         if (!customer) return
+        if (expectedPasswordHash !== undefined && customer.passwordHash !== expectedPasswordHash) throw new DomainError("unauthorized", "Your credentials changed. Please sign in again.")
         Object.assign(customer, {
           email: `deleted+${customer.id}@invalid`,
           passwordHash: "",
@@ -103,6 +109,9 @@ export function createFixturesCustomerRepository(): CustomerRepository {
         tables.addresses = tables.addresses.filter((row) => row.customerId !== customerId)
         tables.sessions = tables.sessions.filter((row) => row.customerId !== customerId)
         tables.passwordResets = tables.passwordResets.filter((row) => row.customerId !== customerId)
+        if (tables.customerTokens) tables.customerTokens = tables.customerTokens.filter((row) => row.identityId !== customerId)
+        if (tables.oauthAccounts) tables.oauthAccounts = tables.oauthAccounts.filter((row) => row.customerId !== customerId)
+        if (tables.customerSecurity) tables.customerSecurity = tables.customerSecurity.filter((row) => row.customerId !== customerId)
       })
     },
     async search(storeId, query) {

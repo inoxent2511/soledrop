@@ -1,14 +1,15 @@
 import "server-only"
 
-import { headers } from "next/headers"
-
 import { publicEnv } from "@/lib/env"
+import { secureCookies, serverEnv } from "@/lib/env.server"
 import { adminService } from "@/server/admin"
 import { currentStaff, requestMeta, requirePermission, requireStaff } from "@/server/admin/dal"
 import type { RequestMeta } from "@/server/admin/service"
 import type { Permission } from "@/server/admin/permissions"
 import type { StaffContext } from "@/server/admin/types"
 import { errorResponse } from "@/server/http/route"
+import { assertRequestOrigin } from "@/server/http/origin"
+import { finishAuthTiming } from "@/server/http/auth-timing"
 import { platform } from "@/server/platform"
 import { DomainError } from "@/server/shared/errors"
 
@@ -21,7 +22,7 @@ import { DomainError } from "@/server/shared/errors"
  * - "pending": any live staff session, including AAL1 (finishing MFA);
  * - "public": no session (sign-in, accepting an invite).
  *
- * Mutations must carry our own Origin (CSRF, on top of SameSite=Strict), and nothing is cached.
+ * Mutations must carry our own Origin (CSRF, on top of SameSite=Lax), and nothing is cached.
  */
 export type AdminAccess = Permission | { permission: Permission; stepUp: true } | "staff" | "pending" | "public"
 
@@ -30,11 +31,7 @@ const WRITES_PER_MINUTE = 120
 type Handler<Context, Staff> = (input: { request: Request; context: Context; staff: Staff; meta: RequestMeta }) => Promise<Response>
 
 async function assertOwnOrigin(request: Request) {
-  if (request.method === "GET" || request.method === "HEAD") return
-  const origin = request.headers.get("origin")
-  const host = (await headers()).get("host")
-  const allowed = new Set([new URL(publicEnv.NEXT_PUBLIC_SITE_URL).host, host])
-  if (!origin || !allowed.has(new URL(origin).host)) throw new DomainError("forbidden", "Cross-site request blocked.")
+  assertRequestOrigin(request, { siteUrl: publicEnv.NEXT_PUBLIC_SITE_URL, allowLoopbackHttp: !secureCookies(serverEnv), requireOrigin: true })
 }
 
 async function authorise(access: AdminAccess): Promise<StaffContext | null> {
@@ -55,6 +52,7 @@ export function adminRoute<Context = unknown>(access: "public", handler: Handler
 export function adminRoute<Context = unknown>(access: Exclude<AdminAccess, "public">, handler: Handler<Context, StaffContext>): (request: Request, context: Context) => Promise<Response>
 export function adminRoute<Context = unknown>(access: AdminAccess, handler: Handler<Context, null> | Handler<Context, StaffContext>) {
   return async (request: Request, context: Context) => {
+    const started = performance.now()
     try {
       await assertOwnOrigin(request)
       const staff = await authorise(access)
@@ -70,6 +68,8 @@ export function adminRoute<Context = unknown>(access: AdminAccess, handler: Hand
       const response = errorResponse(error)
       response.headers.set("cache-control", "private, no-store")
       return response
+    } finally {
+      await finishAuthTiming(request, started)
     }
   }
 }

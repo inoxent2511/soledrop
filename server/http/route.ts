@@ -9,6 +9,8 @@ import { customerService } from "@/server/customers"
 import type { Customer } from "@/server/customers/types"
 import { currentStoreId } from "@/server/db/driver"
 import { forwardedClient } from "@/server/http/client-key"
+import { assertRequestOrigin } from "@/server/http/origin"
+import { finishAuthTiming } from "@/server/http/auth-timing"
 import { DomainError, isDomainError } from "@/server/shared/errors"
 
 export const SESSION_COOKIE = "sd_session"
@@ -28,20 +30,16 @@ export function errorResponse(error: unknown): Response {
 
 /**
  * Cookie-authenticated mutations must come from our own origin (CSRF defence in depth on top
- * of SameSite=Lax). Requests without an Origin header (same-origin GETs, curl) are allowed.
+ * of SameSite=Lax). Bearer-only integrations may omit Origin; browser auth/cart writes may not.
  */
 async function assertSameOrigin(request: Request) {
-  if (request.method === "GET" || request.method === "HEAD") return
-  const origin = request.headers.get("origin")
-  if (!origin) return
-  const host = (await headers()).get("host")
-  const allowed = new Set([new URL(publicEnv.NEXT_PUBLIC_SITE_URL).host, host])
-  if (!allowed.has(new URL(origin).host)) throw new DomainError("forbidden", "Cross-site request blocked.")
+  assertRequestOrigin(request, { siteUrl: publicEnv.NEXT_PUBLIC_SITE_URL, allowLoopbackHttp: !secureCookies(serverEnv) })
 }
 
 /** Wraps a route handler: origin check, error mapping, no caching of personal responses. */
 export function route<Context = unknown>(handler: (request: Request, context: Context) => Promise<Response>) {
   return async (request: Request, context: Context) => {
+    const started = performance.now()
     try {
       await assertSameOrigin(request)
       const response = await handler(request, context)
@@ -49,6 +47,8 @@ export function route<Context = unknown>(handler: (request: Request, context: Co
       return response
     } catch (error) {
       return errorResponse(error)
+    } finally {
+      await finishAuthTiming(request, started)
     }
   }
 }

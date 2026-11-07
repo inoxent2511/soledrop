@@ -12,6 +12,8 @@ import { auditLog, featureFlagCustomerGroups, featureFlags, idempotencyKeys, out
 import { escapeLike, isoDate, jsonValue, sqlDate, sqlNow } from "@/server/db/values"
 import { uuidv7 } from "@/server/db/uuid"
 import { DomainError } from "@/server/shared/errors"
+import { serverEnv } from "@/lib/env.server"
+import { sealDeliveryPayload } from "@/server/platform/private-payload"
 
 function job(actor: Actor) { if (actor.kind !== "system" || !["jobs", "migration"].includes(actor.purpose)) requireGrant(actor, "jobs:run") }
 function scopedKey(actor: Actor, key: string, identity = false) {
@@ -36,6 +38,7 @@ export function createMysqlPlatformRepository(): ActorScoped<PlatformRepository>
       requireStore(actor, storeId)
       if (actor.kind === "anonymous" && !["contact.received", "newsletter.subscribed"].includes(topic) && !actor.cartTokenHash) throw new DomainError("forbidden", "A verified capability is required.")
       const db = await database()
+      payload = sealDeliveryPayload(payload, serverEnv.SESSION_SECRET)
       const id = uuidv7(), at = sqlNow()
       await db.insert(outboxEvents).values({ id, storeId, topic, payload, availableAt: at, createdAt: at })
       return { id, topic, payload: structuredClone(payload), status: "pending", attempts: 0, availableAt: isoDate(at), createdAt: isoDate(at), lastError: null }

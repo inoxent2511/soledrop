@@ -1,4 +1,6 @@
 import "server-only"
+import { serverEnv } from "@/lib/env.server"
+import { sealDeliveryPayload } from "@/server/platform/private-payload"
 
 import { db, transaction } from "@/server/fixtures/store"
 import type { FixtureTables } from "@/server/fixtures/tables"
@@ -17,7 +19,7 @@ function nextNumberIn(tables: FixtureTables): string {
 }
 
 function enqueueIn(tables: FixtureTables, topic: EventTopic, payload: Record<string, unknown>) {
-  tables.outbox.push({ id: newId(), topic, payload, status: "pending", attempts: 0, availableAt: now(), createdAt: now(), lastError: null })
+  tables.outbox.push({ id: newId(), topic, payload: sealDeliveryPayload(payload, serverEnv.SESSION_SECRET), status: "pending", attempts: 0, availableAt: now(), createdAt: now(), lastError: null })
 }
 
 function restockLines(tables: FixtureTables, lines: { variantId: string; quantity: number }[]) {

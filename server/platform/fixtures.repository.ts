@@ -1,4 +1,6 @@
 import "server-only"
+import { serverEnv } from "@/lib/env.server"
+import { sealDeliveryPayload } from "@/server/platform/private-payload"
 
 import { db } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
@@ -13,6 +15,7 @@ export function createFixturesPlatformRepository(): PlatformRepository {
       return db().flags
     },
     async enqueue(_storeId, topic, payload) {
+      payload = sealDeliveryPayload(payload, serverEnv.SESSION_SECRET)
       const event = { id: newId(), topic, payload, status: "pending" as const, attempts: 0, availableAt: now(), createdAt: now(), lastError: null }
       db().outbox.push(event)
       return event

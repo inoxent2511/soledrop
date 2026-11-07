@@ -11,7 +11,7 @@ export interface CustomerRepository {
   findById(id: string): Promise<Customer | null>
   /** Throws conflict when the email is already registered in the store. */
   create(customer: Customer): Promise<Customer>
-  update(id: string, changes: CustomerUpdate): Promise<Customer>
+  update(id: string, changes: CustomerUpdate, expectedPasswordHash?: string): Promise<Customer>
 
   createSession(session: Session): Promise<void>
   findSession(tokenHash: string): Promise<Session | null>
@@ -27,7 +27,7 @@ export interface CustomerRepository {
   deleteAddress(customerId: string, addressId: string): Promise<void>
 
   /** Erases personal data and disables sign-in; the row stays so orders keep a reference. */
-  scrub(customerId: string): Promise<void>
+  scrub(customerId: string, expectedPasswordHash?: string): Promise<void>
 
   /** Staff search by email, name or phone, newest first; erased accounts are left out. */
   search(storeId: string, query: CustomerQuery): Promise<{ customers: Customer[]; total: number }>

@@ -8,6 +8,7 @@ import { currentStoreId } from "@/server/db/driver"
 import { platform } from "@/server/platform"
 import type { EventTopic, OutboxEvent } from "@/server/platform/types"
 import { newId, now } from "@/server/shared/ids"
+import { isPrivateDeliveryKey, sealDeliveryPayload } from "@/server/platform/private-payload"
 
 const MAX_ATTEMPTS = 8
 
@@ -17,7 +18,7 @@ const MAX_ATTEMPTS = 8
  * with retries and backoff. Nothing user-facing waits on a vendor.
  */
 export async function publish(topic: EventTopic, payload: Record<string, unknown>) {
-  return platform().enqueue(currentStoreId(), topic, payload)
+  return platform().enqueue(currentStoreId(), topic, sealDeliveryPayload(payload, serverEnv.SESSION_SECRET))
 }
 
 type Endpoint = { url: string; secret: string; topics: string[] }
@@ -39,10 +40,8 @@ export function signWebhook(secret: string, timestamp: string, body: string) {
 }
 
 /** Bearer secrets used only for customer email links; never sent to third-party endpoints. */
-const PRIVATE_KEYS = new Set(["accessToken", "token"])
-
 async function deliverWebhooks(event: OutboxEvent) {
-  const data = Object.fromEntries(Object.entries(event.payload).filter(([key]) => !PRIVATE_KEYS.has(key)))
+  const data = Object.fromEntries(Object.entries(event.payload).filter(([key]) => !isPrivateDeliveryKey(key)))
   for (const endpoint of endpoints().filter((item) => item.topics.includes("*") || item.topics.includes(event.topic))) {
     const body = JSON.stringify({ id: event.id, topic: event.topic, createdAt: event.createdAt, data })
     const timestamp = String(Math.floor(Date.now() / 1000))

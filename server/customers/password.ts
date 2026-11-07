@@ -5,7 +5,8 @@ import { randomBytes, scrypt as scryptCallback, timingSafeEqual, type ScryptOpti
 const scrypt = (password: string, salt: Buffer, keylen: number, options: ScryptOptions) =>
   new Promise<Buffer>((resolve, reject) => scryptCallback(password, salt, keylen, options, (error, key) => (error ? reject(error) : resolve(key))))
 
-const PARAMS = { N: 16384, r: 8, p: 1 }
+// OWASP's 32 MiB profile balances the shared-host memory budget with password guessing cost.
+const PARAMS = { N: 32768, r: 8, p: 3 }
 const KEY_LENGTH = 64
 
 /** scrypt with a per-password salt, encoded as `scrypt$N$r$p$salt$hash` so parameters can evolve. */
@@ -19,15 +20,22 @@ export async function hashPassword(password: string): Promise<string> {
 let decoy: Promise<string> | undefined
 export const decoyHash = () => (decoy ??= hashPassword(randomBytes(16).toString("hex")))
 
+export function passwordNeedsRehash(encoded: string): boolean {
+  const [scheme, n, r, p] = encoded.split("$")
+  return scheme !== "scrypt" || Number(n) !== PARAMS.N || Number(r) !== PARAMS.r || Number(p) !== PARAMS.p
+}
+
 export async function verifyPassword(password: string, encoded: string): Promise<boolean> {
-  const [scheme, n, r, p, salt, hash] = encoded.split("$")
-  if (scheme !== "scrypt" || !salt || !hash) return false
-  const expected = Buffer.from(hash, "base64url")
-  const key = await scrypt(password.normalize("NFKC"), Buffer.from(salt, "base64url"), expected.length, {
-    N: Number(n),
-    r: Number(r),
-    p: Number(p),
-    maxmem: 64 * 1024 * 1024,
-  })
-  return timingSafeEqual(key, expected)
+  const [scheme, n, r, p, salt, hash, extra] = encoded.split("$")
+  const cost = Number(n), block = Number(r), parallel = Number(p)
+  if (scheme !== "scrypt" || !salt || !hash || extra || ![16384, 32768].includes(cost) || block !== 8 || ![1, 3, 5].includes(parallel) || password.length > 200) return false
+  try {
+    const expected = Buffer.from(hash, "base64url"), saltBytes = Buffer.from(salt, "base64url")
+    if (expected.length !== KEY_LENGTH || saltBytes.length !== 16) return false
+    const key = await scrypt(password.normalize("NFKC"), saltBytes, KEY_LENGTH, { N: cost, r: block, p: parallel, maxmem: 64 * 1024 * 1024 })
+    // Legacy verification does equivalent work to the current profile for unknown-email parity.
+    const remainingWork = PARAMS.N * PARAMS.p / 16384 - cost * parallel / 16384
+    if (remainingWork > 0) await scrypt(password.normalize("NFKC"), saltBytes, KEY_LENGTH, { N: 16384, r: 8, p: remainingWork, maxmem: 64 * 1024 * 1024 })
+    return timingSafeEqual(key, expected)
+  } catch { return false }
 }

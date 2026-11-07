@@ -6,7 +6,7 @@ import type { Customer, CustomerAddress, PasswordReset, Session } from "./types"
 import { type Actor, type ActorScoped, requireCustomerOwner, requireFreshGrant, requireGrant, requireStore, requireSystem } from "@/server/db/actor"
 import { database, withTransaction } from "@/server/db/client"
 import { constant, maskedEmail, maskedPhone } from "@/server/db/query.repository"
-import { addresses, customers, passwordResets, sessions } from "@/server/db/schema"
+import { addresses, authTokens, customerSecurity, customers, oauthAccounts, passwordResets, sessions } from "@/server/db/schema"
 import { escapeLike, isoDate, nullableIsoDate, sqlDate, sqlNow } from "@/server/db/values"
 import { uuidv7 } from "@/server/db/uuid"
 import { DomainError } from "@/server/shared/errors"
@@ -47,17 +47,19 @@ export function createMysqlCustomerRepository(): ActorScoped<CustomerRepository>
       await db.insert(customers).values(values)
       return customer({ ...values, phone: input.phone })
     },
-    async update(actor, id, changes) {
+    async update(actor, id, changes, expectedPasswordHash) {
       requireCustomerOwner(actor, id, "customers:write")
       if (actor.kind === "staff" && (changes.passwordHash !== undefined || changes.email !== undefined)) throw new DomainError("forbidden", "Staff cannot change customer credentials.")
       if (actor.kind === "customer" && changes.group !== undefined) throw new DomainError("forbidden", "Price groups are managed by staff.")
       if (actor.kind === "staff" && (changes.fullName !== undefined || changes.phone !== undefined)) requireGrant(actor, "customers:read_pii")
       return withTransaction(async (db) => {
         const where = and(eq(customers.storeId, actor.storeId), eq(customers.id, id))
-        const [row] = await db.select({ id: customers.id }).from(customers).where(where).for("update")
+        const [row] = await db.select({ id: customers.id, passwordHash: customers.passwordHash }).from(customers).where(where).for("update")
         if (!row) throw new DomainError("not_found", "Account not found.")
+        if (expectedPasswordHash !== undefined && row.passwordHash !== expectedPasswordHash) throw new DomainError("unauthorized", "Your credentials changed. Please sign in again.")
         const { group, marketingOptIn, ...rest } = changes
         await db.update(customers).set({ ...rest, ...(changes.email !== undefined ? { email: changes.email.trim().toLowerCase() } : {}), ...(group !== undefined ? { customerGroup: group } : {}), ...(marketingOptIn !== undefined ? { marketingOptIn: marketingOptIn ? 1 : 0 } : {}) }).where(where)
+        if (changes.email !== undefined) await db.update(customerSecurity).set({ emailVerifiedAt: null }).where(eq(customerSecurity.customerId, id))
         return customer((await db.select(projection(actor)).from(customers).where(where))[0])
       })
     },
@@ -144,17 +146,21 @@ export function createMysqlCustomerRepository(): ActorScoped<CustomerRepository>
         if (target.isDefault && next) await db.update(addresses).set({ isDefault: 1 }).where(and(eq(addresses.customerId, owner.id), eq(addresses.id, next.id)))
       })
     },
-    async scrub(actor, customerId) {
+    async scrub(actor, customerId, expectedPasswordHash) {
       requireCustomerOwner(actor, customerId, "customers:delete")
       if (actor.kind === "staff") requireFreshGrant(actor, "customers:delete")
       await withTransaction(async (db) => {
         const where = and(eq(customers.id, customerId), eq(customers.storeId, actor.storeId))
-        const [row] = await db.select({ id: customers.id, deletionRequestedAt: customers.deletionRequestedAt }).from(customers).where(where).for("update")
+        const [row] = await db.select({ id: customers.id, passwordHash: customers.passwordHash, deletionRequestedAt: customers.deletionRequestedAt }).from(customers).where(where).for("update")
         if (!row) return
+        if (expectedPasswordHash !== undefined && row.passwordHash !== expectedPasswordHash) throw new DomainError("unauthorized", "Your credentials changed. Please sign in again.")
         await db.update(customers).set({ email: "deleted+" + row.id + "@invalid", passwordHash: "", fullName: "Deleted customer", phone: null, marketingOptIn: 0, deletionRequestedAt: row.deletionRequestedAt ?? sqlNow() }).where(where)
         await db.delete(addresses).where(eq(addresses.customerId, row.id))
         await db.delete(sessions).where(eq(sessions.customerId, row.id))
         await db.delete(passwordResets).where(eq(passwordResets.customerId, row.id))
+        await db.delete(oauthAccounts).where(eq(oauthAccounts.customerId, row.id))
+        await db.delete(authTokens).where(and(eq(authTokens.storeId, actor.storeId), eq(authTokens.identityId, row.id)))
+        await db.delete(customerSecurity).where(eq(customerSecurity.customerId, row.id))
       })
     },
     async search(actor, storeId, query) {
@@ -166,4 +172,10 @@ export function createMysqlCustomerRepository(): ActorScoped<CustomerRepository>
       return { customers: rows.map(customer), total: total.count }
     },
   }
+}
+
+export async function rehashCustomerPassword(actor: Actor, customerId: string, previous: string, passwordHash: string) {
+  requireSystem(actor, ["auth:customer"])
+  const db = await database()
+  await db.update(customers).set({ passwordHash }).where(and(eq(customers.storeId, actor.storeId), eq(customers.id, customerId), eq(customers.passwordHash, previous)))
 }

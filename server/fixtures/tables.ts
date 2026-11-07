@@ -19,6 +19,10 @@ export type ReservationRow = { id: string; cartId: string; variantId: string; qu
 
 /** Shape of the fixtures database — one property per Postgres table (docs/app/data-model.md). */
 export type FixtureTables = {
+  customerSecurity?: (import("@/server/customers/auth").CustomerSecurity & { customerId: string })[]
+  customerTokens?: import("@/server/customers/auth").CustomerToken[]
+  oauthStates?: (import("@/server/customers/auth").OAuthState & { usedAt: string | null })[]
+  oauthAccounts?: { storeId: string; customerId: string; provider: string; subject: string }[]
   home: HomeRecord | null
   stores: { id: string; slug: string; name: string; defaultCurrency: CurrencyCode; defaultLocale: string }[]
   brands: Brand[]

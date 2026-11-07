@@ -16,6 +16,8 @@ export type EventTopic =
   | "newsletter.subscribed"
   | "contact.received"
   | "password.reset_requested"
+  | "auth.link_requested"
+  | "auth.security_changed"
 
 export type OutboxEvent = {
   id: string

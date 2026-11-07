@@ -11,6 +11,8 @@ import { uuidv7 } from "@/server/db/uuid"
 import { lockLevels } from "@/server/inventory/mysql.repository"
 import type { EventTopic } from "@/server/platform/types"
 import { DomainError } from "@/server/shared/errors"
+import { serverEnv } from "@/lib/env.server"
+import { sealDeliveryPayload } from "@/server/platform/private-payload"
 
 export function orderOwnerScope(db: Database, actor: Actor, permission: "orders:read" | "customers:read" = "orders:read") {
   if (actor.kind === "staff" || actor.kind === "system") { requireGrant(actor, permission); return undefined }
@@ -76,7 +78,7 @@ export async function enqueueOrderEvent(db: Database, actor: Actor, orderId: str
   requireSystem(notification, ["notifications"])
   const [route] = await db.select({ email: orders.email }).from(orders).where(and(eq(orders.storeId, notification.storeId), eq(orders.id, orderId))).limit(1)
   if (!route) throw new DomainError("not_found", "Order not found.")
-  await db.insert(outboxEvents).values({ id: uuidv7(), storeId: actor.storeId, topic, payload: { ...payload, orderId, email: route.email } })
+  await db.insert(outboxEvents).values({ id: uuidv7(), storeId: actor.storeId, topic, payload: sealDeliveryPayload({ ...payload, orderId, email: route.email }, serverEnv.SESSION_SECRET) })
 }
 
 export async function auditOrder(db: Database, actor: Actor, action: string, entity: string, entityId: string, before: unknown, after: unknown) {

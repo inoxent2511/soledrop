@@ -394,6 +394,33 @@ export const sessions = mysqlTable("sessions", {
   expiresAt: datetime("expires_at", { mode: "string", fsp: 3 }).notNull(),
 })
 
+export const customerSecurity = mysqlTable("customer_security", {
+  customerId: uuid("customer_id").notNull(),
+  emailVerifiedAt: datetime("email_verified_at", { mode: "string", fsp: 3 }),
+  failedLogins: int("failed_logins").notNull().default(0),
+  lockedUntil: datetime("locked_until", { mode: "string", fsp: 3 }),
+})
+
+export const authTokens = mysqlTable("auth_tokens", {
+  tokenHash: char("token_hash", { length: 64 }).notNull(),
+  storeId: uuid("store_id").notNull(),
+  kind: varchar("kind", { length: 30 }).notNull(),
+  identityId: uuid("identity_id"),
+  email: varchar("email", { length: 254 }),
+  payload: portableJson("payload"),
+  expiresAt: datetime("expires_at", { mode: "string", fsp: 3 }).notNull(),
+  usedAt: datetime("used_at", { mode: "string", fsp: 3 }),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+})
+
+export const oauthAccounts = mysqlTable("oauth_accounts", {
+  id: uuid("id").notNull(),
+  customerId: uuid("customer_id").notNull(),
+  provider: varchar("provider", { length: 30 }).notNull(),
+  subject: varchar("subject", { length: 190 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+})
+
 export const shippingRates = mysqlTable("shipping_rates", {
   id: uuid("id").notNull(),
   zoneId: uuid("zone_id").notNull(),

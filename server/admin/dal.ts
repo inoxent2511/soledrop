@@ -11,6 +11,7 @@ import { adminService, type RequestMeta, type StaffContext } from "@/server/admi
 import type { Permission } from "@/server/admin/permissions"
 import { forwardedClient } from "@/server/http/client-key"
 import { DomainError } from "@/server/shared/errors"
+import { adminNetworkPolicy } from "@/server/admin/network-policy"
 
 /**
  * The admin data-access layer (A-006 layer 2). Every admin page and handler calls one of these
@@ -20,7 +21,7 @@ import { DomainError } from "@/server/shared/errors"
 export const STAFF_COOKIE = "sd_staff"
 
 export async function setStaffCookie(token: string, expiresAt: string) {
-  ;(await cookies()).set(STAFF_COOKIE, token, { httpOnly: true, sameSite: "strict", path: "/", secure: secureCookies(serverEnv), expires: new Date(expiresAt) })
+  ;(await cookies()).set(STAFF_COOKIE, token, { httpOnly: true, sameSite: "lax", path: "/", secure: secureCookies(serverEnv), expires: new Date(expiresAt) })
 }
 
 export async function clearStaffCookie() {
@@ -42,7 +43,14 @@ export async function requestMeta(): Promise<RequestMeta> {
 }
 
 /** The staff member behind this request (any assurance level); resolved once per request. */
-export const currentStaff = cache(async (): Promise<StaffContext | null> => adminService().resolve(await staffToken()))
+export const currentStaff = cache(async (): Promise<StaffContext | null> => {
+  const meta = await requestMeta()
+  if (!adminNetworkPolicy(serverEnv.ADMIN_IP_ALLOWLIST)(meta.ip)) {
+    await adminService().recordAudit(null, meta, { action: "staff.network_denied", entity: "staff", entityId: "network-policy", storeId: serverEnv.STORE_ID })
+    throw new DomainError("forbidden", "Admin access isn't available from this network.")
+  }
+  return adminService().resolve(await staffToken())
+})
 
 export const can = (staff: StaffContext, permission: Permission) => staff.permissions.includes(permission)
 

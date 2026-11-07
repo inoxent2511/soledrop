@@ -126,6 +126,7 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     expect(await admin.findInviteByTokenHash(tokenHash)).toEqual(invite)
     await admin.updateInvite(invite.id, { revokedAt: at })
     expect((await admin.listInvites(storeId))[0].revokedAt).toBe(at)
+    await admin.updateMember(storeId, ownerId, { totpSecret: "contract-sealed-secret", totpEnabledAt: at })
     const session = { id: uuidv7(), userId: ownerId, storeId, tokenHash, aal: 2 as const, mfaAt: at, ip: "127.0.0.1", userAgent: "Contract", createdAt: at, lastSeenAt: at, expiresAt, revokedAt: null }
     await admin.createSession(session)
     expect(await admin.findSessionByTokenHash(tokenHash)).toEqual(session)

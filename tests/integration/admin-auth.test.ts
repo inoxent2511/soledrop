@@ -19,7 +19,7 @@ let clockMs = Date.parse("2026-11-07T09:00:00Z")
 let audits: Omit<AuditEntry, "id" | "at">[] = []
 let windows = new Map<string, { start: number; count: number }>()
 
-const repo = createFixturesAdminRepository()
+const repo = createFixturesAdminRepository(() => clockMs)
 const service = () =>
   createAdminService({
     repo,
