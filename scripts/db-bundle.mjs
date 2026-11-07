@@ -1,0 +1,13 @@
+import fs from "node:fs/promises"
+import { migrationFiles, ledgerSql } from "./database-common.mjs"
+
+const files = await migrationFiles()
+await fs.mkdir("db/dist", { recursive: true })
+const sections = ["-- Import into an empty selected database; take a backup first.\n-- Reimports of CREATE TABLE are guarded. Existing ALTER migrations require ledger-aware runner.\n" + ledgerSql + ";\n"]
+for (const file of files) {
+  const entry = "\n-- " + file.name + " / SHA256 " + file.checksum + "\n" + file.source + "\nINSERT INTO schema_migrations (name, checksum) VALUES ('" + file.name + "', '" + file.checksum + "') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);\n"
+  sections.push(entry)
+  await fs.writeFile("db/dist/" + file.name, entry)
+}
+await fs.writeFile("db/dist/full-schema.sql", sections.join("\n"))
+process.stdout.write("Prepared " + files.length + " migrations and phpMyAdmin bundle.\n")
