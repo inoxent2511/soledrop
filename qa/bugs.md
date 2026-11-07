@@ -67,6 +67,19 @@ limits are recorded in `docs/app/build-log.md`.
 
 The broad regression's ambiguous `It applies.` selector was a QA assertion issue; it now requires exact text. The final broad run has 2,868 passes and 48 unchanged skips. Historical performance/design requirements above remain open; these fixes do not claim the older strict A12 sign-off.
 
+## Migration findings (2026-11-07)
+
+These are resolved migration-development findings. They do not close the earlier open performance/design requirements or replace the remaining production acceptance loop.
+
+| ID | Finding | Root fix and regression evidence |
+| --- | --- | --- |
+| MIG-001 | Initial TEXT defaults and stored generated uniqueness guards were not portable with MySQL cascading foreign keys. | Expression defaults and virtual generated guards. Both real-engine foundation suites apply/replay the schema and enforce constraints. |
+| MIG-002 | Product collection memberships returned in index order, changing the preserved DTO order. | Independent product-membership ordering and collection-product ordering; shared contract uses a deliberately nonalphabetical three-collection sequence. Private import comparison now has zero differences on both engines. |
+| MIG-003 | Shipping options returned in code-index order instead of the source's standard/express order. | Explicit insertion order via monotonic UUIDv7 rate keys. Two-rate shared contract and full saved-store comparison pass. |
+| MIG-004 | Normalizing flag targets into child rows lost the distinction between an empty target list and no targeting. | Explicit groups_restricted column, populated by import and maintained by writes. Adapter matrix coverage continues in M3/M5. |
+| MIG-005 | Initial bounded text mappings did not accommodate accepted 300-character image alt text and FAQ questions. | Forward column-capacity migration; form/schema limits retained. Database tests run on both engines. |
+| MIG-006 | Same-millisecond fixture product saves could retain the old optimistic timestamp. | Monotonic timestamp; shared stale-edit assertions preserve the concurrency guarantee. Real concurrent edits are exercised in M3. |
+
 ## Investigated, not a defect
 
 - **Slow client navigation under CPU contention.** The header suite flaked once per run when all three

@@ -1,6 +1,7 @@
-import { mysqlTable, varchar, char, text, int, tinyint, datetime } from "drizzle-orm/mysql-core"
+import { mysqlTable, varchar, char, text, int, tinyint, datetime, decimal } from "drizzle-orm/mysql-core"
 import { uuid } from "./uuid"
 import { portableJson, safeBigint } from "./columns"
+import { sqlNow } from "./values"
 
 /** Column mappings; committed db/migrations SQL is the schema source of truth. */
 export const auditLog = mysqlTable("audit_log", {
@@ -11,7 +12,7 @@ export const auditLog = mysqlTable("audit_log", {
   entityId: varchar("entity_id", { length: 190 }).notNull(),
   before: portableJson("before"),
   after: portableJson("after"),
-  at: datetime("at", { mode: "string", fsp: 3 }).notNull(),
+  at: datetime("at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
   storeId: uuid("store_id"),
   actorRole: varchar("actor_role", { length: 190 }),
   ip: varchar("ip", { length: 190 }),
@@ -24,15 +25,15 @@ export const idempotencyKeys = mysqlTable("idempotency_keys", {
   key: varchar("key", { length: 190 }).notNull(),
   status: int("status").notNull(),
   body: portableJson("body"),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
-  expiresAt: datetime("expires_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+  expiresAt: datetime("expires_at", { mode: "string", fsp: 3 }).notNull().default("(now() + '24:00:00'::interval)"),
 })
 
 export const permissions = mysqlTable("permissions", {
   key: varchar("key", { length: 190 }).notNull(),
   label: varchar("label", { length: 190 }).notNull(),
   group: varchar("group", { length: 190 }).notNull(),
-  sensitive: tinyint("sensitive").notNull(),
+  sensitive: tinyint("sensitive").notNull().default(0),
 })
 
 export const rateLimits = mysqlTable("rate_limits", {
@@ -44,10 +45,10 @@ export const rateLimits = mysqlTable("rate_limits", {
 export const stores = mysqlTable("stores", {
   id: uuid("id").notNull(),
   name: varchar("name", { length: 190 }).notNull(),
-  defaultCurrency: char("default_currency", { length: 3 }).notNull(),
-  orderPrefix: varchar("order_prefix", { length: 190 }).notNull(),
-  nextOrderNumber: safeBigint("next_order_number").notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  defaultCurrency: char("default_currency", { length: 3 }).notNull().default("PKR"),
+  orderPrefix: varchar("order_prefix", { length: 190 }).notNull().default("SD"),
+  nextOrderNumber: safeBigint("next_order_number").notNull().default(10001),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const attributeDefinitions = mysqlTable("attribute_definitions", {
@@ -57,8 +58,8 @@ export const attributeDefinitions = mysqlTable("attribute_definitions", {
   type: varchar("type", { length: 190 }).notNull(),
   scope: varchar("scope", { length: 190 }).notNull(),
   options: portableJson("options"),
-  filterable: tinyint("filterable").notNull(),
-  position: int("position").notNull(),
+  filterable: tinyint("filterable").notNull().default(0),
+  position: int("position").notNull().default(0),
 })
 
 export const brands = mysqlTable("brands", {
@@ -66,7 +67,7 @@ export const brands = mysqlTable("brands", {
   storeId: uuid("store_id").notNull(),
   slug: varchar("slug", { length: 190 }).notNull(),
   name: varchar("name", { length: 190 }).notNull(),
-  position: int("position").notNull(),
+  position: int("position").notNull().default(0),
 })
 
 export const collections = mysqlTable("collections", {
@@ -74,13 +75,13 @@ export const collections = mysqlTable("collections", {
   storeId: uuid("store_id").notNull(),
   slug: varchar("slug", { length: 190 }).notNull(),
   title: varchar("title", { length: 190 }).notNull(),
-  headline: portableJson("headline").notNull(),
-  description: text("description").notNull(),
+  headline: portableJson("headline").notNull().default(["", ""]),
+  description: text("description").notNull().default(""),
   kind: varchar("kind", { length: 190 }).notNull(),
   rules: portableJson("rules"),
   image: portableJson("image"),
-  position: int("position").notNull(),
-  seo: portableJson("seo").notNull(),
+  position: int("position").notNull().default(0),
+  seo: portableJson("seo").notNull().default({}),
 })
 
 export const contactMessages = mysqlTable("contact_messages", {
@@ -90,7 +91,7 @@ export const contactMessages = mysqlTable("contact_messages", {
   email: varchar("email", { length: 254 }).notNull(),
   orderNumber: varchar("order_number", { length: 190 }),
   message: text("message").notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const customFieldDefinitions = mysqlTable("custom_field_definitions", {
@@ -99,8 +100,8 @@ export const customFieldDefinitions = mysqlTable("custom_field_definitions", {
   code: varchar("code", { length: 190 }).notNull(),
   label: varchar("label", { length: 190 }).notNull(),
   type: varchar("type", { length: 190 }).notNull(),
-  required: tinyint("required").notNull(),
-  visibleOnStorefront: tinyint("visible_on_storefront").notNull(),
+  required: tinyint("required").notNull().default(0),
+  visibleOnStorefront: tinyint("visible_on_storefront").notNull().default(0),
 })
 
 export const customers = mysqlTable("customers", {
@@ -110,9 +111,9 @@ export const customers = mysqlTable("customers", {
   passwordHash: varchar("password_hash", { length: 190 }).notNull(),
   fullName: varchar("full_name", { length: 190 }).notNull(),
   phone: varchar("phone", { length: 190 }),
-  customerGroup: varchar("customer_group", { length: 190 }).notNull(),
-  marketingOptIn: tinyint("marketing_opt_in").notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  customerGroup: varchar("customer_group", { length: 190 }).notNull().default("retail"),
+  marketingOptIn: tinyint("marketing_opt_in").notNull().default(0),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
   deletionRequestedAt: datetime("deletion_requested_at", { mode: "string", fsp: 3 }),
 })
 
@@ -120,7 +121,7 @@ export const exchangeRates = mysqlTable("exchange_rates", {
   storeId: uuid("store_id").notNull(),
   base: char("base", { length: 3 }).notNull(),
   rates: portableJson("rates").notNull(),
-  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull(),
+  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const faqs = mysqlTable("faqs", {
@@ -129,14 +130,15 @@ export const faqs = mysqlTable("faqs", {
   category: varchar("category", { length: 190 }).notNull(),
   question: varchar("question", { length: 190 }).notNull(),
   answer: text("answer").notNull(),
-  position: int("position").notNull(),
+  position: int("position").notNull().default(0),
 })
 
 export const featureFlags = mysqlTable("feature_flags", {
+  groupsRestricted: tinyint("groups_restricted").notNull().default(0),
   storeId: uuid("store_id").notNull(),
   key: varchar("key", { length: 190 }).notNull(),
-  description: text("description").notNull(),
-  enabled: tinyint("enabled").notNull(),
+  description: text("description").notNull().default(""),
+  enabled: tinyint("enabled").notNull().default(0),
 })
 
 export const media = mysqlTable("media", {
@@ -148,17 +150,17 @@ export const media = mysqlTable("media", {
   bytes: int("bytes").notNull(),
   width: int("width").notNull(),
   height: int("height").notNull(),
-  alt: varchar("alt", { length: 190 }).notNull(),
+  alt: varchar("alt", { length: 190 }).notNull().default(""),
   createdBy: uuid("created_by"),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const newsletterSubscribers = mysqlTable("newsletter_subscribers", {
   storeId: uuid("store_id").notNull(),
   email: varchar("email", { length: 254 }).notNull(),
   source: varchar("source", { length: 190 }).notNull(),
-  status: varchar("status", { length: 190 }).notNull(),
-  consentAt: datetime("consent_at", { mode: "string", fsp: 3 }).notNull(),
+  status: varchar("status", { length: 190 }).notNull().default("subscribed"),
+  consentAt: datetime("consent_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const outboxEvents = mysqlTable("outbox_events", {
@@ -166,10 +168,10 @@ export const outboxEvents = mysqlTable("outbox_events", {
   storeId: uuid("store_id").notNull(),
   topic: varchar("topic", { length: 190 }).notNull(),
   payload: portableJson("payload").notNull(),
-  status: varchar("status", { length: 190 }).notNull(),
-  attempts: int("attempts").notNull(),
-  availableAt: datetime("available_at", { mode: "string", fsp: 3 }).notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  status: varchar("status", { length: 190 }).notNull().default("pending"),
+  attempts: int("attempts").notNull().default(0),
+  availableAt: datetime("available_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
   deliveredAt: datetime("delivered_at", { mode: "string", fsp: 3 }),
   lastError: text("last_error"),
 })
@@ -178,11 +180,11 @@ export const pages = mysqlTable("pages", {
   storeId: uuid("store_id").notNull(),
   slug: varchar("slug", { length: 190 }).notNull(),
   title: varchar("title", { length: 190 }).notNull(),
-  description: text("description").notNull(),
-  blocks: portableJson("blocks").notNull(),
-  seo: portableJson("seo").notNull(),
-  published: tinyint("published").notNull(),
-  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull(),
+  description: text("description").notNull().default(""),
+  blocks: portableJson("blocks").notNull().default([]),
+  seo: portableJson("seo").notNull().default({}),
+  published: tinyint("published").notNull().default(0),
+  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const priceLists = mysqlTable("price_lists", {
@@ -191,7 +193,7 @@ export const priceLists = mysqlTable("price_lists", {
   code: varchar("code", { length: 190 }).notNull(),
   currency: char("currency", { length: 3 }).notNull(),
   customerGroup: varchar("customer_group", { length: 190 }),
-  priority: int("priority").notNull(),
+  priority: int("priority").notNull().default(0),
   startsAt: datetime("starts_at", { mode: "string", fsp: 3 }),
   endsAt: datetime("ends_at", { mode: "string", fsp: 3 }),
 })
@@ -201,15 +203,15 @@ export const promotions = mysqlTable("promotions", {
   storeId: uuid("store_id").notNull(),
   code: varchar("code", { length: 190 }),
   title: varchar("title", { length: 190 }).notNull(),
-  conditions: portableJson("conditions").notNull(),
-  actions: portableJson("actions").notNull(),
+  conditions: portableJson("conditions").notNull().default([]),
+  actions: portableJson("actions").notNull().default([]),
   startsAt: datetime("starts_at", { mode: "string", fsp: 3 }),
   endsAt: datetime("ends_at", { mode: "string", fsp: 3 }),
   usageLimit: int("usage_limit"),
   perCustomerLimit: int("per_customer_limit"),
-  timesUsed: int("times_used").notNull(),
-  active: tinyint("active").notNull(),
-  combinable: tinyint("combinable").notNull(),
+  timesUsed: int("times_used").notNull().default(0),
+  active: tinyint("active").notNull().default(1),
+  combinable: tinyint("combinable").notNull().default(0),
 })
 
 export const roles = mysqlTable("roles", {
@@ -217,11 +219,11 @@ export const roles = mysqlTable("roles", {
   storeId: uuid("store_id").notNull(),
   key: varchar("key", { length: 190 }).notNull(),
   name: varchar("name", { length: 190 }).notNull(),
-  description: text("description").notNull(),
-  isSystem: tinyint("is_system").notNull(),
+  description: text("description").notNull().default(""),
+  isSystem: tinyint("is_system").notNull().default(0),
   refundLimit: safeBigint("refund_limit"),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
-  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const searchQueries = mysqlTable("search_queries", {
@@ -232,7 +234,7 @@ export const searchQueries = mysqlTable("search_queries", {
   resultCount: int("result_count"),
   clickedSlug: varchar("clicked_slug", { length: 190 }),
   source: varchar("source", { length: 190 }).notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const searchSynonyms = mysqlTable("search_synonyms", {
@@ -245,7 +247,7 @@ export const shippingZones = mysqlTable("shipping_zones", {
   id: uuid("id").notNull(),
   storeId: uuid("store_id").notNull(),
   name: varchar("name", { length: 190 }).notNull(),
-  position: int("position").notNull(),
+  position: int("position").notNull().default(0),
 })
 
 export const staffInvites = mysqlTable("staff_invites", {
@@ -258,31 +260,31 @@ export const staffInvites = mysqlTable("staff_invites", {
   expiresAt: datetime("expires_at", { mode: "string", fsp: 3 }).notNull(),
   acceptedAt: datetime("accepted_at", { mode: "string", fsp: 3 }),
   revokedAt: datetime("revoked_at", { mode: "string", fsp: 3 }),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const staffMembers = mysqlTable("staff_members", {
   userId: uuid("user_id").notNull(),
   storeId: uuid("store_id").notNull(),
   role: varchar("role", { length: 190 }),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
   email: varchar("email", { length: 254 }),
-  displayName: varchar("display_name", { length: 190 }).notNull(),
-  status: varchar("status", { length: 190 }).notNull(),
+  displayName: varchar("display_name", { length: 190 }).notNull().default(""),
+  status: varchar("status", { length: 190 }).notNull().default("active"),
   passwordHash: varchar("password_hash", { length: 190 }),
   totpSecret: text("totp_secret"),
   totpEnabledAt: datetime("totp_enabled_at", { mode: "string", fsp: 3 }),
   totpLastStep: safeBigint("totp_last_step"),
-  failedLogins: int("failed_logins").notNull(),
+  failedLogins: int("failed_logins").notNull().default(0),
   lockedUntil: datetime("locked_until", { mode: "string", fsp: 3 }),
   lastSeenAt: datetime("last_seen_at", { mode: "string", fsp: 3 }),
-  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull(),
+  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const storefrontContent = mysqlTable("storefront_content", {
   storeId: uuid("store_id").notNull(),
   content: portableJson("content").notNull(),
-  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull(),
+  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const taxRates = mysqlTable("tax_rates", {
@@ -292,7 +294,7 @@ export const taxRates = mysqlTable("tax_rates", {
   province: varchar("province", { length: 190 }),
   label: varchar("label", { length: 190 }).notNull(),
   basisPoints: int("basis_points").notNull(),
-  inclusive: tinyint("inclusive").notNull(),
+  inclusive: tinyint("inclusive").notNull().default(1),
 })
 
 export const addresses = mysqlTable("addresses", {
@@ -305,8 +307,8 @@ export const addresses = mysqlTable("addresses", {
   city: varchar("city", { length: 190 }).notNull(),
   province: varchar("province", { length: 190 }).notNull(),
   postalCode: varchar("postal_code", { length: 190 }),
-  country: varchar("country", { length: 190 }).notNull(),
-  isDefault: tinyint("is_default").notNull(),
+  country: varchar("country", { length: 190 }).notNull().default("PK"),
+  isDefault: tinyint("is_default").notNull().default(0),
 })
 
 export const carts = mysqlTable("carts", {
@@ -314,13 +316,14 @@ export const carts = mysqlTable("carts", {
   storeId: uuid("store_id").notNull(),
   tokenHash: varchar("token_hash", { length: 190 }).notNull(),
   customerId: uuid("customer_id"),
-  currency: char("currency", { length: 3 }).notNull(),
-  status: varchar("status", { length: 190 }).notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
-  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull(),
+  currency: char("currency", { length: 3 }).notNull().default("PKR"),
+  status: varchar("status", { length: 190 }).notNull().default("active"),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const orders = mysqlTable("orders", {
+  checkoutCartId: uuid("checkout_cart_id"),
   id: uuid("id").notNull(),
   storeId: uuid("store_id").notNull(),
   number: varchar("number", { length: 190 }).notNull(),
@@ -328,27 +331,27 @@ export const orders = mysqlTable("orders", {
   email: varchar("email", { length: 254 }).notNull(),
   phone: varchar("phone", { length: 190 }).notNull(),
   status: varchar("status", { length: 190 }).notNull(),
-  paymentStatus: varchar("payment_status", { length: 190 }).notNull(),
-  fulfillmentStatus: varchar("fulfillment_status", { length: 190 }).notNull(),
+  paymentStatus: varchar("payment_status", { length: 190 }).notNull().default("unpaid"),
+  fulfillmentStatus: varchar("fulfillment_status", { length: 190 }).notNull().default("unfulfilled"),
   currency: char("currency", { length: 3 }).notNull(),
   subtotal: safeBigint("subtotal").notNull(),
-  discountTotal: safeBigint("discount_total").notNull(),
-  shippingTotal: safeBigint("shipping_total").notNull(),
-  taxTotal: safeBigint("tax_total").notNull(),
+  discountTotal: safeBigint("discount_total").notNull().default(0),
+  shippingTotal: safeBigint("shipping_total").notNull().default(0),
+  taxTotal: safeBigint("tax_total").notNull().default(0),
   taxIncluded: tinyint("tax_included").notNull(),
   total: safeBigint("total").notNull(),
-  refundedTotal: safeBigint("refunded_total").notNull(),
+  refundedTotal: safeBigint("refunded_total").notNull().default(0),
   shippingAddress: portableJson("shipping_address").notNull(),
   shippingMethod: portableJson("shipping_method").notNull(),
   paymentMethod: varchar("payment_method", { length: 190 }).notNull(),
   idempotencyKey: varchar("idempotency_key", { length: 190 }).notNull(),
   accessTokenHash: varchar("access_token_hash", { length: 190 }).notNull(),
-  customFields: portableJson("custom_fields").notNull(),
+  customFields: portableJson("custom_fields").notNull().default({}),
   note: text("note"),
   trackingNumber: varchar("tracking_number", { length: 190 }),
-  history: portableJson("history").notNull(),
-  placedAt: datetime("placed_at", { mode: "string", fsp: 3 }).notNull(),
-  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull(),
+  history: portableJson("history").notNull().default([]),
+  placedAt: datetime("placed_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const passwordResets = mysqlTable("password_resets", {
@@ -366,17 +369,17 @@ export const products = mysqlTable("products", {
   brandId: uuid("brand_id").notNull(),
   kind: varchar("kind", { length: 190 }).notNull(),
   gender: varchar("gender", { length: 190 }).notNull(),
-  status: varchar("status", { length: 190 }).notNull(),
-  description: text("description").notNull(),
+  status: varchar("status", { length: 190 }).notNull().default("draft"),
+  description: text("description").notNull().default(""),
   conditionGrade: varchar("condition_grade", { length: 190 }),
   conditionNotes: text("condition_notes"),
-  attributes: portableJson("attributes").notNull(),
-  customFields: portableJson("custom_fields").notNull(),
-  position: int("position").notNull(),
-  publishedAt: datetime("published_at", { mode: "string", fsp: 3 }).notNull(),
-  seo: portableJson("seo").notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
-  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull(),
+  attributes: portableJson("attributes").notNull().default({}),
+  customFields: portableJson("custom_fields").notNull().default({}),
+  position: int("position").notNull().default(0),
+  publishedAt: datetime("published_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+  seo: portableJson("seo").notNull().default({}),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const rolePermissions = mysqlTable("role_permissions", {
@@ -387,7 +390,7 @@ export const rolePermissions = mysqlTable("role_permissions", {
 export const sessions = mysqlTable("sessions", {
   tokenHash: varchar("token_hash", { length: 190 }).notNull(),
   customerId: uuid("customer_id").notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
   expiresAt: datetime("expires_at", { mode: "string", fsp: 3 }).notNull(),
 })
 
@@ -400,7 +403,7 @@ export const shippingRates = mysqlTable("shipping_rates", {
   freeOver: safeBigint("free_over"),
   minDays: int("min_days").notNull(),
   maxDays: int("max_days").notNull(),
-  cashOnDelivery: tinyint("cash_on_delivery").notNull(),
+  cashOnDelivery: tinyint("cash_on_delivery").notNull().default(0),
 })
 
 export const staffRoles = mysqlTable("staff_roles", {
@@ -418,8 +421,8 @@ export const staffSessions = mysqlTable("staff_sessions", {
   mfaAt: datetime("mfa_at", { mode: "string", fsp: 3 }),
   ip: varchar("ip", { length: 190 }),
   userAgent: text("user_agent"),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
-  lastSeenAt: datetime("last_seen_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+  lastSeenAt: datetime("last_seen_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
   expiresAt: datetime("expires_at", { mode: "string", fsp: 3 }).notNull(),
   revokedAt: datetime("revoked_at", { mode: "string", fsp: 3 }),
 })
@@ -430,16 +433,18 @@ export const webhookDeliveries = mysqlTable("webhook_deliveries", {
   endpoint: varchar("endpoint", { length: 512 }).notNull(),
   status: varchar("status", { length: 190 }).notNull(),
   responseStatus: int("response_status"),
-  at: datetime("at", { mode: "string", fsp: 3 }).notNull(),
+  at: datetime("at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const collectionProducts = mysqlTable("collection_products", {
+  productPosition: int("product_position").notNull().default(0),
   collectionId: uuid("collection_id").notNull(),
   productId: uuid("product_id").notNull(),
-  position: int("position").notNull(),
+  position: int("position").notNull().default(0),
 })
 
 export const orderLines = mysqlTable("order_lines", {
+  restockedQuantity: int("restocked_quantity").notNull().default(0),
   id: uuid("id").notNull(),
   orderId: uuid("order_id").notNull(),
   variantId: uuid("variant_id").notNull(),
@@ -455,11 +460,11 @@ export const orderLines = mysqlTable("order_lines", {
   quantity: int("quantity").notNull(),
   unitPrice: safeBigint("unit_price").notNull(),
   compareAt: safeBigint("compare_at"),
-  discount: safeBigint("discount").notNull(),
-  tax: safeBigint("tax").notNull(),
+  discount: safeBigint("discount").notNull().default(0),
+  tax: safeBigint("tax").notNull().default(0),
   total: safeBigint("total").notNull(),
-  refundedQuantity: int("refunded_quantity").notNull(),
-  position: int("position").notNull(),
+  refundedQuantity: int("refunded_quantity").notNull().default(0),
+  position: int("position").notNull().default(0),
 })
 
 export const orderNotes = mysqlTable("order_notes", {
@@ -468,7 +473,7 @@ export const orderNotes = mysqlTable("order_notes", {
   author: uuid("author").notNull(),
   authorName: varchar("author_name", { length: 190 }).notNull(),
   body: text("body").notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const payments = mysqlTable("payments", {
@@ -477,22 +482,22 @@ export const payments = mysqlTable("payments", {
   provider: varchar("provider", { length: 190 }).notNull(),
   status: varchar("status", { length: 190 }).notNull(),
   amount: safeBigint("amount").notNull(),
-  refundedAmount: safeBigint("refunded_amount").notNull(),
+  refundedAmount: safeBigint("refunded_amount").notNull().default(0),
   currency: char("currency", { length: 3 }).notNull(),
   providerRef: varchar("provider_ref", { length: 190 }),
   idempotencyKey: varchar("idempotency_key", { length: 190 }).notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const productImages = mysqlTable("product_images", {
   id: uuid("id").notNull(),
   productId: uuid("product_id").notNull(),
   url: varchar("url", { length: 512 }).notNull(),
-  alt: varchar("alt", { length: 190 }).notNull(),
+  alt: varchar("alt", { length: 190 }).notNull().default(""),
   width: int("width").notNull(),
   height: int("height").notNull(),
-  role: varchar("role", { length: 190 }).notNull(),
-  position: int("position").notNull(),
+  role: varchar("role", { length: 190 }).notNull().default("gallery"),
+  position: int("position").notNull().default(0),
 })
 
 export const promotionRedemptions = mysqlTable("promotion_redemptions", {
@@ -501,16 +506,16 @@ export const promotionRedemptions = mysqlTable("promotion_redemptions", {
   orderId: uuid("order_id").notNull(),
   customerId: uuid("customer_id"),
   email: varchar("email", { length: 254 }).notNull(),
-  at: datetime("at", { mode: "string", fsp: 3 }).notNull(),
+  at: datetime("at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const returns = mysqlTable("returns", {
   id: uuid("id").notNull(),
   orderId: uuid("order_id").notNull(),
-  status: varchar("status", { length: 190 }).notNull(),
+  status: varchar("status", { length: 190 }).notNull().default("requested"),
   lines: portableJson("lines").notNull(),
   reason: text("reason").notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const variants = mysqlTable("variants", {
@@ -521,9 +526,9 @@ export const variants = mysqlTable("variants", {
   sizeUk: varchar("size_uk", { length: 190 }).notNull(),
   sizeUs: varchar("size_us", { length: 190 }).notNull(),
   sizeCm: varchar("size_cm", { length: 190 }).notNull(),
-  attributes: portableJson("attributes").notNull(),
-  weightGrams: int("weight_grams").notNull(),
-  position: int("position").notNull(),
+  attributes: portableJson("attributes").notNull().default({}),
+  weightGrams: int("weight_grams").notNull().default(0),
+  position: int("position").notNull().default(0),
 })
 
 export const cartLines = mysqlTable("cart_lines", {
@@ -531,14 +536,14 @@ export const cartLines = mysqlTable("cart_lines", {
   cartId: uuid("cart_id").notNull(),
   variantId: uuid("variant_id").notNull(),
   quantity: int("quantity").notNull(),
-  addedAt: datetime("added_at", { mode: "string", fsp: 3 }).notNull(),
+  addedAt: datetime("added_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const inventoryLevels = mysqlTable("inventory_levels", {
   variantId: uuid("variant_id").notNull(),
-  onHand: int("on_hand").notNull(),
-  reserved: int("reserved").notNull(),
-  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull(),
+  onHand: int("on_hand").notNull().default(0),
+  reserved: int("reserved").notNull().default(0),
+  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const inventoryMovements = mysqlTable("inventory_movements", {
@@ -547,7 +552,7 @@ export const inventoryMovements = mysqlTable("inventory_movements", {
   delta: int("delta").notNull(),
   reason: text("reason").notNull(),
   actor: varchar("actor", { length: 190 }).notNull(),
-  at: datetime("at", { mode: "string", fsp: 3 }).notNull(),
+  at: datetime("at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const inventoryReservations = mysqlTable("inventory_reservations", {
@@ -571,10 +576,10 @@ export const refunds = mysqlTable("refunds", {
   paymentId: uuid("payment_id"),
   amount: safeBigint("amount").notNull(),
   reason: text("reason").notNull(),
-  lines: portableJson("lines").notNull(),
-  restock: tinyint("restock").notNull(),
+  lines: portableJson("lines").notNull().default([]),
+  restock: tinyint("restock").notNull().default(0),
   idempotencyKey: varchar("idempotency_key", { length: 190 }).notNull(),
-  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
 export const cartPromotionCodes = mysqlTable("cart_promotion_codes", {
@@ -625,5 +630,67 @@ export const searchSynonymValues = mysqlTable("search_synonym_values", {
   id: uuid("id").notNull(),
   position: int("position").notNull(),
   value: varchar("value", { length: 190 }).notNull(),
+})
+
+export const productAttributeValues = mysqlTable("product_attribute_values", {
+  productId: uuid("product_id").notNull(),
+  attributeKey: varchar("attribute_key", { length: 100 }).notNull(),
+  valueText: varchar("value_text", { length: 190 }).notNull(),
+  valueNum: decimal("value_num", { precision: 20, scale: 6 }),
+})
+
+export const variantAttributeValues = mysqlTable("variant_attribute_values", {
+  variantId: uuid("variant_id").notNull(),
+  attributeKey: varchar("attribute_key", { length: 100 }).notNull(),
+  valueText: varchar("value_text", { length: 190 }).notNull(),
+  valueNum: decimal("value_num", { precision: 20, scale: 6 }),
+})
+
+export const orderNumberSequences = mysqlTable("order_number_sequences", {
+  storeId: uuid("store_id").notNull(),
+  prefix: varchar("prefix", { length: 20 }).notNull(),
+  nextValue: safeBigint("next_value").notNull(),
+})
+
+export const searchDocuments = mysqlTable("search_documents", {
+  productId: uuid("product_id").notNull(),
+  storeId: uuid("store_id").notNull(),
+  slug: varchar("slug", { length: 190 }).notNull(),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  prefix: varchar("prefix", { length: 190 }).notNull(),
+  updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+})
+
+export const searchTerms = mysqlTable("search_terms", {
+  storeId: uuid("store_id").notNull(),
+  term: varchar("term", { length: 100 }).notNull(),
+  documentFrequency: int("document_frequency").notNull(),
+  length: int("length").notNull(),
+})
+
+export const searchDocumentTerms = mysqlTable("search_document_terms", {
+  productId: uuid("product_id").notNull(),
+  term: varchar("term", { length: 100 }).notNull(),
+})
+
+export const storeMetadata = mysqlTable("store_metadata", {
+  storeId: uuid("store_id").notNull(),
+  slug: varchar("slug", { length: 190 }).notNull(),
+  defaultLocale: varchar("default_locale", { length: 20 }).notNull(),
+})
+
+export const orderContacts = mysqlTable("order_contacts", {
+  orderId: uuid("order_id").notNull(),
+  storeId: uuid("store_id").notNull(),
+  recipientName: varchar("recipient_name", { length: 190 }).notNull(),
+  phoneDigits: varchar("phone_digits", { length: 40 }).notNull(),
+})
+
+export const dataImports = mysqlTable("data_imports", {
+  name: varchar("name", { length: 190 }).notNull(),
+  digest: char("digest", { length: 64 }).notNull(),
+  counts: portableJson("counts").notNull(),
+  appliedAt: datetime("applied_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 

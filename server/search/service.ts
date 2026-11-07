@@ -3,6 +3,7 @@ import "server-only"
 import { fold, type SynonymMap } from "@/server/search/match"
 import type { SearchRepository } from "@/server/search/repository"
 import type { SearchSource, TrendingQuery } from "@/server/search/types"
+import { newId } from "@/server/shared/ids"
 
 const TRENDING_DAYS = 30
 const MAX_LOGGED_QUERY = 100
@@ -14,7 +15,7 @@ export function createSearchService({ search, now = () => new Date() }: Deps) {
     const trimmed = query.trim().slice(0, MAX_LOGGED_QUERY)
     const normalized = fold(trimmed)
     if (!normalized) return
-    await search.logEvent(storeId, { id: crypto.randomUUID(), query: trimmed, normalized, resultCount, clickedSlug, source, createdAt: now().toISOString() })
+    await search.logEvent(storeId, { id: newId(), query: trimmed, normalized, resultCount, clickedSlug, source, createdAt: now().toISOString() })
   }
 
   return {

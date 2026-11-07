@@ -7,11 +7,11 @@ INSERT IGNORE INTO order_number_sequences (store_id, prefix, next_value)
 VALUES (UNHEX('00000000000040008000000000000001'), 'SD', 10001);
 INSERT IGNORE INTO exchange_rates (store_id, base, rates)
 VALUES (UNHEX('00000000000040008000000000000001'), 'PKR', '{"PKR":1}');
-INSERT IGNORE INTO feature_flags (store_id, `key`, description, enabled) VALUES
-(UNHEX('00000000000040008000000000000001'), 'b2b-pricing', 'Wholesale pricing for approved trade accounts.', 0),
-(UNHEX('00000000000040008000000000000001'), 'multi-currency-display', 'Display approximate converted prices after configuring exchange rates.', 0),
-(UNHEX('00000000000040008000000000000001'), 'stripe-payments', 'Card payments through the configured Stripe provider.', 0),
-(UNHEX('00000000000040008000000000000001'), 'express-delivery', 'Offer the configured express shipping rate.', 0);
+INSERT IGNORE INTO feature_flags (store_id, `key`, description, enabled, groups_restricted) VALUES
+(UNHEX('00000000000040008000000000000001'), 'b2b-pricing', 'Wholesale pricing for approved trade accounts.', 0, 1),
+(UNHEX('00000000000040008000000000000001'), 'multi-currency-display', 'Display approximate converted prices after configuring exchange rates.', 0, 0),
+(UNHEX('00000000000040008000000000000001'), 'stripe-payments', 'Card payments through the configured Stripe provider.', 0, 0),
+(UNHEX('00000000000040008000000000000001'), 'express-delivery', 'Offer the configured express shipping rate.', 0, 0);
 INSERT IGNORE INTO feature_flag_customer_groups (store_id, `key`, position, value)
 VALUES (UNHEX('00000000000040008000000000000001'), 'b2b-pricing', 0, 'wholesale');
 INSERT IGNORE INTO price_lists (id, store_id, code, currency, priority)

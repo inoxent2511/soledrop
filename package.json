@@ -28,7 +28,9 @@
     "db:seed-reset": "node scripts/db-reset.mjs",
     "db:test": "node scripts/db-test.mjs",
     "db:lint": "node scripts/db-lint.mjs",
-    "db:bundle": "node scripts/db-bundle.mjs"
+    "db:bundle": "node scripts/db-bundle.mjs",
+    "db:import-local": "node --conditions=react-server --import ./scripts/register.mjs scripts/import-local-store.ts",
+    "db:verify-import": "node --conditions=react-server --import ./scripts/register.mjs scripts/verify-local-import.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

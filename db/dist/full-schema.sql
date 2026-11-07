@@ -1126,3 +1126,74 @@ CREATE TABLE IF NOT EXISTS `customer_security` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO schema_migrations (name, checksum) VALUES ('0002_projections_and_auth.sql', '1bf6330396496cfa748cbdb8e4b8784999ec8c2f9619ad96c1e386c81d243eff') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0003_integrity_and_listing_indexes.sql / SHA256 aedde1dbd096d86122e21c00b91a1821e60b4330658568629cf2d897eb9b5121
+-- Preserve validation limits and add indexed historical references / listing paths.
+ALTER TABLE `media` MODIFY `alt` VARCHAR(300) NOT NULL DEFAULT '';
+ALTER TABLE `product_images` MODIFY `alt` VARCHAR(300) NOT NULL DEFAULT '';
+ALTER TABLE `faqs` MODIFY `question` VARCHAR(300) NOT NULL;
+ALTER TABLE `inventory_reservations` ADD CONSTRAINT `inventory_reservations_cart_fk` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE CASCADE;
+ALTER TABLE `order_lines` ADD CONSTRAINT `order_lines_product_fk` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT;
+ALTER TABLE `order_lines` ADD CONSTRAINT `order_lines_variant_fk` FOREIGN KEY (`variant_id`) REFERENCES `variants` (`id`) ON DELETE RESTRICT;
+CREATE INDEX `products_store_updated` ON `products` (`store_id`, `updated_at`, `id`);
+CREATE INDEX `products_store_brand_updated` ON `products` (`store_id`, `brand_id`, `updated_at`, `id`);
+CREATE INDEX `products_store_kind_updated` ON `products` (`store_id`, `kind`, `updated_at`, `id`);
+CREATE INDEX `customers_store_created` ON `customers` (`store_id`, `created_at`, `id`);
+CREATE INDEX `customers_store_group_created` ON `customers` (`store_id`, `customer_group`, `created_at`, `id`);
+CREATE INDEX `newsletter_store_consent` ON `newsletter_subscribers` (`store_id`, `consent_at`, `email`);
+CREATE INDEX `outbox_store_due` ON `outbox_events` (`store_id`, `status`, `available_at`, `id`);
+CREATE INDEX `search_store_query_at` ON `search_queries` (`store_id`, `normalized`, `created_at`);
+CREATE INDEX `reservations_cart_variant` ON `inventory_reservations` (`cart_id`, `variant_id`);
+CREATE INDEX `idempotency_expiry` ON `idempotency_keys` (`expires_at`);
+CREATE INDEX `rate_limits_window` ON `rate_limits` (`window_start`);
+CREATE INDEX `sessions_expiry` ON `sessions` (`expires_at`);
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0003_integrity_and_listing_indexes.sql', 'aedde1dbd096d86122e21c00b91a1821e60b4330658568629cf2d897eb9b5121') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0004_order_ownership_projections.sql / SHA256 9bc10d2de8fe5af5aab72daa3818cd2b26debd8fb833dd8b0dcc57b7a7f73f2d
+ALTER TABLE `orders` ADD COLUMN `checkout_cart_id` BINARY(16) NULL;
+ALTER TABLE `orders` ADD CONSTRAINT `orders_checkout_cart_fk` FOREIGN KEY (`checkout_cart_id`) REFERENCES `carts` (`id`) ON DELETE SET NULL;
+ALTER TABLE `order_lines` ADD COLUMN `restocked_quantity` INT NOT NULL DEFAULT 0,
+  ADD CONSTRAINT `order_lines_restock_within_quantity` CHECK (`restocked_quantity` >= 0 AND `restocked_quantity` <= `quantity`);
+CREATE INDEX `orders_store_total_placed` ON `orders` (`store_id`, `total`, `placed_at`, `id`);
+
+CREATE TABLE IF NOT EXISTS `order_contacts` (
+  `order_id` BINARY(16) NOT NULL,
+  `store_id` BINARY(16) NOT NULL,
+  `recipient_name` VARCHAR(190) NOT NULL,
+  `phone_digits` VARCHAR(40) NOT NULL,
+  PRIMARY KEY (`order_id`),
+  INDEX `order_contacts_name` (`store_id`, `recipient_name`, `order_id`),
+  INDEX `order_contacts_phone` (`store_id`, `phone_digits`, `order_id`),
+  CONSTRAINT `order_contacts_order_fk` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `order_contacts_store_fk` FOREIGN KEY (`store_id`) REFERENCES `stores` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0004_order_ownership_projections.sql', '9bc10d2de8fe5af5aab72daa3818cd2b26debd8fb833dd8b0dcc57b7a7f73f2d') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0005_import_and_flag_targeting.sql / SHA256 5cb211017e1babf122a6d7306f9b2ff73ebaf110625174232ba46a927333014e
+ALTER TABLE `feature_flags` ADD COLUMN `groups_restricted` TINYINT(1) NOT NULL DEFAULT 0 CHECK (`groups_restricted` IN (0, 1));
+UPDATE `feature_flags` f SET groups_restricted = 1 WHERE EXISTS (
+  SELECT 1 FROM `feature_flag_customer_groups` g WHERE g.store_id = f.store_id AND g.`key` = f.`key`
+);
+
+CREATE TABLE IF NOT EXISTS `data_imports` (
+  `name` VARCHAR(190) NOT NULL,
+  `digest` CHAR(64) NOT NULL,
+  `counts` JSON NOT NULL CHECK (JSON_VALID(`counts`)),
+  `applied_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0005_import_and_flag_targeting.sql', '5cb211017e1babf122a6d7306f9b2ff73ebaf110625174232ba46a927333014e') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0006_collection_order.sql / SHA256 437deb05625c878f8eff25a51d490c556ceaffec8d63bf778b0c80b7a0ceeeb5
+-- Independent ordering within a collection and of memberships on a product.
+ALTER TABLE `collection_products` ADD COLUMN `product_position` INT NOT NULL DEFAULT 0 CHECK (`product_position` >= 0);
+CREATE INDEX `collection_products_membership_order` ON `collection_products` (`product_id`, `product_position`);
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0006_collection_order.sql', '437deb05625c878f8eff25a51d490c556ceaffec8d63bf778b0c80b7a0ceeeb5') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);

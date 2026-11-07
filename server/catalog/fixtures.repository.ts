@@ -4,7 +4,6 @@ import type { CatalogRepository } from "@/server/catalog/repository"
 import type { AdminProductQuery, Product } from "@/server/catalog/types"
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
-import { now } from "@/server/shared/ids"
 
 function matchesAdmin(product: Product, query: AdminProductQuery): boolean {
   const q = query.q?.trim().toLowerCase()
@@ -80,7 +79,7 @@ export function createFixturesCatalogRepository(): CatalogRepository {
         if (removed.some((variant) => tables.orders.some((order) => order.lines.some((line) => line.variantId === variant.id)))) {
           throw new DomainError("conflict", "A size that has been ordered can't be removed. Archive the product instead.")
         }
-        const saved: Product = { ...structuredClone(product), storeId, updatedAt: now() }
+        const saved: Product = { ...structuredClone(product), storeId, updatedAt: new Date(Math.max(Date.now(), Date.parse(current?.updatedAt ?? current?.publishedAt ?? "1970-01-01") + 1)).toISOString() }
         if (index === -1) tables.products.push(saved)
         else tables.products[index] = saved
         const gone = new Set(removed.map((variant) => variant.id))

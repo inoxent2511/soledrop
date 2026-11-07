@@ -1,8 +1,8 @@
-import { randomUUID } from "node:crypto"
+import { uuidv7 } from "@/server/db/uuid"
 
-/** Random UUID v4 (matches the database's `gen_random_uuid()`). */
+/** Time-ordered application key; imported legacy keys remain unchanged. */
 export function newId(): string {
-  return randomUUID()
+  return uuidv7()
 }
 
 /** Current time as an ISO string; one seam so tests can reason about time. */

@@ -12,5 +12,13 @@ registerHooks({ resolve(specifier, context, nextResolve) {
     if (!file) throw new Error(`No server script module: ${specifier}`)
     return nextResolve(pathToFileURL(file).href, context)
   }
+  if (specifier.startsWith(".") && context.parentURL?.startsWith("file:")) {
+    const base = fileURLToPath(new URL(specifier, context.parentURL))
+    const relative = path.relative(root, base)
+    if (!relative.startsWith("..") && !relative.split(path.sep).includes("node_modules") && (!fs.existsSync(base) || fs.statSync(base).isDirectory())) {
+      const file = [`${base}.ts`, path.join(base, "index.ts")].find((candidate) => fs.existsSync(candidate))
+      if (file) return nextResolve(pathToFileURL(file).href, context)
+    }
+  }
   return nextResolve(specifier, context)
 } })

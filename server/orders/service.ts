@@ -12,6 +12,7 @@ import { customerCanCancel, customerCanRequestReturn } from "@/server/orders/sta
 import type { Address, Order, OrderLine, OrderStatus } from "@/server/orders/types"
 import { DomainError } from "@/server/shared/errors"
 import { allocate } from "@/server/shared/money"
+import { newId } from "@/server/shared/ids"
 
 export type CheckoutInput = {
   /** Null when the cart was already converted — only valid for a replay of the same key. */
@@ -52,7 +53,7 @@ function toOrderLines(priced: Awaited<ReturnType<CartService["price"]>>, tax: nu
   return lines.map((line, index) => {
     const variant = priced.products.get(line.variantId)?.variants.find((item) => item.id === line.variantId)
     return {
-      id: crypto.randomUUID(),
+      id: newId(),
       variantId: line.variantId,
       productId: line.productId,
       slug: line.slug,
