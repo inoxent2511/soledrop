@@ -5,8 +5,6 @@ type CollectionBannerProps = {
   headline: [string, string]
   description: string
   image: { url: string; alt: string } | null
-  /** A short brand-coloured line above the headline (New Arrivals, D-052). */
-  eyebrow?: string
 }
 
 /**
@@ -14,7 +12,7 @@ type CollectionBannerProps = {
  * The shoe image bleeds past the top and right edges and is clipped by the rounded box. The title
  * is only spoken ahead of the headline when the headline says something else.
  */
-export function CollectionBanner({ title, headline, description, image, eyebrow }: CollectionBannerProps) {
+export function CollectionBanner({ title, headline, description, image }: CollectionBannerProps) {
   const titled = headline.join(" ").toLowerCase() !== title.toLowerCase()
   return (
     <div className="relative isolate flex overflow-hidden rounded-3xl bg-foreground text-background md:rounded-banner 3xl:h-105">
@@ -25,7 +23,6 @@ export function CollectionBanner({ title, headline, description, image, eyebrow 
       ) : null}
       <div className="flex flex-col gap-4 px-6 py-8 md:gap-8 md:px-10 md:py-12 3xl:ps-13.5 3xl:pe-0 3xl:pt-13.5 3xl:pb-0">
         <div className="flex flex-col gap-3 md:gap-4">
-          {eyebrow ? <p className="text-14 font-bold tracking-wide-2 text-brand uppercase md:text-18">{eyebrow}</p> : null}
           <h1 className="flex flex-col text-48 leading-none font-black uppercase md:text-68 xl:text-100 3xl:text-120">
             {titled ? <span className="sr-only">{title}: </span> : null}
             <span>{headline[0]}</span>

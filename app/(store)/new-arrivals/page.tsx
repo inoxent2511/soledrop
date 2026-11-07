@@ -48,14 +48,12 @@ export default async function NewArrivalsPage({ searchParams }: Props) {
     { id: "new", label: "Brand New", noun: "brand-new", total: brandNew.total, cards: cards(brandNew), seeAllHref: "/collections/new-arrivals?kind=new", emptyText: emptyText("brand-new") },
     { id: "preloved", label: "Pre-Loved", noun: "pre-loved", total: preloved.total, cards: cards(preloved), seeAllHref: "/pre-loved?sort=newest", emptyText: emptyText("pre-loved") },
   ]
-  const total = brandNew.total + preloved.total
 
   return (
     <div className="bg-surface">
       <Container className="flex flex-col gap-8 pt-6 pb-16 md:gap-12 md:pt-12 3xl:gap-20 3xl:pt-20 3xl:pb-23.25">
         <CollectionBanner
           title="New Arrivals"
-          eyebrow={total > 0 ? `Just dropped · ${total} new ${total === 1 ? "pair" : "pairs"}` : "Just dropped"}
           headline={["New", "Arrivals"]}
           description={DESCRIPTION}
           image={collection?.image ? { url: collection.image.url, alt: collection.image.alt } : null}

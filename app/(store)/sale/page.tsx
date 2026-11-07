@@ -47,16 +47,12 @@ export default async function SalePage({ searchParams }: Props) {
     { id: "new", label: "Brand New", noun: "brand-new", total: brandNew.total, cards: cards(brandNew), seeAllHref: "/collections/brand-new", emptyText: emptyText("brand-new") },
     { id: "preloved", label: "Pre-Loved", noun: "pre-loved", total: preloved.total, cards: cards(preloved), seeAllHref: "/pre-loved", emptyText: emptyText("pre-loved") },
   ]
-  const total = brandNew.total + preloved.total
-  const bestDiscount = Math.max(0, ...[...brandNew.items, ...preloved.items].map((product) => product.price.discountPercent ?? 0))
-  const eyebrow = [bestDiscount > 0 ? `Up to ${bestDiscount}% off` : null, total > 0 ? `${total} ${total === 1 ? "pair" : "pairs"} on sale` : null].filter(Boolean).join(" · ")
 
   return (
     <div className="bg-surface">
       <Container className="flex flex-col gap-8 pt-6 pb-16 md:gap-12 md:pt-12 3xl:gap-20 3xl:pt-20 3xl:pb-23.25">
         <CollectionBanner
           title="Sale"
-          eyebrow={eyebrow || "Sale"}
           headline={["On", "Sale"]}
           description={collection?.description ?? "Marked-down pairs while sizes last."}
           image={collection?.image ? { url: collection.image.url, alt: collection.image.alt } : null}

@@ -247,3 +247,9 @@ Validation: **1,130/1,130 full real-engine/fixture database checks**, including 
 All twelve frozen contracts still match their baseline hashes. The original private saved-store digest remains `b1060b8149b1c6b6f817302449ee5a331ece746227f8dabffb3c655c272c8f3e`. No TSX/layout/copy was changed. The new driver is still isolated from the saved storefront runtime until M5 request/actor integration; this is an authentication-stage checkpoint, not whole-migration or browser/performance acceptance.
 
 Next: M5 required actor types/factories for both retained drivers, request/RSC context, live session/grant revalidation at raw MySQL calls, ownership/permission matrices and stricter append-only grants. Then remaining adapters, admin transaction/integration work, retirement/readiness, Hostinger package and the full QA loop. No push, deployment, remote database, real email or payment.
+
+## 2026-11-07 — Requested banner text removal
+
+The owner explicitly requested removal of the small banner line shown as “JUST DROPPED · 19 NEW PAIRS” everywhere on the site. Removed the shared CollectionBanner eyebrow prop/rendering and the New Arrivals/Sale tagline calculations. This is an authorized UI change to the earlier migration baseline; the headline, description, images and product tabs remain. Preserve this requested change when completing migration parity checks.
+
+Validation: typecheck, targeted zero-warning ESLint and production build passed. Restarted the local preview and checked all ten public banner/listing routes from the sitemap at desktop 1440 px and mobile 390 px: twenty checks passed, no eyebrow text and no horizontal overflow. Local screenshots and results are in `.data/banner-without-tagline-*.png` and `.data/banner-tagline-verification.json`. Migration M5 remains in progress; this UI change does not claim its acceptance.
