@@ -181,3 +181,13 @@ Validation:
 - Closing changes to the storage label, category sizing and hydration were rebuilt and verified with targeted checks; the broad suite was not repeated after those final fixes. Raw reports and screenshots remain ignored/private, listed in `admin/verification.md`.
 
 The current local store and credentials are private under `.data`, with stable secrets in `.env.local`; neither is committed. See `admin/catalogue-and-banners.md` for operation, backups and bootstrap instructions. Strict A12 performance, source-design and hosted-integration requirements remain open as previously documented. No remote database, deployment, push, real payment or email was used.
+
+## 2026-11-07 — M0: migration inventory and preserved baseline
+
+Baseline commit: `8bdc580`. Inventoried the final legacy schema: 53 tables, 423 columns, 563 constraints (including 360 NOT NULL constraints), 105 indexes, 77 policies, 52 declared functions, four non-internal triggers and 15 enum types. All 13 repository domains and 154 methods have replacement stages. The inventory also maps vendor mentions, authentication, storage, environment, dependencies and existing SQL test intent.
+
+The twelve universal contracts are frozen with SHA-256 digests recorded in the inventory. No vendor-specific lines were found in those contracts. The Hostinger checklist separates public product information from unverified account facts. Better Auth documentation was reviewed; the first-party fallback is selected to preserve hashed opaque sessions and mandatory staff assurance across authentication flows.
+
+Validation: typecheck and zero-warning lint passed; baseline Vitest passed 200/200 tests. Preserved an independent standalone artifact (dependency junctions retargeted within the archive), public/static assets, a private saved-store copy and environment backup under ignored `.data/mysql-migration/baseline`. Protected-contract digests still match. Existing strict design/performance findings remain visible; these baseline checks do not claim migration acceptance.
+
+Docker and installed database binaries were absent. Official portable Windows engine downloads are in progress for loopback-only test instances. Next: M1 schema, tools and real-engine validation. No application code changed in M0; no remote database, hosting account, deployment, email, payment or push was used.
