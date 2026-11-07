@@ -109,7 +109,7 @@ export function createMysqlInventoryRepository(): ActorScoped<InventoryRepositor
     },
     async adjust(actor, variantId, delta, reason, actorLabel) {
       requireGrant(actor, "inventory:adjust")
-      if (actor.kind === "staff" && actorLabel !== actor.id) throw new DomainError("forbidden", "Adjustment identity does not match the actor.")
+      if (actor.kind === "staff" && actorLabel !== actor.id && actorLabel !== "staff:" + actor.id) throw new DomainError("forbidden", "Adjustment identity does not match the actor.")
       if (!Number.isSafeInteger(delta)) throw new DomainError("validation", "Invalid stock adjustment.")
       return withTransaction(async (db) => {
         await lockStore(db, actor)

@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, asc, count, eq, getTableColumns, inArray, ne, or } from "drizzle-orm"
+import { and, asc, eq, getTableColumns, inArray, ne, or } from "drizzle-orm"
 import type { OrderRepository } from "./repository"
 import type { Order } from "./types"
 import { canTransition, customerCanCancel, customerCanRequestReturn, restocksOnTransition } from "./state-machine"
@@ -18,7 +18,7 @@ type Writes = Pick<ActorScoped<OrderRepository>, "placeOrder" | "transition" | "
 const transitionPermission = { pending_payment: "orders:write", confirmed: "orders:mark_paid", processing: "orders:fulfil", shipped: "orders:fulfil", delivered: "orders:fulfil", cancelled: "orders:cancel", returned: "orders:returns" } as const
 
 function actorLabel(actor: Actor, label: string) {
-  if (actor.kind === "staff" && label !== actor.id) throw new DomainError("forbidden", "Action identity does not match the actor.")
+  if (actor.kind === "staff" && label !== actor.id && label !== "staff:" + actor.id) throw new DomainError("forbidden", "Action identity does not match the actor.")
 }
 
 export function createMysqlOrderWrites(): Writes {
@@ -29,8 +29,8 @@ export function createMysqlOrderWrites(): Writes {
       if (!draft.idempotencyKey || !draft.lines.length || !["confirmed", "pending_payment"].includes(draft.status)) throw new DomainError("validation", "The order is incomplete.")
       return withTransaction(async (db) => {
         await lockStore(db, actor)
-        const replay = await db.select(orderProjection(actor)).from(orders).where(and(eq(orders.storeId, actor.storeId), eq(orders.idempotencyKey, draft.idempotencyKey), orderOwnerScope(db, actor))).limit(1)
-        if (replay.length) return { order: (await hydrateOrders(db, replay))[0], replayed: true }
+        const replay = await db.select(orderProjection(actor)).from(orders).where(and(eq(orders.storeId, actor.storeId), eq(orders.idempotencyKey, draft.idempotencyKey), orderOwnerScope(db, actor))).limit(1).for("update")
+        if (replay.length) return { order: (await hydrateOrders(db, replay, true))[0], replayed: true }
         const cart = await lockCart(db, actor, cartId)
         if (cart.status !== "active") throw new DomainError("conflict", "This bag has already been checked out.")
         if (cart.customerId !== draft.customerId) throw new DomainError("forbidden", "Order identity does not match the bag.")
@@ -58,11 +58,11 @@ export function createMysqlOrderWrites(): Writes {
           const now = Date.now()
           if (!coupon.active || coupon.startsAt && Date.parse(isoDate(coupon.startsAt)) > now || coupon.endsAt && Date.parse(isoDate(coupon.endsAt)) <= now) throw new DomainError("promotion_invalid", "A discount on your bag is no longer available.")
           if (coupon.usageLimit !== null && coupon.timesUsed >= coupon.usageLimit) throw new DomainError("promotion_invalid", '"' + coupon.title + '" has been fully redeemed.')
-          const [used] = await db.select({ count: count() }).from(promotionRedemptions).where(and(eq(promotionRedemptions.promotionId, coupon.id), or(eq(promotionRedemptions.email, email), draft.customerId ? eq(promotionRedemptions.customerId, draft.customerId) : undefined)))
-          if (coupon.perCustomerLimit !== null && used.count >= coupon.perCustomerLimit) throw new DomainError("promotion_invalid", 'You have already used "' + coupon.title + '".')
+          const used = await db.select({ id: promotionRedemptions.id }).from(promotionRedemptions).where(and(eq(promotionRedemptions.promotionId, coupon.id), or(eq(promotionRedemptions.email, email), draft.customerId ? eq(promotionRedemptions.customerId, draft.customerId) : undefined))).orderBy(asc(promotionRedemptions.id)).for("update")
+          if (coupon.perCustomerLimit !== null && used.length >= coupon.perCustomerLimit) throw new DomainError("promotion_invalid", 'You have already used "' + coupon.title + '".')
           if (jsonValue<PromotionCondition[]>(coupon.conditions).some((condition) => condition.type === "first_order")) {
-            const [prior] = await db.select({ count: count() }).from(orders).where(and(eq(orders.storeId, actor.storeId), ne(orders.status, "cancelled"), or(eq(orders.email, email), draft.customerId ? eq(orders.customerId, draft.customerId) : undefined)))
-            if (prior.count > 0) throw new DomainError("promotion_invalid", "This discount is for your first order.")
+            const prior = await db.select({ id: orders.id }).from(orders).where(and(eq(orders.storeId, actor.storeId), ne(orders.status, "cancelled"), or(eq(orders.email, email), draft.customerId ? eq(orders.customerId, draft.customerId) : undefined))).orderBy(asc(orders.id)).limit(1).for("update")
+            if (prior.length > 0) throw new DomainError("promotion_invalid", "This discount is for your first order.")
           }
           await db.update(promotions).set({ timesUsed: coupon.timesUsed + 1 }).where(and(eq(promotions.storeId, actor.storeId), eq(promotions.id, coupon.id)))
         }
@@ -79,13 +79,14 @@ export function createMysqlOrderWrites(): Writes {
         return { order: { ...structuredClone(draft), email, id, number, history, refundedTotal: 0, placedAt: at, updatedAt: at }, replayed: false }
       }, { retries: 3, idempotencyKey: draft.idempotencyKey })
     },
-    async transition(actor, orderId, to, label, note, trackingNumber) {
+    async transition(actor, orderId, to, label, note, trackingNumber, expectedUpdatedAt) {
       actorLabel(actor, label)
       if (actor.kind === "staff" || actor.kind === "system") requireGrant(actor, transitionPermission[to])
       else if (to !== "cancelled") throw new DomainError("forbidden", "You don't have permission to change this order.")
       return withTransaction(async (db) => {
         await lockStore(db, actor)
         const order = await lockedOrder(db, actor, orderId)
+        if (expectedUpdatedAt && order.updatedAt !== expectedUpdatedAt) throw new DomainError("conflict", "This order changed since you opened it. Reload to see the latest.")
         const from = order.status
         if (actor.kind !== "staff" && actor.kind !== "system" && !customerCanCancel(from)) throw new DomainError("invalid_transition", "This order can no longer be cancelled.")
         if (!canTransition(from, to)) throw new DomainError("invalid_transition", "An order that is " + from.replace("_", " ") + " can't become " + to.replace("_", " ") + ".")
@@ -145,7 +146,7 @@ export function createMysqlOrderWrites(): Writes {
       return withTransaction(async (db) => {
         await lockStore(db, actor)
         const order = await lockedOrder(db, actor, input.orderId)
-        const [replay] = await db.select().from(refunds).where(and(eq(refunds.orderId, order.id), eq(refunds.idempotencyKey, input.idempotencyKey))).limit(1)
+        const [replay] = await db.select().from(refunds).where(and(eq(refunds.orderId, order.id), eq(refunds.idempotencyKey, input.idempotencyKey))).limit(1).for("update")
         if (replay) return refund(replay)
         const paidRows = await db.select().from(payments).where(eq(payments.orderId, order.id)).orderBy(asc(payments.id)).for("update")
         const paid = paidRows.filter((row) => ["captured", "partially_refunded", "refunded"].includes(row.status)).reduce((sum, row) => sum + row.amount, 0)
@@ -159,7 +160,11 @@ export function createMysqlOrderWrites(): Writes {
           if (!line || line.refundedQuantity + item.quantity > line.quantity) throw new DomainError("validation", "Refund quantity exceeds the quantity bought.")
           await db.update(orderLines).set({ refundedQuantity: line.refundedQuantity + item.quantity }).where(and(eq(orderLines.orderId, order.id), eq(orderLines.id, line.id)))
         }
-        if (input.restock) await restockOrderLines(db, actor, order.id, items)
+        if (input.restock) {
+          const previous = await db.select({ lines: refunds.lines }).from(refunds).where(and(eq(refunds.orderId, order.id), eq(refunds.restock, 1))).orderBy(asc(refunds.id)).for("update")
+          const targets = quantities([...previous.flatMap((row) => jsonValue<ReturnType<typeof quantities>>(row.lines)), ...items])
+          await restockOrderLines(db, actor, order.id, targets)
+        }
         const refundedTotal = order.refundedTotal + input.amount
         await db.update(orders).set({ refundedTotal, paymentStatus: refundedTotal >= paid ? "refunded" : "partially_refunded", updatedAt: orderUpdatedAt(order.updatedAt) }).where(and(eq(orders.storeId, actor.storeId), eq(orders.id, order.id)))
         if (targetPayment) await db.update(payments).set({ refundedAmount: targetPayment.refundedAmount + input.amount, status: targetPayment.refundedAmount + input.amount >= targetPayment.amount ? "refunded" : "partially_refunded" }).where(and(eq(payments.id, targetPayment.id), eq(payments.orderId, order.id)))
@@ -233,7 +238,7 @@ export function createMysqlOrderWrites(): Writes {
         const rows = await db.select().from(orders).where(and(eq(orders.storeId, actor.storeId), eq(orders.customerId, customerId))).orderBy(asc(orders.id)).for("update")
         for (const row of rows) {
           const address = jsonValue<Order["shippingAddress"]>(row.shippingAddress)
-          await db.update(orders).set({ email: "deleted+" + row.id.slice(0, 8) + "@invalid", phone: "", customerId: null, shippingAddress: { fullName: "Deleted customer", phone: "", line1: "", city: address.city, province: address.province, country: address.country } }).where(and(eq(orders.storeId, actor.storeId), eq(orders.id, row.id)))
+          await db.update(orders).set({ email: "deleted+" + row.id.slice(0, 8) + "@invalid", phone: "", customerId: null, updatedAt: orderUpdatedAt(isoDate(row.updatedAt)), shippingAddress: { fullName: "Deleted customer", phone: "", line1: "", city: address.city, province: address.province, country: address.country } }).where(and(eq(orders.storeId, actor.storeId), eq(orders.id, row.id)))
           await db.update(orderContacts).set({ recipientName: "Deleted customer", phoneDigits: "" }).where(and(eq(orderContacts.storeId, actor.storeId), eq(orderContacts.orderId, row.id)))
         }
         return rows.length

@@ -100,7 +100,7 @@ export async function importSnapshot(actor: Actor, source: FixtureTables, digest
       if (lines.length) await db.insert(s.orderLines).values(lines.map((line, position) => {
         const returned = source.returns.filter((item) => item.orderId === row.id && item.status === "received").flatMap((item) => item.lines).filter((item) => item.orderLineId === line.id).reduce((sum, item) => sum + item.quantity, 0)
         const refunded = source.refunds.filter((item) => item.orderId === row.id && item.restock).flatMap((item) => item.lines).filter((item) => item.orderLineId === line.id).reduce((sum, item) => sum + item.quantity, 0)
-        const restockedQuantity = row.status === "cancelled" ? line.quantity : returned + refunded
+        const restockedQuantity = row.status === "cancelled" ? line.quantity : Math.max(returned, refunded)
         return { ...line, orderId: row.id, position, restockedQuantity }
       }))
       if (promotionCodes.length) await db.insert(s.orderPromotionCodes).values(promotionCodes.map((value, position) => ({ id: row.id, value, position })))

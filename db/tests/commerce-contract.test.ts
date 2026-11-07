@@ -159,7 +159,9 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
   it("records payments once, follows the state machine, notes and return decisions", async () => {
     const input = { orderId: order.id, provider: "cod", status: "captured" as const, amount: 10000, currency: "PKR" as const, providerRef: null, idempotencyKey: uuidv7() }
     const paid = await orders.recordPayment(input)
+    const pendingAfterPayment = (await platform.outboxSummary(storeId)).pending
     expect(await orders.recordPayment(input)).toEqual(paid)
+    expect((await platform.outboxSummary(storeId)).pending).toBe(pendingAfterPayment)
     expect((await orders.listPayments(order.id)).length).toBe(1)
     expect((await orders.findById(order.id))?.paymentStatus).toBe("paid")
     await expect(orders.transition(order.id, "delivered", "migration")).rejects.toMatchObject({ code: "invalid_transition" })
@@ -175,9 +177,10 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
 
   it("keeps refund ceilings, replay semantics, listing and money ledger", async () => {
     const paid = (await orders.listPayments(order.id))[0]
-    const input = { orderId: order.id, paymentId: paid.id, amount: 5000, reason: "Partial refund", lines: [{ orderLineId: order.lines[0].id, quantity: 1 }], restock: false, idempotencyKey: uuidv7() }
+    const input = { orderId: order.id, paymentId: paid.id, amount: 5000, reason: "Partial refund", lines: [{ orderLineId: order.lines[0].id, quantity: 1 }], restock: true, idempotencyKey: uuidv7() }
     const first = await orders.createRefund(input)
     expect(await orders.createRefund(input)).toEqual(first)
+    expect((await inventory.onHand([variantId])).get(variantId)).toBe(5)
     await expect(orders.createRefund({ ...input, lines: [], amount: 6000, idempotencyKey: uuidv7() })).rejects.toMatchObject({ code: "validation" })
     expect((await orders.findByNumber(storeId, order.number))?.refundedTotal).toBe(5000)
     expect((await orders.search(storeId, { q: order.number, page: 1, pageSize: 10 })).total).toBe(1)

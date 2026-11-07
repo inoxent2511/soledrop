@@ -35,10 +35,12 @@ export function orderProjection(actor: Actor) {
 }
 
 export type OrderRecord = Omit<typeof orders.$inferSelect, "phone"> & { phone: string | null }
-export async function hydrateOrders(db: Database, rows: OrderRecord[]): Promise<Order[]> {
+export async function hydrateOrders(db: Database, rows: OrderRecord[], lock = false): Promise<Order[]> {
   if (!rows.length) return []
   const ids = rows.map((row) => row.id)
-  const [lines, codes] = await Promise.all([db.select().from(orderLines).where(inArray(orderLines.orderId, ids)).orderBy(asc(orderLines.position)), db.select().from(orderPromotionCodes).where(inArray(orderPromotionCodes.id, ids)).orderBy(asc(orderPromotionCodes.position))])
+  const lineQuery = db.select().from(orderLines).where(inArray(orderLines.orderId, ids)).orderBy(asc(orderLines.position))
+  const codeQuery = db.select().from(orderPromotionCodes).where(inArray(orderPromotionCodes.id, ids)).orderBy(asc(orderPromotionCodes.position))
+  const [lines, codes] = await Promise.all([lock ? lineQuery.for("update") : lineQuery, lock ? codeQuery.for("update") : codeQuery])
   return rows.map((row): Order => {
     const address = jsonValue<Order["shippingAddress"]>(row.shippingAddress)
     return { id: row.id, storeId: row.storeId, number: row.number, customerId: row.customerId, email: row.email, phone: row.phone ?? "", status: row.status as Order["status"], paymentStatus: row.paymentStatus as Order["paymentStatus"], fulfillmentStatus: row.fulfillmentStatus as Order["fulfillmentStatus"], currency: row.currency as Order["currency"], subtotal: row.subtotal, discountTotal: row.discountTotal, shippingTotal: row.shippingTotal, taxTotal: row.taxTotal, taxIncluded: row.taxIncluded === 1, total: row.total, refundedTotal: row.refundedTotal, promotionCodes: codes.filter((code) => code.id === row.id).map((code) => code.value), shippingAddress: { ...address, line2: address.line2 ?? undefined, postalCode: address.postalCode ?? undefined }, shippingMethod: jsonValue<Order["shippingMethod"]>(row.shippingMethod), paymentMethod: row.paymentMethod, idempotencyKey: row.idempotencyKey, accessTokenHash: row.accessTokenHash, customFields: jsonValue<Order["customFields"]>(row.customFields), note: row.note, trackingNumber: row.trackingNumber, history: jsonValue<Order["history"]>(row.history), placedAt: isoDate(row.placedAt), updatedAt: isoDate(row.updatedAt),
@@ -49,7 +51,7 @@ export async function hydrateOrders(db: Database, rows: OrderRecord[]): Promise<
 export async function lockedOrder(db: Database, actor: Actor, id: string, permission: "orders:read" | "customers:read" = "orders:read") {
   const [row] = await db.select(orderProjection(actor)).from(orders).where(and(eq(orders.storeId, actor.storeId), eq(orders.id, id), orderOwnerScope(db, actor, permission))).for("update")
   if (!row) throw new DomainError("not_found", "Order not found.")
-  return (await hydrateOrders(db, [row]))[0]
+  return (await hydrateOrders(db, [row], true))[0]
 }
 
 /** Called only after the order row/store lock is held; counter increments roll back with checkout. */
@@ -94,19 +96,21 @@ export function quantities(lines: { orderLineId: string; quantity: number }[]) {
   return [...totals].sort(([a], [b]) => a.localeCompare(b)).map(([orderLineId, quantity]) => ({ orderLineId, quantity }))
 }
 
-/** Physical units are counted independently of money so returns/refunds/cancels cannot restock twice. */
+/** Requested quantities are cumulative targets, so return/refund/cancel receipts cannot overlap. */
 export async function restockOrderLines(db: Database, actor: Actor, orderId: string, requested: { orderLineId: string; quantity: number }[]) {
   const rows = await db.select().from(orderLines).where(eq(orderLines.orderId, orderId)).orderBy(asc(orderLines.variantId), orderLines.id).for("update")
   const items = quantities(requested)
   const levels = await lockLevels(db, actor, rows.filter((row) => items.some((item) => item.orderLineId === row.id)).map((row) => row.variantId))
   for (const item of items) {
     const line = rows.find((row) => row.id === item.orderLineId)
-    if (!line || line.restockedQuantity + item.quantity > line.quantity) throw new DomainError("validation", "Restock quantity exceeds the quantity bought.")
+    if (!line || item.quantity > line.quantity) throw new DomainError("validation", "Restock quantity exceeds the quantity bought.")
+    const quantity = Math.max(0, item.quantity - line.restockedQuantity)
+    if (quantity === 0) continue
     const level = levels.find((row) => row.variantId === line.variantId)
     if (!level) throw new DomainError("not_found", "Unknown variant.")
-    level.onHand += item.quantity
+    level.onHand += quantity
     await db.update(inventoryLevels).set({ onHand: level.onHand }).where(eq(inventoryLevels.variantId, level.variantId))
-    await db.update(orderLines).set({ restockedQuantity: line.restockedQuantity + item.quantity }).where(and(eq(orderLines.id, line.id), eq(orderLines.orderId, orderId)))
+    await db.update(orderLines).set({ restockedQuantity: line.restockedQuantity + quantity }).where(and(eq(orderLines.id, line.id), eq(orderLines.orderId, orderId)))
   }
 }
 

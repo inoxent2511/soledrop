@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, asc, count, eq, getTableColumns, inArray, isNull, ne } from "drizzle-orm"
+import { and, asc, eq, getTableColumns, inArray, isNull, ne } from "drizzle-orm"
 import { isPermission, OWNER_ROLE_KEY, type Permission } from "./permissions"
 import type { AdminRepository } from "./repository"
 import type { Role, StaffInvite, StaffMember, StaffSession } from "./types"
@@ -37,8 +37,8 @@ async function roleRows(db: Database, actor: Actor, rows: (typeof roles.$inferSe
   return rows.filter((row) => row.storeId === actor.storeId).map((row) => ({ ...row, isSystem: row.isSystem === 1, createdAt: isoDate(row.createdAt), updatedAt: isoDate(row.updatedAt), permissions: links.filter((link) => link.roleId === row.id).map((link) => link.permission).filter(isPermission) }))
 }
 async function ownerCount(db: Database, storeId: string): Promise<number> {
-  const [row] = await db.select({ count: count() }).from(staffMembers).innerJoin(staffRoles, and(eq(staffRoles.userId, staffMembers.userId), eq(staffRoles.storeId, staffMembers.storeId))).innerJoin(roles, eq(roles.id, staffRoles.roleId)).where(and(eq(staffMembers.storeId, storeId), eq(roles.storeId, storeId), eq(staffMembers.status, "active"), eq(roles.key, OWNER_ROLE_KEY)))
-  return row.count
+  const rows = await db.select({ id: staffMembers.userId }).from(staffMembers).innerJoin(staffRoles, and(eq(staffRoles.userId, staffMembers.userId), eq(staffRoles.storeId, staffMembers.storeId))).innerJoin(roles, eq(roles.id, staffRoles.roleId)).where(and(eq(staffMembers.storeId, storeId), eq(roles.storeId, storeId), eq(staffMembers.status, "active"), eq(roles.key, OWNER_ROLE_KEY))).orderBy(asc(staffMembers.userId)).for("update")
+  return rows.length
 }
 async function storeLock(db: Database, actor: Actor) {
   const [row] = await db.select({ id: stores.id }).from(stores).where(eq(stores.id, actor.storeId)).for("update")

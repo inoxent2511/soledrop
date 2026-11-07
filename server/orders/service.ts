@@ -263,7 +263,7 @@ export function createOrderService(deps: Deps) {
     },
 
     /** Staff operations (Phase 2 admin UI and /api/v1 call these). */
-    transition: (orderId: string, to: OrderStatus, actor: string, note?: string, trackingNumber?: string) => orders.transition(orderId, to, actor, note, trackingNumber),
+    transition: (orderId: string, to: OrderStatus, actor: string, note?: string, trackingNumber?: string, expectedUpdatedAt?: string) => orders.transition(orderId, to, actor, note, trackingNumber, expectedUpdatedAt),
     recordPayment: orders.recordPayment,
     listPayments: orders.listPayments,
     restockReturn: orders.restockReturn,

@@ -27,6 +27,23 @@ function restockLines(tables: FixtureTables, lines: { variantId: string; quantit
   }
 }
 
+/** Returns and refunds can reference the same unit; each physical unit comes back once. */
+function physicallyRestocked(tables: FixtureTables, orderId: string, lineId: string): number {
+  const refunded = tables.refunds.filter((row) => row.orderId === orderId && row.restock).flatMap((row) => row.lines).filter((line) => line.orderLineId === lineId).reduce((sum, line) => sum + line.quantity, 0)
+  const returned = tables.returns.filter((row) => row.orderId === orderId && row.status === "received").flatMap((row) => row.lines).filter((line) => line.orderLineId === lineId).reduce((sum, line) => sum + line.quantity, 0)
+  const order = tables.orders.find((row) => row.id === orderId)
+  return order?.status === "cancelled" ? order.lines.find((row) => row.id === lineId)?.quantity ?? 0 : Math.max(refunded, returned)
+}
+
+function restockOrderUnits(tables: FixtureTables, order: Order, requested: { orderLineId: string; quantity: number }[]) {
+  for (const item of requested) {
+    const line = order.lines.find((row) => row.id === item.orderLineId)
+    if (!line || item.quantity <= 0 || item.quantity > line.quantity) throw new DomainError("validation", "Restock quantity exceeds the quantity bought.")
+    const quantity = Math.max(0, item.quantity - physicallyRestocked(tables, order.id, line.id))
+    restockLines(tables, [{ variantId: line.variantId, quantity }])
+  }
+}
+
 const statusEvent = (order: Order, from: string, trackingNumber?: string) => ({
   orderId: order.id,
   number: order.number,
@@ -132,18 +149,19 @@ export function createFixturesOrderRepository(): OrderRepository {
       return structuredClone(db().orders.filter((order) => order.storeId === storeId && order.email.toLowerCase() === email.toLowerCase()))
     },
 
-    async transition(orderId, to, actor, note, trackingNumber) {
+    async transition(orderId, to, actor, note, trackingNumber, expectedUpdatedAt) {
       return transaction((tables) => {
         const order = tables.orders.find((row) => row.id === orderId)
         if (!order) throw new DomainError("not_found", "Order not found.")
+        if (expectedUpdatedAt && order.updatedAt !== expectedUpdatedAt) throw new DomainError("conflict", "This order changed since you opened it. Reload to see the latest.")
         const from = order.status
         if (!canTransition(from, to)) throw new DomainError("invalid_transition", `An order that is ${from.replace("_", " ")} can't become ${to.replace("_", " ")}.`)
-        if (restocksOnTransition(from, to)) restockLines(tables, order.lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity - line.refundedQuantity })))
+        if (restocksOnTransition(from, to)) restockOrderUnits(tables, order, order.lines.map((line) => ({ orderLineId: line.id, quantity: line.quantity })))
         order.status = to
         if (to === "shipped" || to === "delivered") order.fulfillmentStatus = "fulfilled"
         if (to === "returned") order.fulfillmentStatus = "returned"
         if (trackingNumber) order.trackingNumber = trackingNumber
-        order.updatedAt = now()
+        order.updatedAt = new Date(Math.max(Date.now(), Date.parse(order.updatedAt) + 1)).toISOString()
         order.history.push({ from, to, at: order.updatedAt, actor, note })
         tables.audit.push({ id: newId(), actor, action: "order.transition", entity: "order", entityId: order.id, before: { status: from }, after: { status: to, note }, at: order.updatedAt })
         enqueueIn(tables, "order.status_changed", statusEvent(order, from, trackingNumber))
@@ -154,6 +172,7 @@ export function createFixturesOrderRepository(): OrderRepository {
     async recordPayment(input) {
       return transaction((tables) => {
         const existing = tables.payments.find((payment) => payment.orderId === input.orderId && payment.idempotencyKey === input.idempotencyKey)
+        if (existing && (existing.status === input.status || ["captured", "partially_refunded", "refunded"].includes(existing.status))) return structuredClone(existing)
         // A replayed webhook only advances the status; amounts are fixed at first record.
         if (existing && existing.status !== input.status) {
           existing.status = input.status
@@ -175,7 +194,7 @@ export function createFixturesOrderRepository(): OrderRepository {
             enqueueIn(tables, "order.status_changed", statusEvent(order, "pending_payment"))
           }
         }
-        order.updatedAt = now()
+        order.updatedAt = new Date(Math.max(Date.now(), Date.parse(order.updatedAt) + 1)).toISOString()
         enqueueIn(tables, "payment.recorded", { orderId: order.id, number: order.number, provider: payment.provider, status: payment.status, amount: payment.amount })
         return structuredClone(payment)
       })
@@ -190,24 +209,30 @@ export function createFixturesOrderRepository(): OrderRepository {
         if (replay) return structuredClone(replay)
         const order = tables.orders.find((row) => row.id === input.orderId)
         if (!order) throw new DomainError("not_found", "Order not found.")
-        const paid = tables.payments.filter((row) => row.orderId === order.id && row.status !== "failed" && row.status !== "pending").reduce((total, row) => total + row.amount, 0)
-        if (input.amount <= 0 || order.refundedTotal + input.amount > paid) throw new DomainError("validation", "Refund exceeds the amount paid.")
+        const paid = tables.payments.filter((row) => row.orderId === order.id && ["captured", "partially_refunded", "refunded"].includes(row.status)).reduce((total, row) => total + row.amount, 0)
+        if (input.amount <= 0 || order.refundedTotal + input.amount > Math.min(paid, order.total)) throw new DomainError("validation", "Refund exceeds the amount paid.")
+        const targetPayment = input.paymentId ? tables.payments.find((row) => row.id === input.paymentId && row.orderId === order.id) : null
+        if (input.paymentId && (!targetPayment || targetPayment.refundedAmount + input.amount > targetPayment.amount)) throw new DomainError("validation", "Refund exceeds the amount paid.")
         for (const item of input.lines) {
           const line = order.lines.find((row) => row.id === item.orderLineId)
           if (!line || item.quantity <= 0 || line.refundedQuantity + item.quantity > line.quantity) throw new DomainError("validation", "Refund quantity exceeds the quantity bought.")
           line.refundedQuantity += item.quantity
         }
-        if (input.restock) restockLines(tables, input.lines.map((item) => ({ variantId: order.lines.find((line) => line.id === item.orderLineId)!.variantId, quantity: item.quantity })))
+        if (input.restock) {
+          const targets = new Map<string, number>()
+          for (const item of [...tables.refunds.filter((row) => row.orderId === order.id && row.restock).flatMap((row) => row.lines), ...input.lines]) targets.set(item.orderLineId, (targets.get(item.orderLineId) ?? 0) + item.quantity)
+          restockOrderUnits(tables, order, [...targets].map(([orderLineId, quantity]) => ({ orderLineId, quantity })))
+        }
         order.refundedTotal += input.amount
         order.paymentStatus = order.refundedTotal >= paid ? "refunded" : "partially_refunded"
-        const payment = input.paymentId ? tables.payments.find((row) => row.id === input.paymentId) : undefined
+        const payment = targetPayment
         if (payment) {
           payment.refundedAmount += input.amount
           payment.status = payment.refundedAmount >= payment.amount ? "refunded" : "partially_refunded"
         }
         const refund = { ...input, id: newId(), createdAt: now() }
         tables.refunds.push(refund)
-        order.updatedAt = now()
+        order.updatedAt = new Date(Math.max(Date.now(), Date.parse(order.updatedAt) + 1)).toISOString()
         enqueueIn(tables, "refund.created", { orderId: order.id, number: order.number, email: order.email, amount: input.amount })
         return structuredClone(refund)
       })
@@ -235,7 +260,7 @@ export function createFixturesOrderRepository(): OrderRepository {
         if (request.status === "received") return structuredClone(request)
         if (request.status === "rejected") throw new DomainError("invalid_transition", "A rejected return can't be received.")
         const order = tables.orders.find((row) => row.id === request.orderId)!
-        restockLines(tables, request.lines.map((item) => ({ variantId: order.lines.find((line) => line.id === item.orderLineId)!.variantId, quantity: item.quantity })))
+        restockOrderUnits(tables, order, request.lines)
         request.status = "received"
         tables.audit.push({ id: newId(), actor, action: "return.restock", entity: "return", entityId: request.id, before: null, after: request.lines, at: now() })
         return structuredClone(request)

@@ -27,7 +27,7 @@ export interface OrderRepository {
   listByCustomer(storeId: string, customerId: string): Promise<Order[]>
   listByEmail(storeId: string, email: string): Promise<Order[]>
   /** transition_order: validates the state machine, restocks on cancellation, appends history. */
-  transition(orderId: string, to: OrderStatus, actor: string, note?: string, trackingNumber?: string): Promise<Order>
+  transition(orderId: string, to: OrderStatus, actor: string, note?: string, trackingNumber?: string, expectedUpdatedAt?: string): Promise<Order>
   /** record_payment: idempotent on (order, idempotency key); confirms a pending order when fully paid. */
   recordPayment(payment: Omit<Payment, "id" | "createdAt" | "refundedAmount">): Promise<Payment>
   listPayments(orderId: string): Promise<Payment[]>

@@ -138,7 +138,7 @@ export function createStaffOrders(deps: Deps) {
       if (input.to === "cancelled" && !input.reason?.trim()) throw new DomainError("validation", "Give a reason for cancelling.", { fields: { reason: ["Give a reason for cancelling."] } })
       if (input.to === "shipped" && !input.trackingNumber?.trim() && !order.trackingNumber) throw new DomainError("validation", "Add the courier tracking number.", { fields: { trackingNumber: ["Add the courier tracking number."] } })
       const note = [input.note?.trim(), input.reason?.trim()].filter(Boolean).join(" — ") || undefined
-      const updated = await orders.transition(order.id, input.to, `staff:${staff.member.userId}`, note, input.trackingNumber?.trim() || undefined)
+      const updated = await orders.transition(order.id, input.to, `staff:${staff.member.userId}`, note, input.trackingNumber?.trim() || undefined, input.expectedUpdatedAt ?? order.updatedAt)
       await deps.audit(staff, meta, { action: `order.${input.to}`, entity: "order", entityId: order.number, before: { status: order.status }, after: { status: updated.status, trackingNumber: updated.trackingNumber }, reason: input.reason ?? null, storeId: staff.member.storeId })
       return updated
     },
