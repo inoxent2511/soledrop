@@ -1,7 +1,7 @@
 import "server-only"
 
 import { searchTerm, supabase, unwrap } from "@/server/db/supabase"
-import type { OrderRepository } from "@/server/orders/repository"
+import type { OrderOperations } from "@/server/orders/repository"
 import type { Order, OrderLine, OrderNote, Payment, Refund, ReturnRequest } from "@/server/orders/types"
 import { DomainError } from "@/server/shared/errors"
 
@@ -167,7 +167,7 @@ const toNote = (row: NoteRecord): OrderNote => ({ id: row.id, orderId: row.order
 const SORT_COLUMNS = { placed_desc: ["placed_at", false], placed_asc: ["placed_at", true], total_desc: ["total", false], total_asc: ["total", true] } as const
 
 
-export function createSupabaseOrderRepository(): OrderRepository {
+export function createSupabaseOrderRepository(): OrderOperations {
   const byId = async (id: string) => {
     const row = unwrap(await supabase().from("orders").select(ORDER_SELECT).eq("id", id).maybeSingle()) as OrderRecord | null
     return row ? toOrder(row) : null

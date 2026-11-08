@@ -1,9 +1,9 @@
+import { fixtureStaff } from "@/tests/helpers/staff"
 import sharp from "sharp"
 import { beforeEach, describe, expect, it } from "vitest"
 
 import type { ProductInput } from "@/features/admin/products/schema"
-import { PRESET_ROLES } from "@/server/admin/permissions"
-import { resolvePermissions, type RequestMeta } from "@/server/admin/service"
+import { type RequestMeta } from "@/server/admin/service"
 import type { StaffContext } from "@/server/admin/types"
 import { catalogRepository } from "@/server/catalog"
 import { createStaffCatalog } from "@/server/catalog/staff"
@@ -21,15 +21,7 @@ let audits: { action: string; entityId: string; after?: unknown }[] = []
 let revalidations = 0
 
 function staffAs(roleKey: string): StaffContext {
-  const role = PRESET_ROLES.find((preset) => preset.key === roleKey)!
-  const { permissions, refundLimit } = resolvePermissions([{ permissions: [...role.permissions], refundLimit: role.refundLimit }])
-  return {
-    member: { userId: `user-${roleKey}`, storeId: STORE_ID, email: `${roleKey}@example.com`, displayName: role.name, status: "active", totpEnabledAt: "2026-01-01T00:00:00Z" },
-    session: { id: `s-${roleKey}`, aal: 2, mfaAt: new Date().toISOString(), createdAt: "2026-01-01T00:00:00Z", expiresAt: "2099-01-01T00:00:00Z" },
-    roles: [{ id: roleKey, key: roleKey, name: role.name, refundLimit: role.refundLimit }],
-    permissions,
-    refundLimit,
-  }
+  return fixtureStaff(roleKey)
 }
 
 const catalog = () =>
@@ -153,7 +145,7 @@ describe("staff collections and stock", () => {
     const onHand = await catalog().adjustStock(fulfilment, meta, level.variantId, 3, "Received from supplier")
     expect(onHand).toBe(level.onHand)
     const movements = await catalog().movements(fulfilment, [level.variantId])
-    expect(movements[0]).toMatchObject({ delta: 3, reason: "Received from supplier", actor: "staff:user-fulfilment" })
+    expect(movements[0]).toMatchObject({ delta: 3, reason: "Received from supplier", actor: "staff:" + fulfilment.member.userId })
     await expect(catalog().adjustStock(staffAs("support_agent"), meta, level.variantId, 1, "x")).rejects.toMatchObject({ code: "forbidden" })
     const low = await catalog().stock(fulfilment, { low: 0, page: 1, pageSize: 500 })
     expect(low.rows.every((row) => row.available <= 0)).toBe(true)

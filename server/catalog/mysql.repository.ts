@@ -1,7 +1,8 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, asc, count, desc, eq, exists, getTableColumns, inArray, like, or } from "drizzle-orm"
-import type { CatalogRepository } from "./repository"
+import type { CatalogOperations } from "./repository"
 import type { AttributeDefinition, AttributeValue, Collection, CustomFieldDefinition, Product } from "./types"
 import { type Actor, type ActorScoped, requireGrant, requireStore } from "@/server/db/actor"
 import { database, type Database, withTransaction } from "@/server/db/client"
@@ -45,8 +46,8 @@ function attributes(values: Record<string, AttributeValue>) {
   return Object.entries(values).flatMap(([attributeKey, value]) => [...new Set(Array.isArray(value) ? value : [value])].map((item) => ({ attributeKey, valueText: String(item), valueNum: typeof item === "number" && Number.isFinite(item) ? String(item) : null })))
 }
 
-export function createMysqlCatalogRepository(): ActorScoped<CatalogRepository> {
-  return {
+export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
+  return mysqlPolicy<CatalogOperations>({
     async listProducts(actor, storeId) {
       requireStore(actor, storeId)
       const db = await database()
@@ -207,5 +208,5 @@ export function createMysqlCatalogRepository(): ActorScoped<CatalogRepository> {
       await db.insert(brands).values({ ...brand, slug: brand.slug.trim().toLowerCase(), storeId })
       return structuredClone(brand)
     },
-  }
+  })
 }

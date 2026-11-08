@@ -1,7 +1,8 @@
+import type { ActorScoped } from "@/server/db/actor"
 import type { ContactMessage, Faq, NewsletterSubscriber, Page } from "@/server/content/types"
 import type { HomeContent, HomeRecord } from "@/server/content/home-types"
 
-export interface ContentRepository {
+export interface ContentOperations {
   home(storeId: string): Promise<HomeRecord | null>
   saveHome(storeId: string, content: HomeContent, expectedUpdatedAt: string | null): Promise<HomeRecord>
   listPages(storeId: string): Promise<Page[]>
@@ -26,3 +27,6 @@ export interface ContentRepository {
   /** Newsletter list (admin A8), newest first. */
   listSubscribers(storeId: string, query: { status?: NewsletterSubscriber["status"]; page: number; pageSize: number }): Promise<{ subscribers: NewsletterSubscriber[]; total: number }>
 }
+
+/** Raw storage boundary; services receive explicitly bound operations. */
+export type ContentRepository = ActorScoped<ContentOperations>

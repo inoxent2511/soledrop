@@ -8,6 +8,8 @@ import { secureCookies, serverEnv } from "@/lib/env.server"
 import { customerService } from "@/server/customers"
 import type { Customer } from "@/server/customers/types"
 import { currentStoreId } from "@/server/db/driver"
+import { anonymousActor } from "@/server/db/actor"
+import { currentActor, establishActor, establishCartToken, establishCustomer, withActor } from "@/server/db/context"
 import { forwardedClient } from "@/server/http/client-key"
 import { assertRequestOrigin } from "@/server/http/origin"
 import { finishAuthTiming } from "@/server/http/auth-timing"
@@ -38,7 +40,7 @@ async function assertSameOrigin(request: Request) {
 
 /** Wraps a route handler: origin check, error mapping, no caching of personal responses. */
 export function route<Context = unknown>(handler: (request: Request, context: Context) => Promise<Response>) {
-  return async (request: Request, context: Context) => {
+  return async (request: Request, context: Context) => withActor(anonymousActor(currentStoreId()), async () => {
     const started = performance.now()
     try {
       await assertSameOrigin(request)
@@ -50,7 +52,7 @@ export function route<Context = unknown>(handler: (request: Request, context: Co
     } finally {
       await finishAuthTiming(request, started)
     }
-  }
+  })
 }
 
 /** Parses and validates a JSON body; field errors come back as `details.fields`. */
@@ -86,6 +88,7 @@ export async function clearSessionCookie() {
 
 export async function setCartCookie(token: string) {
   ;(await cookies()).set(CART_COOKIE, token, { ...cookieBase, maxAge: 60 * 60 * 24 * 30 })
+  establishCartToken(token)
 }
 
 export async function clearCartCookie() {
@@ -94,7 +97,15 @@ export async function clearCartCookie() {
 
 /** The signed-in customer for this request, if any. */
 export async function currentCustomer(): Promise<Customer | null> {
-  return customerService().fromSession((await cookies()).get(SESSION_COOKIE)?.value)
+  const jar = await cookies(), token = jar.get(SESSION_COOKIE)?.value
+  establishCartToken(jar.get(CART_COOKIE)?.value)
+  const customer = await customerService().fromSession(token)
+  if (customer && token && currentActor().kind !== "staff") establishCustomer(customer, token)
+  else if (!customer && currentActor().kind === "customer") {
+    const previous = currentActor()
+    establishActor({ ...anonymousActor(currentStoreId()), ...(previous.kind === "customer" ? { cartTokenHash: previous.cartTokenHash } : {}) })
+  }
+  return customer
 }
 
 export async function requireCustomer(): Promise<Customer> {

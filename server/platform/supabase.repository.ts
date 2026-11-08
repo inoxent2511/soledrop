@@ -2,7 +2,7 @@ import "server-only"
 
 import { searchTerm, supabase, unwrap } from "@/server/db/supabase"
 import { DomainError } from "@/server/shared/errors"
-import type { PlatformRepository } from "@/server/platform/repository"
+import type { PlatformOperations } from "@/server/platform/repository"
 import type { AuditEntry, FeatureFlag, OutboxEvent, WebhookDelivery } from "@/server/platform/types"
 
 type OutboxRecord = {
@@ -27,7 +27,7 @@ const toEvent = (row: OutboxRecord): OutboxEvent => ({
   lastError: row.last_error,
 })
 
-export function createSupabasePlatformRepository(): PlatformRepository {
+export function createSupabasePlatformRepository(): PlatformOperations {
   return {
     async listFlags(storeId) {
       const rows = unwrap(

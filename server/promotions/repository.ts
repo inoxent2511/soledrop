@@ -1,6 +1,7 @@
+import type { ActorScoped } from "@/server/db/actor"
 import type { Promotion, PromotionRedemption } from "@/server/promotions/types"
 
-export interface PromotionRepository {
+export interface PromotionOperations {
   listActive(storeId: string): Promise<Promotion[]>
   /** Redemption counts per promotion for a shopper (by customer id or, for guests, email). */
   redemptionsFor(storeId: string, shopper: { customerId: string | null; email: string | null }): Promise<Map<string, number>>
@@ -16,3 +17,6 @@ export interface PromotionRepository {
   remove(storeId: string, id: string): Promise<void>
   redemptions(promotionId: string, limit: number): Promise<PromotionRedemption[]>
 }
+
+/** Raw storage boundary; services receive explicitly bound operations. */
+export type PromotionRepository = ActorScoped<PromotionOperations>

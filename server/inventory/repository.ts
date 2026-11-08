@@ -1,9 +1,10 @@
+import type { ActorScoped } from "@/server/db/actor"
 export type StockRequest = { variantId: string; quantity: number }
 
 export type StockLevelRow = { variantId: string; onHand: number; reserved: number }
 export type StockMovement = { id: string; variantId: string; delta: number; reason: string; actor: string; at: string }
 
-export interface InventoryRepository {
+export interface InventoryOperations {
   /** Available = on hand − reserved by other carts (a cart's own reservation counts as available to it). */
   availability(variantIds: string[], forCartId?: string): Promise<Map<string, number>>
   /** reserve_stock: replaces the cart's reservations atomically; throws out_of_stock if any line can't be held. */
@@ -20,3 +21,6 @@ export interface InventoryRepository {
   /** The adjustment ledger, newest first. */
   movements(variantIds: string[], limit: number): Promise<StockMovement[]>
 }
+
+/** Raw storage boundary; services receive explicitly bound operations. */
+export type InventoryRepository = ActorScoped<InventoryOperations>

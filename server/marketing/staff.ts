@@ -3,9 +3,9 @@ import "server-only"
 import type { Permission } from "@/server/admin/permissions"
 import type { RequestMeta } from "@/server/admin/service"
 import type { StaffContext } from "@/server/admin/types"
-import type { CartRepository } from "@/server/cart/repository"
+import type { CartOperations } from "@/server/cart/repository"
 import type { Product } from "@/server/catalog/types"
-import type { ContentRepository } from "@/server/content/repository"
+import type { ContentOperations } from "@/server/content/repository"
 import type { Customer } from "@/server/customers/types"
 import { toCsv } from "@/server/import-export/csv"
 import type { PriceList, PriceRow } from "@/server/pricing/types"
@@ -19,8 +19,8 @@ import { DomainError } from "@/server/shared/errors"
 type Audit = (staff: StaffContext, meta: RequestMeta, entry: { action: string; entity: string; entityId: string; before?: unknown; after?: unknown; reason?: string | null; storeId: string }) => Promise<void>
 
 type Deps = {
-  content: ContentRepository
-  carts: CartRepository
+  content: ContentOperations
+  carts: CartOperations
   products: (variantIds: string[]) => Promise<Product[]>
   customer: (id: string) => Promise<Customer | null>
   pricing: { priceLists: (storeId: string) => Promise<PriceList[]>; rawPrices: (variantIds: string[]) => Promise<PriceRow[]> }

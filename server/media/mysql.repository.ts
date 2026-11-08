@@ -1,7 +1,8 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, count, desc, eq, like, or } from "drizzle-orm"
-import type { MediaRepository } from "./repository"
+import type { MediaOperations } from "./repository"
 import type { MediaItem } from "./types"
 import { mediaUrl } from "./types"
 import { type ActorScoped, requireGrant, requireStore } from "@/server/db/actor"
@@ -17,8 +18,8 @@ import { DomainError } from "@/server/shared/errors"
 
 function item(row: typeof media.$inferSelect): MediaItem { return { ...row, mime: row.mime as MediaItem["mime"], createdAt: isoDate(row.createdAt) } }
 
-export function createMysqlMediaRepository(): ActorScoped<MediaRepository> {
-  return {
+export function createMysqlMediaRepository(): ActorScoped<MediaOperations> {
+  return mysqlPolicy<MediaOperations>({
     async list(actor, storeId, query) {
       requireStore(actor, storeId); requireGrant(actor, "media:read")
       const db = await database()
@@ -87,5 +88,5 @@ export function createMysqlMediaRepository(): ActorScoped<MediaRepository> {
       const [row] = await db.select({ id: orderLines.id }).from(orderLines).innerJoin(orders, eq(orders.id, orderLines.orderId)).where(and(eq(orders.storeId, actor.storeId), eq(orderLines.imageUrl, url))).limit(1)
       return Boolean(row)
     },
-  }
+  })
 }

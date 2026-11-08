@@ -12,6 +12,7 @@ import type { Permission } from "@/server/admin/permissions"
 import { forwardedClient } from "@/server/http/client-key"
 import { DomainError } from "@/server/shared/errors"
 import { adminNetworkPolicy } from "@/server/admin/network-policy"
+import { establishStaff } from "@/server/db/context"
 
 /**
  * The admin data-access layer (A-006 layer 2). Every admin page and handler calls one of these
@@ -49,7 +50,9 @@ export const currentStaff = cache(async (): Promise<StaffContext | null> => {
     await adminService().recordAudit(null, meta, { action: "staff.network_denied", entity: "staff", entityId: "network-policy", storeId: serverEnv.STORE_ID })
     throw new DomainError("forbidden", "Admin access isn't available from this network.")
   }
-  return adminService().resolve(await staffToken())
+  const staff = await adminService().resolve(await staffToken())
+  if (staff?.session.aal === 2) establishStaff(staff)
+  return staff
 })
 
 export const can = (staff: StaffContext, permission: Permission) => staff.permissions.includes(permission)
@@ -60,6 +63,7 @@ export async function requireStaff(): Promise<StaffContext> {
   const staff = await currentStaff()
   if (!staff) throw new DomainError("unauthorized", "Please sign in to the admin.")
   if (staff.session.aal !== 2) throw new DomainError("unauthorized", "Finish two-step verification first.", { mfa: true })
+  establishStaff(staff)
   return staff
 }
 
@@ -83,6 +87,7 @@ export async function staffPage(next = "/admin"): Promise<StaffContext> {
   const staff = await currentStaff()
   if (!staff) redirect(`/admin/login?next=${encodeURIComponent(next)}`)
   if (staff.session.aal !== 2) redirect(staff.member.totpEnabledAt ? "/admin/mfa" : "/admin/mfa/setup")
+  establishStaff(staff)
   return staff
 }
 

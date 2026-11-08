@@ -1,6 +1,6 @@
 import "server-only"
 
-import type { CustomerRepository } from "@/server/customers/repository"
+import type { CustomerOperations } from "@/server/customers/repository"
 import type { Customer, CustomerAddress, PasswordReset, Session } from "@/server/customers/types"
 import { searchTerm, supabase, unwrap } from "@/server/db/supabase"
 import { DomainError } from "@/server/shared/errors"
@@ -59,7 +59,7 @@ const toAddress = (row: AddressRecord): CustomerAddress => ({
   isDefault: row.is_default,
 })
 
-export function createSupabaseCustomerRepository(): CustomerRepository {
+export function createSupabaseCustomerRepository(): CustomerOperations {
   const one = async (column: string, value: string, storeId?: string) => {
     let query = supabase().from("customers").select("*").eq(column, value)
     if (storeId) query = query.eq("store_id", storeId)

@@ -1,14 +1,14 @@
 import "server-only"
 
 import { fold, type SynonymMap } from "@/server/search/match"
-import type { SearchRepository } from "@/server/search/repository"
+import type { SearchOperations } from "@/server/search/repository"
 import type { SearchSource, TrendingQuery } from "@/server/search/types"
 import { newId } from "@/server/shared/ids"
 
 const TRENDING_DAYS = 30
 const MAX_LOGGED_QUERY = 100
 
-type Deps = { search: SearchRepository; now?: () => Date }
+type Deps = { search: SearchOperations; now?: () => Date }
 
 export function createSearchService({ search, now = () => new Date() }: Deps) {
   async function log(storeId: string, query: string, source: SearchSource, resultCount: number | null, clickedSlug: string | null) {

@@ -1,4 +1,7 @@
 import "server-only"
+import { AsyncLocalStorage } from "node:async_hooks"
+import { type Actor, requireSystem } from "@/server/db/actor"
+import { DomainError } from "@/server/shared/errors"
 
 import type { Collection, Product } from "@/server/catalog/types"
 import {
@@ -161,6 +164,8 @@ function settingsSeed() {
  * new seed on the next request instead of waiting for a server restart; carts and orders stay.
  */
 export function db(): FixtureTables {
+  const scoped = fixtureScope.getStore()
+  if (scoped) return scoped
   if (serverEnv.DATA_DRIVER === "local") return localStore().value
   const fresh = globalStore.__soledropFixtures === undefined
   const tables = (globalStore.__soledropFixtures ??= createTables())
@@ -177,8 +182,41 @@ export function db(): FixtureTables {
 
 /** Restores the seed state; used by tests (tests/integration). */
 export function resetFixtures(): void {
+  otherStores.clear()
   globalStore.__soledropFixtures = createTables()
   globalStore.__soledropSettingsApplied = JSON.stringify(settingsSeed())
+}
+
+const fixtureScope = new AsyncLocalStorage<FixtureTables>()
+const otherStores = new Map<string, FixtureTables>()
+
+function tablesForStore(storeId: string): FixtureTables {
+  const root = globalStore.__soledropFixtures ??= createTables()
+  if (root.stores.length === 1 && root.stores[0].id === storeId) return root
+  let tables = otherStores.get(storeId)
+  if (!tables) {
+    tables = createLocalTables()
+    tables.stores[0].id = storeId
+    tables.adminRoles = tables.adminRoles.map((role) => ({ ...role, storeId }))
+    otherStores.set(storeId, tables)
+  }
+  return tables
+}
+
+/** Isolated relations are the fixture equivalent of a store predicate on every query. */
+export function withFixtureStore<T>(actor: Actor, operation: () => T): T {
+  if (serverEnv.DATA_DRIVER === "local") {
+    if (actor.storeId !== serverEnv.STORE_ID) throw new DomainError("forbidden", "You don't have access to this store.")
+    return operation()
+  }
+  return fixtureScope.run(tablesForStore(actor.storeId), operation)
+}
+
+/** Explicit provisioning hook for fixture contract setup; never used by request services. */
+export function fixtureTablesForStore(actor: Actor): FixtureTables {
+  requireSystem(actor, ["migration", "bootstrap"])
+  if (serverEnv.DATA_DRIVER !== "fixtures") throw new Error("Fixture provisioning cannot open a saved or SQL store")
+  return tablesForStore(actor.storeId)
 }
 
 /**

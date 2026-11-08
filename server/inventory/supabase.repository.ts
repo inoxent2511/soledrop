@@ -1,9 +1,9 @@
 import "server-only"
 
 import { supabase, unwrap } from "@/server/db/supabase"
-import type { InventoryRepository } from "@/server/inventory/repository"
+import type { InventoryOperations } from "@/server/inventory/repository"
 
-export function createSupabaseInventoryRepository(): InventoryRepository {
+export function createSupabaseInventoryRepository(): InventoryOperations {
   return {
     async availability(variantIds, forCartId) {
       if (variantIds.length === 0) return new Map()

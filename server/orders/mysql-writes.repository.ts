@@ -1,7 +1,7 @@
 import "server-only"
 
 import { and, asc, eq, getTableColumns, inArray, ne, or } from "drizzle-orm"
-import type { OrderRepository } from "./repository"
+import type { OrderOperations } from "./repository"
 import type { Order } from "./types"
 import { canTransition, customerCanCancel, customerCanRequestReturn, restocksOnTransition } from "./state-machine"
 import { allocateNumber, auditOrder, enqueueOrderEvent, hydrateOrders, lockedOrder, orderOwnerScope, orderProjection, orderUpdatedAt, payment, quantities, refund, restockOrderLines, returnRequest } from "./mysql-helpers.repository"
@@ -14,7 +14,7 @@ import { lockCart, lockLevels, lockStore, releaseCartReservations, releaseExpire
 import type { PromotionCondition } from "@/server/promotions/types"
 import { DomainError } from "@/server/shared/errors"
 
-type Writes = Pick<ActorScoped<OrderRepository>, "placeOrder" | "transition" | "recordPayment" | "createRefund" | "createReturn" | "restockReturn" | "decideReturn" | "addNote" | "nextOrderNumber" | "anonymiseCustomer">
+type Writes = Pick<ActorScoped<OrderOperations>, "placeOrder" | "transition" | "recordPayment" | "createRefund" | "createReturn" | "restockReturn" | "decideReturn" | "addNote" | "nextOrderNumber" | "anonymiseCustomer">
 const transitionPermission = { pending_payment: "orders:write", confirmed: "orders:mark_paid", processing: "orders:fulfil", shipped: "orders:fulfil", delivered: "orders:fulfil", cancelled: "orders:cancel", returned: "orders:returns" } as const
 
 function actorLabel(actor: Actor, label: string) {

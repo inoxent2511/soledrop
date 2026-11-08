@@ -1,12 +1,25 @@
 import "server-only"
 
-import type { CustomerRepository } from "@/server/customers/repository"
+import type { CustomerOperations, CustomerRepository } from "@/server/customers/repository"
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { type Actor, requireCustomerOwner, requireFreshGrant, requireGrant, requireStore, requireSystem } from "@/server/db/actor"
+import type { Customer } from "@/server/customers/types"
+
+const customerProjection = (actor: Actor, customer: Customer): Customer => {
+  const own = actor.kind === "customer" || actor.kind === "system" && ["auth:customer", "migration"].includes(actor.purpose)
+  const pii = own || actor.permissions.includes("customers:read_pii")
+  return { ...customer, passwordHash: own ? customer.passwordHash : "", email: pii ? customer.email : customer.email.slice(0, 1) + "•••@" + customer.email.split("@").at(-1), phone: pii || !customer.phone ? customer.phone : "•••" + customer.phone.replace(/\D/g, "").slice(-3) }
+}
+
+function existingCustomer(actor: Actor, id: string) {
+  if (!db().customers.some((row) => row.id === id && row.storeId === actor.storeId)) throw new DomainError("not_found", "Account not found.")
+}
 
 export function createFixturesCustomerRepository(): CustomerRepository {
-  return {
+  const operations: CustomerOperations = {
     async findByEmail(storeId, email) {
       return structuredClone(db().customers.find((row) => row.storeId === storeId && row.email === email.toLowerCase()) ?? null)
     },
@@ -127,4 +140,31 @@ export function createFixturesCustomerRepository(): CustomerRepository {
       return { customers: structuredClone(found.slice(start, start + query.pageSize)), total: found.length }
     },
   }
+  return fixturePolicy<CustomerOperations>(operations, {
+    findByEmail(actor, storeId) { requireStore(actor, storeId); requireSystem(actor, ["auth:customer", "migration"]) },
+    findById(actor, id) { requireCustomerOwner(actor, id, "customers:read") },
+    create(actor, customer) { requireStore(actor, customer.storeId); requireSystem(actor, ["auth:customer", "migration"]) },
+    update(actor, id, changes) {
+      requireCustomerOwner(actor, id, "customers:write")
+      if (actor.kind === "staff" && (changes.passwordHash !== undefined || changes.email !== undefined)) throw new DomainError("forbidden", "Staff cannot change customer credentials.")
+      if (actor.kind === "customer" && changes.group !== undefined) throw new DomainError("forbidden", "Price groups are managed by staff.")
+      if (actor.kind === "staff" && (changes.fullName !== undefined || changes.phone !== undefined)) requireGrant(actor, "customers:read_pii")
+    },
+    createSession(actor, input) { requireSystem(actor, ["auth:customer", "migration"]); existingCustomer(actor, input.customerId) },
+    findSession(actor) { requireSystem(actor, ["auth:customer", "migration"]) },
+    deleteSession(actor) { requireSystem(actor, ["auth:customer", "migration"]) },
+    deleteSessionsFor(actor, id) { requireCustomerOwner(actor, id, "customers:write") },
+    createReset(actor, input) { requireSystem(actor, ["auth:customer", "migration"]); existingCustomer(actor, input.customerId) },
+    consumeReset(actor) { requireSystem(actor, ["auth:customer", "migration"]) },
+    listAddresses(actor, id) { requireCustomerOwner(actor, id, "customers:read") },
+    saveAddress(actor, id) { requireCustomerOwner(actor, id); existingCustomer(actor, id) },
+    deleteAddress(actor, id) { requireCustomerOwner(actor, id) },
+    scrub(actor, id) { requireCustomerOwner(actor, id, "customers:delete"); if (actor.kind === "staff") requireFreshGrant(actor, "customers:delete") },
+    search(actor, storeId) { requireStore(actor, storeId); requireGrant(actor, "customers:read") },
+  }, {
+    findById: (actor, row) => row ? customerProjection(actor, row) : null,
+    update: customerProjection,
+    search: (actor, page) => ({ ...page, customers: page.customers.map((row) => customerProjection(actor, row)) }),
+    listAddresses: (actor, rows) => actor.kind !== "staff" || actor.permissions.includes("customers:read_pii") ? rows : rows.map((row) => ({ ...row, fullName: row.fullName.split(" ")[0], phone: row.phone ? "•••" + row.phone.replace(/\D/g, "").slice(-3) : "", line1: "•••", line2: row.line2 ? "•••" : undefined, postalCode: row.postalCode ? "•••" : undefined })),
+  })
 }

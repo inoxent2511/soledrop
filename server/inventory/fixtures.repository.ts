@@ -2,7 +2,7 @@ import "server-only"
 
 import { db, transaction } from "@/server/fixtures/store"
 import type { FixtureTables } from "@/server/fixtures/tables"
-import type { InventoryRepository } from "@/server/inventory/repository"
+import type { InventoryOperations } from "@/server/inventory/repository"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
 
@@ -35,7 +35,7 @@ export function assertInventoryInvariants(tables: FixtureTables): void {
   }
 }
 
-export function createFixturesInventoryRepository(): InventoryRepository {
+export function createFixturesInventoryRepository(): InventoryOperations {
   return {
     async availability(variantIds, forCartId) {
       const tables = db()

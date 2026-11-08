@@ -2,15 +2,15 @@ import { createHash } from "node:crypto"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { eq } from "drizzle-orm"
 import { ALL_PERMISSIONS, PERMISSIONS, PRESET_ROLES } from "@/server/admin/permissions"
-import type { AdminRepository } from "@/server/admin/repository"
+import type { AdminOperations } from "@/server/admin/repository"
 import type { StaffMember } from "@/server/admin/types"
-import type { CustomerRepository } from "@/server/customers/repository"
-import type { CartRepository } from "@/server/cart/repository"
-import type { CatalogRepository } from "@/server/catalog/repository"
-import type { InventoryRepository } from "@/server/inventory/repository"
-import type { OrderDraft, OrderRepository } from "@/server/orders/repository"
-import type { PlatformRepository } from "@/server/platform/repository"
-import type { SearchRepository } from "@/server/search/repository"
+import type { CustomerOperations } from "@/server/customers/repository"
+import type { CartOperations } from "@/server/cart/repository"
+import type { CatalogOperations } from "@/server/catalog/repository"
+import type { InventoryOperations } from "@/server/inventory/repository"
+import type { OrderDraft, OrderOperations } from "@/server/orders/repository"
+import type { PlatformOperations } from "@/server/platform/repository"
+import type { SearchOperations } from "@/server/search/repository"
 import { createFixturesAdminRepository } from "@/server/admin/fixtures.repository"
 import { createFixturesCustomerRepository } from "@/server/customers/fixtures.repository"
 import { createFixturesCartRepository } from "@/server/cart/fixtures.repository"
@@ -27,7 +27,7 @@ import { createMysqlInventoryRepository } from "@/server/inventory/mysql.reposit
 import { createMysqlOrderRepository } from "@/server/orders/mysql.repository"
 import { createMysqlPlatformRepository } from "@/server/platform/mysql.repository"
 import { createMysqlSearchRepository } from "@/server/search/mysql.repository"
-import { systemActor } from "@/server/db/actor"
+import { anonymousActor, systemActor, type Actor } from "@/server/db/actor"
 import { bindActor } from "@/server/db/bind"
 import { closeDatabase, database } from "@/server/db/client"
 import { orderNumberSequences, orders as orderRows, products, staffRoles, stores } from "@/server/db/schema"
@@ -41,20 +41,21 @@ import { connect, engines } from "./connections"
 const hash = (value: string) => createHash("sha256").update(value).digest("hex")
 for (const [engine, configuration] of [["fixtures", null] as const, ...engines] as const) describe(engine + " identity/commerce/jobs contract", () => {
   const fixture = engine === "fixtures", storeId = uuidv7(), actor = systemActor(storeId, "migration", ALL_PERMISSIONS), resolve = () => actor
-  const admin: AdminRepository = fixture ? createFixturesAdminRepository() : bindActor<AdminRepository>(createMysqlAdminRepository(), resolve)
-  const customers: CustomerRepository = fixture ? createFixturesCustomerRepository() : bindActor<CustomerRepository>(createMysqlCustomerRepository(), resolve)
-  const carts: CartRepository = fixture ? createFixturesCartRepository() : bindActor<CartRepository>(createMysqlCartRepository(), resolve)
-  const catalog: CatalogRepository = fixture ? createFixturesCatalogRepository() : bindActor<CatalogRepository>(createMysqlCatalogRepository(), resolve)
-  const inventory: InventoryRepository = fixture ? createFixturesInventoryRepository() : bindActor<InventoryRepository>(createMysqlInventoryRepository(), resolve)
-  const orders: OrderRepository = fixture ? createFixturesOrderRepository() : bindActor<OrderRepository>(createMysqlOrderRepository(), resolve)
-  const platform: PlatformRepository = fixture ? createFixturesPlatformRepository() : bindActor<PlatformRepository>(createMysqlPlatformRepository(), resolve)
-  const search: SearchRepository = fixture ? createFixturesSearchRepository() : bindActor<SearchRepository>(createMysqlSearchRepository(), resolve)
+  const admin: AdminOperations = fixture ? createFixturesAdminRepository() : bindActor<AdminOperations>(createMysqlAdminRepository(), resolve)
+  const customers: CustomerOperations = bindActor<CustomerOperations>(fixture ? createFixturesCustomerRepository() : createMysqlCustomerRepository(), resolve)
+  const carts: CartOperations = fixture ? createFixturesCartRepository() : bindActor<CartOperations>(createMysqlCartRepository(), resolve)
+  const catalog: CatalogOperations = fixture ? createFixturesCatalogRepository() : bindActor<CatalogOperations>(createMysqlCatalogRepository(), resolve)
+  const inventory: InventoryOperations = fixture ? createFixturesInventoryRepository() : bindActor<InventoryOperations>(createMysqlInventoryRepository(), resolve)
+  const orders: OrderOperations = fixture ? createFixturesOrderRepository() : bindActor<OrderOperations>(createMysqlOrderRepository(), resolve)
+  const platform: PlatformOperations = fixture ? createFixturesPlatformRepository() : bindActor<PlatformOperations>(createMysqlPlatformRepository(), resolve)
+  const search: SearchOperations = fixture ? createFixturesSearchRepository() : bindActor<SearchOperations>(createMysqlSearchRepository(), resolve)
   const variantId = uuidv7(), productId = uuidv7(), customerId = uuidv7(), ownerId = uuidv7(), secondOwnerId = uuidv7(), at = new Date().toISOString()
   let customer: Customer, cart: CartRow, order: Order
   let draft: OrderDraft
   beforeAll(async () => {
     if (fixture) {
       resetFixtures()
+      fixtureDb().stores[0].id = storeId
       Object.assign(fixtureDb(), { brands: [], products: [], collections: [], orders: [], carts: [], inventory: [], reservations: [], customers: [], addresses: [], sessions: [], passwordResets: [], outbox: [], audit: [], searchSynonyms: [], searchEvents: [] })
     } else { await closeDatabase(); process.env.DATABASE_URL = configuration!.appUrl; await (await database()).insert(stores).values({ id: storeId, name: "Commerce contract" }) }
   })
@@ -215,6 +216,35 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     expect(await platform.hit("contract-rate", 60)).toBe(2)
     await platform.saveIdempotent("contract-response", 201, { id: order.id })
     expect(await platform.getIdempotent("contract-response")).toEqual({ status: 201, body: { id: order.id } })
+  })
+
+  it("keeps masked address cards and credential-free customer DTOs for staff without PII access", async () => {
+    const memberId = uuidv7(), sessionId = uuidv7(), preset = PRESET_ROLES.find((role) => role.key === "read_only")!
+    await admin.createMember({ userId: memberId, storeId, email: "masked-reader@example.test", displayName: "Masked reader", status: "active", passwordHash: null, totpSecret: "fixture-enrolled-factor", totpEnabledAt: at, totpLastStep: null, recoveryCodes: [], failedLogins: 0, lockedUntil: null, lastSeenAt: null, createdAt: at, updatedAt: at })
+    await admin.setRoles(storeId, memberId, [preset.key])
+    await admin.createSession({ id: sessionId, userId: memberId, storeId, tokenHash: hash(uuidv7()), aal: 2, mfaAt: at, ip: null, userAgent: null, createdAt: at, lastSeenAt: at, expiresAt: new Date(Date.now() + 3_600_000).toISOString(), revokedAt: null })
+    const reader: Actor = { kind: "staff", id: memberId, sessionId, storeId, permissions: preset.permissions, roleKeys: [preset.key], refundLimit: 0, mfaVerifiedAt: at }
+    const raw = fixture ? createFixturesCustomerRepository() : createMysqlCustomerRepository()
+    expect(await raw.findById(reader, customerId)).toMatchObject({ email: "c•••@example.test", phone: "•••567", passwordHash: "" })
+    const original = await customers.listAddresses(customerId), masked = await raw.listAddresses(reader, customerId)
+    expect(masked).toHaveLength(original.length)
+    expect(masked[0]).toMatchObject({ fullName: "Contract", phone: "•••567", line1: "•••" })
+    expect(JSON.stringify(masked)).not.toContain("Test Street")
+    await expect(raw.findById({ ...reader, permissions: [] }, customerId)).rejects.toMatchObject({ code: "forbidden" })
+  })
+
+  it("applies customer ownership and store predicates inside the raw fixture/SQL boundary", async () => {
+    const raw = fixture ? createFixturesCustomerRepository() : createMysqlCustomerRepository()
+    const owner: Actor = { kind: "customer", id: customerId, email: customer.email, storeId, permissions: [], mfaVerifiedAt: null }
+    expect((await raw.findById(owner, customerId))?.id).toBe(customerId)
+    await expect(raw.findById(anonymousActor(storeId), customerId)).rejects.toMatchObject({ code: "forbidden" })
+    await expect(raw.findById({ ...owner, id: uuidv7() }, customerId)).rejects.toMatchObject({ code: "forbidden" })
+    await expect(raw.update({ ...owner, id: uuidv7() }, customerId, { fullName: "Foreign write" })).rejects.toMatchObject({ code: "forbidden" })
+    expect(await raw.findById({ ...owner, storeId: uuidv7() }, customerId)).toBeNull()
+    const otherStore = uuidv7(), foreign = systemActor(otherStore, "auth:customer")
+    expect(await raw.findByEmail(foreign, otherStore, customer.email)).toBeNull()
+    await expect(raw.findByEmail(foreign, storeId, customer.email)).rejects.toMatchObject({ code: "forbidden" })
+    expect((await customers.findById(customerId))?.fullName).toBe("Contract Customer")
   })
 
   it("anonymises history and scrubs credentials/addresses without losing accounting totals", async () => {

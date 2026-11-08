@@ -2,13 +2,13 @@ import "server-only"
 
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
-import type { PromotionRepository } from "@/server/promotions/repository"
+import type { PromotionOperations } from "@/server/promotions/repository"
 
 const matchesShopper = (order: { customerId: string | null; email: string }, shopper: { customerId: string | null; email: string | null }) =>
   (shopper.customerId !== null && order.customerId === shopper.customerId) ||
   (shopper.email !== null && order.email.toLowerCase() === shopper.email.toLowerCase())
 
-export function createFixturesPromotionRepository(): PromotionRepository {
+export function createFixturesPromotionRepository(): PromotionOperations {
   return {
     async listActive(storeId) {
       return structuredClone(db().promotions.filter((promotion) => promotion.storeId === storeId && promotion.active))

@@ -1,6 +1,6 @@
 import "server-only"
 
-import type { ContentRepository } from "@/server/content/repository"
+import type { ContentOperations } from "@/server/content/repository"
 import type { Faq, Page } from "@/server/content/types"
 import { supabase, unwrap } from "@/server/db/supabase"
 import { DomainError } from "@/server/shared/errors"
@@ -9,7 +9,7 @@ import type { HomeContent } from "@/server/content/home-types"
 type PageRecord = { slug: string; title: string; description: string; blocks: Page["blocks"]; updated_at: string; seo: Page["seo"]; published: boolean }
 const toPage = (row: PageRecord): Page => ({ slug: row.slug, title: row.title, description: row.description, blocks: row.blocks, updatedAt: row.updated_at, seo: row.seo, published: row.published })
 
-export function createSupabaseContentRepository(): ContentRepository {
+export function createSupabaseContentRepository(): ContentOperations {
   return {
     async home(storeId) {
       const row = unwrap(await supabase().from("storefront_content").select("content, updated_at").eq("store_id", storeId).maybeSingle()) as { content: HomeContent; updated_at: string } | null

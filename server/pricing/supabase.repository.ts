@@ -1,10 +1,10 @@
 import "server-only"
 
 import { supabase, unwrap } from "@/server/db/supabase"
-import type { PricingRepository } from "@/server/pricing/repository"
+import type { PricingOperations } from "@/server/pricing/repository"
 import type { ExchangeRates, PriceList, PriceRow } from "@/server/pricing/types"
 
-export function createSupabasePricingRepository(): PricingRepository {
+export function createSupabasePricingRepository(): PricingOperations {
   return {
     async listPriceLists(storeId) {
       const rows = unwrap(

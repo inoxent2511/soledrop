@@ -5,7 +5,7 @@ import type { StaffContext } from "@/server/admin/types"
 import type { StaffCatalog } from "@/server/catalog/staff"
 import type { StaffCustomers } from "@/server/customers/staff"
 import type { StaffOrders } from "@/server/orders/staff"
-import type { PlatformRepository } from "@/server/platform/repository"
+import type { PlatformOperations } from "@/server/platform/repository"
 
 /**
  * What needs attention (the notification centre and the dashboard) and the command palette's
@@ -15,7 +15,7 @@ import type { PlatformRepository } from "@/server/platform/repository"
 export type AttentionItem = { key: string; label: string; count: number; href: string; tone: "pending" | "danger" | "info" }
 export type CommandResult = { group: "Pages" | "Orders" | "Products" | "Customers"; label: string; detail?: string; href: string }
 
-type Deps = { orders: StaffOrders; catalog: StaffCatalog; customers: StaffCustomers; platform: PlatformRepository }
+type Deps = { orders: StaffOrders; catalog: StaffCatalog; customers: StaffCustomers; platform: PlatformOperations }
 
 const has = (staff: StaffContext, permission: string) => staff.permissions.includes(permission as never)
 

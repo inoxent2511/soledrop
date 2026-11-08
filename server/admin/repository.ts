@@ -1,8 +1,9 @@
+import type { ActorScoped } from "@/server/db/actor"
 import type { PresetRole } from "@/server/admin/permissions"
 import type { Role, StaffInvite, StaffMember, StaffSession } from "@/server/admin/types"
 
 /** Staff identity and RBAC storage; both drivers implement it (fixtures, supabase). */
-export interface AdminRepository {
+export interface AdminOperations {
   findMemberByEmail(storeId: string, email: string): Promise<StaffMember | null>
   findMember(storeId: string, userId: string): Promise<StaffMember | null>
   listMembers(storeId: string): Promise<StaffMember[]>
@@ -35,3 +36,6 @@ export interface AdminRepository {
   /** Revokes every live session of a member, optionally keeping one (sign out elsewhere). */
   revokeSessions(storeId: string, userId: string, keepSessionId?: string): Promise<void>
 }
+
+/** Raw storage boundary; services receive explicitly bound operations. */
+export type AdminRepository = ActorScoped<AdminOperations>

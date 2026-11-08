@@ -4,7 +4,7 @@ import { serverEnv } from "@/lib/env.server"
 import type { Permission } from "@/server/admin/permissions"
 import type { RequestMeta } from "@/server/admin/service"
 import type { StaffContext } from "@/server/admin/types"
-import type { AuditQuery, PlatformRepository } from "@/server/platform/repository"
+import type { AuditQuery, PlatformOperations } from "@/server/platform/repository"
 import type { FeatureFlag } from "@/server/platform/types"
 import { DomainError } from "@/server/shared/errors"
 
@@ -19,7 +19,7 @@ type Audit = (staff: StaffContext, meta: RequestMeta, entry: { action: string; e
 export type JobName = "outbox" | "release-reservations" | "purge-carts"
 
 type Deps = {
-  platform: PlatformRepository
+  platform: PlatformOperations
   audit: Audit
   jobs: Record<JobName, () => Promise<Record<string, unknown>>>
   overrides: () => Map<string, boolean>

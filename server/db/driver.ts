@@ -2,6 +2,9 @@ import "server-only"
 
 import { serverEnv } from "@/lib/env.server"
 import { localStore } from "@/server/fixtures/store"
+import { type ActorScoped, isActorScoped } from "@/server/db/actor"
+import { bindActor } from "@/server/db/bind"
+import { currentActor } from "@/server/db/context"
 
 export type DataDriver = "local" | "fixtures" | "supabase"
 
@@ -27,12 +30,13 @@ export function localService<T extends object>(service: T): T {
 }
 
 /** Picks the repository implementation for the active driver, creating it once. */
-export function selectRepository<T extends object>(implementations: { fixtures: () => T; supabase: () => T }): () => T {
+export function selectRepository<T extends object>(implementations: { fixtures: () => T | ActorScoped<NoInfer<T>>; supabase: () => T }): () => T {
   let instance: T | undefined
   return () => {
     if (!instance) {
       const driver = dataDriver()
-      const repository = implementations[driver === "local" ? "fixtures" : driver]()
+      const raw = implementations[driver === "local" ? "fixtures" : driver]()
+      const repository = isActorScoped<T>(raw) ? bindActor<T>(raw, currentActor) : raw
       // Reuse the tested domain operations with durable storage and one queue across all domains.
       instance = driver !== "local" ? repository : new Proxy(repository, {
         get(target, key, receiver) {

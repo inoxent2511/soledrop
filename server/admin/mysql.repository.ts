@@ -1,8 +1,9 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, asc, eq, getTableColumns, gt, inArray, isNull, ne } from "drizzle-orm"
 import { isPermission, OWNER_ROLE_KEY, type Permission } from "./permissions"
-import type { AdminRepository } from "./repository"
+import type { AdminOperations } from "./repository"
 import type { Role, StaffInvite, StaffMember, StaffSession } from "./types"
 import { type Actor, type ActorScoped, requireFreshGrant, requireGrant, requireStore, requireSystem } from "@/server/db/actor"
 import { database, type Database, withTransaction } from "@/server/db/client"
@@ -62,8 +63,8 @@ async function replacePermissions(db: Database, roleId: string, granted: readonl
 function invite(row: typeof staffInvites.$inferSelect): StaffInvite { return { ...row, createdAt: isoDate(row.createdAt), expiresAt: isoDate(row.expiresAt), acceptedAt: nullableIsoDate(row.acceptedAt), revokedAt: nullableIsoDate(row.revokedAt) } }
 function session(row: typeof staffSessions.$inferSelect): StaffSession { return { ...row, aal: row.aal as 1 | 2, mfaAt: nullableIsoDate(row.mfaAt), createdAt: isoDate(row.createdAt), lastSeenAt: isoDate(row.lastSeenAt), expiresAt: isoDate(row.expiresAt), revokedAt: nullableIsoDate(row.revokedAt) } }
 
-export function createMysqlAdminRepository(): ActorScoped<AdminRepository> {
-  return {
+export function createMysqlAdminRepository(): ActorScoped<AdminOperations> {
+  return mysqlPolicy<AdminOperations>({
     async findMemberByEmail(actor, storeId, email) {
       requireStore(actor, storeId); requireSystem(actor, ["auth:staff", "bootstrap", "migration"])
       const db = await database()
@@ -104,6 +105,11 @@ export function createMysqlAdminRepository(): ActorScoped<AdminRepository> {
           const where = and(eq(staffMembers.storeId, actor.storeId), eq(staffMembers.userId, userId))
           const [row] = await db.select().from(staffMembers).where(where).for("update")
           if (!row) throw new DomainError("not_found", "Staff member not found.")
+          if (!auth(actor) && actor.kind === "staff" && actor.id !== userId) {
+            if (changes.passwordHash !== undefined || changes.email !== undefined) throw new DomainError("forbidden", "Staff cannot replace another member's credentials.")
+            const assigned = await db.select({ key: roles.key }).from(staffRoles).innerJoin(roles, eq(roles.id, staffRoles.roleId)).where(and(eq(staffRoles.storeId, actor.storeId), eq(roles.storeId, actor.storeId), eq(staffRoles.userId, userId))).for("update")
+            if (assigned.some((role) => role.key === OWNER_ROLE_KEY) && (changes.status !== undefined || changes.totpSecret !== undefined || changes.totpEnabledAt !== undefined || changes.recoveryCodes !== undefined)) canGrant(actor, [], [OWNER_ROLE_KEY])
+          }
           if (expectedUpdatedAt && isoDate(row.updatedAt) !== expectedUpdatedAt) throw new DomainError("conflict", "Someone else changed this staff member. Reload to see their changes.")
           if (changes.totpLastStep !== undefined && changes.totpLastStep !== null && row.totpLastStep !== null && changes.totpLastStep <= row.totpLastStep) throw new DomainError("unauthorized", "That code was already used. Wait for a new code.")
           if (changes.recoveryCodes !== undefined && row.totpEnabledAt && changes.totpEnabledAt === undefined) {
@@ -204,6 +210,8 @@ export function createMysqlAdminRepository(): ActorScoped<AdminRepository> {
         await keepsOwner(db, actor, async () => {
           const [target] = await db.select({ id: staffMembers.userId }).from(staffMembers).where(and(eq(staffMembers.storeId, actor.storeId), eq(staffMembers.userId, userId))).for("update")
           if (!target) throw new DomainError("not_found", "Staff member not found.")
+          const previous = await db.select({ key: roles.key }).from(staffRoles).innerJoin(roles, eq(roles.id, staffRoles.roleId)).where(and(eq(staffRoles.storeId, actor.storeId), eq(roles.storeId, actor.storeId), eq(staffRoles.userId, userId))).for("update")
+          if (previous.some((role) => role.key === OWNER_ROLE_KEY) && !roleKeys.includes(OWNER_ROLE_KEY)) canGrant(actor, [], [OWNER_ROLE_KEY])
           const selected = roleKeys.length ? await roleRows(db, actor, await db.select().from(roles).where(and(eq(roles.storeId, actor.storeId), inArray(roles.key, [...new Set(roleKeys)])))) : []
           if (selected.length !== new Set(roleKeys).size) throw new DomainError("validation", "Unknown role.")
           canGrant(actor, selected.flatMap((role) => role.permissions), roleKeys)
@@ -282,7 +290,7 @@ export function createMysqlAdminRepository(): ActorScoped<AdminRepository> {
       const db = await database()
       await db.update(staffSessions).set({ revokedAt: sqlNow() }).where(and(eq(staffSessions.storeId, actor.storeId), eq(staffSessions.userId, userId), isNull(staffSessions.revokedAt), keepSessionId ? ne(staffSessions.id, keepSessionId) : undefined))
     },
-  }
+  })
 }
 
 /** Parameter upgrades are not a credential change and must preserve other valid sessions. */

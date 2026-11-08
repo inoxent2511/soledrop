@@ -1,7 +1,8 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, count, desc, eq, ne, or } from "drizzle-orm"
-import type { PromotionRepository } from "./repository"
+import type { PromotionOperations } from "./repository"
 import type { Promotion } from "./types"
 import { type Actor, type ActorScoped, requireGrant, requireStore } from "@/server/db/actor"
 import { database, withTransaction } from "@/server/db/client"
@@ -21,8 +22,8 @@ function assertShopper(actor: Actor, shopper: { customerId: string | null; email
   throw new DomainError("forbidden", "You don't have access to this shopper.")
 }
 
-export function createMysqlPromotionRepository(): ActorScoped<PromotionRepository> {
-  return {
+export function createMysqlPromotionRepository(): ActorScoped<PromotionOperations> {
+  return mysqlPolicy<PromotionOperations>({
     async listActive(actor, storeId) {
       requireStore(actor, storeId)
       const db = await database()
@@ -84,5 +85,5 @@ export function createMysqlPromotionRepository(): ActorScoped<PromotionRepositor
       const rows = await db.select({ promotionId: promotionRedemptions.promotionId, orderId: promotionRedemptions.orderId, email: actor.permissions.includes("customers:read_pii") ? promotionRedemptions.email : constant("***"), at: promotionRedemptions.at }).from(promotionRedemptions).innerJoin(promotions, eq(promotions.id, promotionRedemptions.promotionId)).where(and(eq(promotions.storeId, actor.storeId), eq(promotions.id, promotionId))).orderBy(desc(promotionRedemptions.at)).limit(Math.min(1000, limit))
       return rows.map((row) => ({ ...row, at: isoDate(row.at) }))
     },
-  }
+  })
 }

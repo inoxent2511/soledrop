@@ -1,6 +1,6 @@
 import "server-only"
 
-import type { CatalogRepository } from "@/server/catalog/repository"
+import type { CatalogOperations } from "@/server/catalog/repository"
 import type { AttributeDefinition, Brand, Collection, CustomFieldDefinition, Product } from "@/server/catalog/types"
 import { searchTerm, supabase, unwrap } from "@/server/db/supabase"
 import { DomainError } from "@/server/shared/errors"
@@ -74,7 +74,7 @@ function toProduct(record: ProductRecord): Product {
   }
 }
 
-export function createSupabaseCatalogRepository(): CatalogRepository {
+export function createSupabaseCatalogRepository(): CatalogOperations {
   return {
     async listProducts(storeId) {
       const rows = unwrap(

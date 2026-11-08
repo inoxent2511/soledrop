@@ -2,7 +2,7 @@ import "server-only"
 
 import { createHash, randomBytes } from "node:crypto"
 
-import type { CustomerRepository } from "@/server/customers/repository"
+import type { CustomerOperations } from "@/server/customers/repository"
 import type { CustomerAuthRepository, CustomerTokenKind } from "@/server/customers/auth"
 import { assertPasswordPolicy } from "@/server/customers/password-policy"
 import type { Actor } from "@/server/db/actor"
@@ -18,7 +18,7 @@ export const SESSION_DAYS = 30
 const RESET_MINUTES = 30
 
 type Deps = {
-  customers: CustomerRepository
+  customers: CustomerOperations
   publish: (topic: EventTopic, payload: Record<string, unknown>) => Promise<unknown>
   orders: { listForCustomer: (storeId: string, customerId: string) => Promise<Order[]>; anonymiseCustomer: (customerId: string) => Promise<number> }
   rehashPassword?: (customer: Customer, passwordHash: string) => Promise<void>

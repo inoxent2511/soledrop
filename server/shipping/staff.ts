@@ -7,7 +7,7 @@ import type { StaffContext } from "@/server/admin/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId } from "@/server/shared/ids"
 import { quoteRates, taxFor, taxRateFor, zoneFor } from "@/server/shipping/calculate"
-import type { ShippingRepository } from "@/server/shipping/repository"
+import type { ShippingOperations } from "@/server/shipping/repository"
 import type { ShippingZone } from "@/server/shipping/types"
 
 /**
@@ -22,7 +22,7 @@ const need = (staff: StaffContext, permission: Permission) => {
   if (!staff.permissions.includes(permission)) throw new DomainError("forbidden", "You don't have permission to do that.", { permission })
 }
 
-export function createStaffShipping(deps: { shipping: ShippingRepository; audit: Audit; revalidate: () => void }) {
+export function createStaffShipping(deps: { shipping: ShippingOperations; audit: Audit; revalidate: () => void }) {
   const { shipping } = deps
 
   return {

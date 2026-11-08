@@ -1,6 +1,6 @@
 import "server-only"
 
-import type { CartRepository } from "@/server/cart/repository"
+import type { CartOperations } from "@/server/cart/repository"
 import type { CartRow } from "@/server/cart/types"
 import { db, transaction } from "@/server/fixtures/store"
 import { releaseCartIn } from "@/server/inventory/fixtures.repository"
@@ -9,7 +9,7 @@ import { now } from "@/server/shared/ids"
 
 export const MAX_LINE_QUANTITY = 10
 
-export function createFixturesCartRepository(): CartRepository {
+export function createFixturesCartRepository(): CartOperations {
   return {
     async findByTokenHash(storeId, tokenHash) {
       return structuredClone(db().carts.find((cart) => cart.storeId === storeId && cart.tokenHash === tokenHash && cart.status === "active") ?? null)

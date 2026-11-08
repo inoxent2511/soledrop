@@ -1,7 +1,7 @@
 import "server-only"
 
 import { searchTerm, supabase, unwrap } from "@/server/db/supabase"
-import type { MediaRepository } from "@/server/media/repository"
+import type { MediaOperations } from "@/server/media/repository"
 import type { MediaItem } from "@/server/media/types"
 import { DomainError } from "@/server/shared/errors"
 
@@ -24,7 +24,7 @@ const toItem = (row: MediaRecord): MediaItem => ({
   createdAt: row.created_at,
 })
 
-export function createSupabaseMediaRepository(): MediaRepository {
+export function createSupabaseMediaRepository(): MediaOperations {
   return {
     async hasOrderUsage(storeId, url) {
       return unwrap(await supabase().rpc("media_has_order_usage", { p_store_id: storeId, p_url: url })) as boolean

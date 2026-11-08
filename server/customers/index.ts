@@ -12,8 +12,11 @@ import { serverEnv } from "@/lib/env.server"
 import { systemActor } from "@/server/db/actor"
 import { createFixturesCustomerAuthRepository } from "@/server/customers/auth.fixtures.repository"
 import { fixtureAtomic } from "@/server/fixtures/atomic"
-import { localStore } from "@/server/fixtures/store"
+import { localStore, withFixtureStore } from "@/server/fixtures/store"
 import { platform } from "@/server/platform"
+import { currentActor } from "@/server/db/context"
+import { realmService } from "@/server/db/realm-service"
+import { staffService } from "@/server/db/staff-service"
 
 const repository = selectRepository({ fixtures: createFixturesCustomerRepository, supabase: createSupabaseCustomerRepository })
 
@@ -23,11 +26,18 @@ export const customerAuthRepository = () => localService(createFixturesCustomerA
 
 export const customerService = () => {
   const orders = orderService()
-  return createCustomerService({
+  const service = createCustomerService({
     customers: repository(), publish, orders: { listForCustomer: orders.listForCustomer, anonymiseCustomer: orders.anonymiseCustomer },
-    atomic: dataDriver() === "local" ? (operation) => localStore().run(operation) : fixtureAtomic,
-    auth: dataDriver() === "supabase" ? undefined : { repository: customerAuthRepository(), actor: () => systemActor(serverEnv.STORE_ID, "auth:customer"), magicLinkEnabled: serverEnv.AUTH_MAGIC_LINK === "on", verificationEnabled: serverEnv.AUTH_EMAIL_VERIFICATION === "on" },
+    atomic: dataDriver() === "local" ? (operation) => localStore().run(operation) : (operation) => withFixtureStore(currentActor(), () => fixtureAtomic(operation)),
+    auth: dataDriver() === "supabase" ? undefined : { repository: customerAuthRepository(), actor: currentActor, magicLinkEnabled: serverEnv.AUTH_MAGIC_LINK === "on", verificationEnabled: serverEnv.AUTH_EMAIL_VERIFICATION === "on" },
     securityEvent: (customer, action) => platform().audit({ actor: customer.id, storeId: customer.storeId, action, entity: "customer", entityId: customer.id, before: null, after: null }),
+  })
+  const auth = () => systemActor(serverEnv.STORE_ID, "auth:customer")
+  return realmService(service, {
+    register: auth, login: auth, logout: auth, fromSession: auth,
+    requestPasswordReset: auth, resetPassword: auth, changePassword: auth, changeEmail: auth,
+    requestMagicLink: auth, requestVerification: auth, redeemLink: auth, fromVerifiedOAuth: auth,
+    deleteAccount: () => systemActor(serverEnv.STORE_ID, "auth:customer", ["customers:delete"]),
   })
 }
 
@@ -35,12 +45,12 @@ export const customerService = () => {
 export const staffCustomers = () => {
   const orders = orderService()
   const admin = adminService()
-  return createStaffCustomers({
+  return staffService(createStaffCustomers({
     customers: repository(),
     orders: { listForCustomer: orders.listForCustomer, anonymiseCustomer: orders.anonymiseCustomer },
     audit: (staff, meta, entry) => admin.recordAudit(staff, meta, entry),
     assertSteppedUp: admin.assertSteppedUp,
-  })
+  }))
 }
 
 export { SESSION_DAYS, toProfile } from "@/server/customers/service"

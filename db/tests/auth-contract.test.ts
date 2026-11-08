@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { createAdminService } from "@/server/admin/service"
 import { createFixturesAdminRepository } from "@/server/admin/fixtures.repository"
 import { createMysqlAdminRepository, rehashStaffPassword } from "@/server/admin/mysql.repository"
-import type { AdminRepository } from "@/server/admin/repository"
+import type { AdminOperations } from "@/server/admin/repository"
 import { hashToken, newToken } from "@/server/admin/crypto"
 import { totpAt } from "@/server/admin/totp"
 import { createCustomerService } from "@/server/customers/service"
@@ -10,10 +10,10 @@ import { createFixturesCustomerRepository } from "@/server/customers/fixtures.re
 import { createMysqlCustomerRepository, rehashCustomerPassword } from "@/server/customers/mysql.repository"
 import { createFixturesCustomerAuthRepository } from "@/server/customers/auth.fixtures.repository"
 import { createMysqlCustomerAuthRepository } from "@/server/customers/auth.mysql.repository"
-import type { CustomerRepository } from "@/server/customers/repository"
+import type { CustomerOperations } from "@/server/customers/repository"
 import { createFixturesPlatformRepository } from "@/server/platform/fixtures.repository"
 import { createMysqlPlatformRepository } from "@/server/platform/mysql.repository"
-import type { PlatformRepository } from "@/server/platform/repository"
+import type { PlatformOperations } from "@/server/platform/repository"
 import { openDeliveryPayload, sealDeliveryPayload } from "@/server/platform/private-payload"
 import { ALL_PERMISSIONS } from "@/server/admin/permissions"
 import { systemActor, type Actor } from "@/server/db/actor"
@@ -34,9 +34,9 @@ const meta = { ip: "127.0.0.91", userAgent: "Auth contract", requestId: "contrac
 for (const [engine, configuration] of [["fixtures", null] as const, ...engines] as const) describe(engine + " full identity service contract", () => {
   const fixture = engine === "fixtures", storeId = uuidv7()
   const customerActor = systemActor(storeId, "auth:customer", ALL_PERMISSIONS), staffActor = systemActor(storeId, "auth:staff", ALL_PERMISSIONS), worker = systemActor(storeId, "migration", ALL_PERMISSIONS)
-  const customers: CustomerRepository = fixture ? createFixturesCustomerRepository() : bindActor<CustomerRepository>(createMysqlCustomerRepository(), () => customerActor)
-  const staffRepo: AdminRepository = fixture ? createFixturesAdminRepository() : bindActor<AdminRepository>(createMysqlAdminRepository(), () => staffActor)
-  const platform: PlatformRepository = fixture ? createFixturesPlatformRepository() : bindActor<PlatformRepository>(createMysqlPlatformRepository(), () => worker)
+  const customers: CustomerOperations = bindActor<CustomerOperations>(fixture ? createFixturesCustomerRepository() : createMysqlCustomerRepository(), () => customerActor)
+  const staffRepo: AdminOperations = fixture ? createFixturesAdminRepository() : bindActor<AdminOperations>(createMysqlAdminRepository(), () => staffActor)
+  const platform: PlatformOperations = fixture ? createFixturesPlatformRepository() : bindActor<PlatformOperations>(createMysqlPlatformRepository(), () => worker)
   const extra = fixture ? createFixturesCustomerAuthRepository() : createMysqlCustomerAuthRepository()
   const atomic = <T>(actor: Actor, operation: () => Promise<T>) => fixture ? fixtureAtomic(operation) : authTransaction(actor, operation)
   let at = Date.now(), customerSequence = 0, failAudit = false
@@ -59,7 +59,7 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
   const ownerEmail = "identity-owner@example.test", inviteToken = newToken()
   let ownerToken = "", ownerTotp = "", recoveryCodes: string[] = []
   beforeAll(async () => {
-    if (fixture) resetFixtures()
+    if (fixture) { resetFixtures(); fixtures().stores[0].id = storeId }
     else { await closeDatabase(); process.env.DATABASE_URL = configuration!.appUrl; await (await database()).insert(stores).values({ id: storeId, name: "Identity contract" }) }
     await staff.ensureRegistry(storeId)
     await staffRepo.createInvite({ id: uuidv7(), storeId, email: ownerEmail, roleKey: "owner", tokenHash: hashToken(inviteToken), invitedBy: null, createdAt: new Date(at).toISOString(), expiresAt: new Date(at + 3_600_000).toISOString(), acceptedAt: null, revokedAt: null })

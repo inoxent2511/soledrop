@@ -2,9 +2,9 @@ import "server-only"
 
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
-import type { SearchRepository } from "@/server/search/repository"
+import type { SearchOperations } from "@/server/search/repository"
 
-export function createFixturesSearchRepository(): SearchRepository {
+export function createFixturesSearchRepository(): SearchOperations {
   return {
     async listSynonyms() {
       return structuredClone(db().searchSynonyms)

@@ -1,7 +1,7 @@
 import "server-only"
 
 import { supabase, unwrap } from "@/server/db/supabase"
-import type { PromotionRepository } from "@/server/promotions/repository"
+import type { PromotionOperations } from "@/server/promotions/repository"
 import type { Promotion } from "@/server/promotions/types"
 import { DomainError } from "@/server/shared/errors"
 
@@ -37,7 +37,7 @@ const toPromotion = (row: PromotionRecord): Promotion => ({
   combinable: row.combinable,
 })
 
-export function createSupabasePromotionRepository(): PromotionRepository {
+export function createSupabasePromotionRepository(): PromotionOperations {
   return {
     async listActive(storeId) {
       const rows = unwrap(await supabase().from("promotions").select("*").eq("store_id", storeId).eq("active", true)) as PromotionRecord[]

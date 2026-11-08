@@ -1,15 +1,16 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, asc, count, desc, eq, gt, gte, inArray, isNotNull, isNull } from "drizzle-orm"
-import type { SearchRepository } from "./repository"
+import type { SearchOperations } from "./repository"
 import { type ActorScoped, requireGrant, requireStore } from "@/server/db/actor"
 import { database, withTransaction } from "@/server/db/client"
 import { searchQueries, searchSynonyms, searchSynonymValues, stores } from "@/server/db/schema"
 import { sqlDate } from "@/server/db/values"
 import { DomainError } from "@/server/shared/errors"
 
-export function createMysqlSearchRepository(): ActorScoped<SearchRepository> {
-  return {
+export function createMysqlSearchRepository(): ActorScoped<SearchOperations> {
+  return mysqlPolicy<SearchOperations>({
     async listSynonyms(actor, storeId) {
       requireStore(actor, storeId)
       const db = await database()
@@ -62,5 +63,5 @@ export function createMysqlSearchRepository(): ActorScoped<SearchRepository> {
       const [result] = await db.delete(searchSynonyms).where(and(eq(searchSynonyms.storeId, actor.storeId), eq(searchSynonyms.id, id)))
       if (!result.affectedRows) throw new DomainError("not_found", "Synonym not found.")
     },
-  }
+  })
 }

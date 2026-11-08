@@ -1,10 +1,15 @@
+import { fixtureStaff } from "@/tests/helpers/staff"
 import { beforeEach, describe, expect, it } from "vitest"
 
-import { PRESET_ROLES } from "@/server/admin/permissions"
-import { resolvePermissions, type RequestMeta } from "@/server/admin/service"
+import { ALL_PERMISSIONS } from "@/server/admin/permissions"
+import { type RequestMeta } from "@/server/admin/service"
 import type { StaffContext } from "@/server/admin/types"
 import { customerService } from "@/server/customers"
 import { createFixturesCustomerRepository } from "@/server/customers/fixtures.repository"
+import { bindActor } from "@/server/db/bind"
+import { systemActor } from "@/server/db/actor"
+import { withActor } from "@/server/db/context"
+import type { CustomerOperations } from "@/server/customers/repository"
 import { createStaffCustomers } from "@/server/customers/staff"
 import { STORE_ID } from "@/server/fixtures/seed"
 import { db, resetFixtures } from "@/server/fixtures/store"
@@ -17,21 +22,13 @@ const meta: RequestMeta = { ip: "203.0.113.9", userAgent: "vitest", requestId: "
 let audits: { action: string; reason?: string | null }[] = []
 
 function staffAs(roleKey: string, steppedUp = true): StaffContext {
-  const role = PRESET_ROLES.find((preset) => preset.key === roleKey)!
-  const { permissions, refundLimit } = resolvePermissions([{ permissions: [...role.permissions], refundLimit: role.refundLimit }])
-  return {
-    member: { userId: `user-${roleKey}`, storeId: STORE_ID, email: `${roleKey}@example.com`, displayName: role.name, status: "active", totpEnabledAt: "2026-01-01T00:00:00Z" },
-    session: { id: `s-${roleKey}`, aal: 2, mfaAt: steppedUp ? new Date().toISOString() : "2026-01-01T00:00:00Z", createdAt: "2026-01-01T00:00:00Z", expiresAt: "2099-01-01T00:00:00Z" },
-    roles: [{ id: roleKey, key: roleKey, name: role.name, refundLimit: role.refundLimit }],
-    permissions,
-    refundLimit,
-  }
+  return fixtureStaff(roleKey, steppedUp)
 }
 
 const staff = () => {
   const orders = orderService()
   return createStaffCustomers({
-    customers: createFixturesCustomerRepository(),
+    customers: bindActor<CustomerOperations>(createFixturesCustomerRepository(), () => systemActor(STORE_ID, "migration", ALL_PERMISSIONS)),
     orders: { listForCustomer: orders.listForCustomer, anonymiseCustomer: orders.anonymiseCustomer },
     audit: async (_staff, _meta, entry) => void audits.push(entry),
     assertSteppedUp: (member) => {
@@ -42,7 +39,7 @@ const staff = () => {
 
 async function register(email: string, fullName: string, phone: string | null = null) {
   const { customer } = await customerService().register(STORE_ID, { email, password: "shopper-pass-1234", fullName, marketingOptIn: true })
-  if (phone) await customerService().updateProfile(customer.id, { phone })
+  if (phone) await withActor({ kind: "customer", id: customer.id, email: customer.email, storeId: STORE_ID, permissions: [], mfaVerifiedAt: null }, () => customerService().updateProfile(customer.id, { phone }))
   return customer
 }
 

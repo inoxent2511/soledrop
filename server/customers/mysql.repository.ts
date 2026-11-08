@@ -1,11 +1,12 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, count, desc, eq, getTableColumns, gt, isNull, like, notLike, or } from "drizzle-orm"
-import type { CustomerRepository } from "./repository"
+import type { CustomerOperations } from "./repository"
 import type { Customer, CustomerAddress, PasswordReset, Session } from "./types"
 import { type Actor, type ActorScoped, requireCustomerOwner, requireFreshGrant, requireGrant, requireStore, requireSystem } from "@/server/db/actor"
 import { database, withTransaction } from "@/server/db/client"
-import { constant, maskedEmail, maskedPhone } from "@/server/db/query.repository"
+import { constant, firstWord, maskedEmail, maskedOptionalText, maskedPhone } from "@/server/db/query.repository"
 import { addresses, authTokens, customerSecurity, customers, oauthAccounts, passwordResets, sessions } from "@/server/db/schema"
 import { escapeLike, isoDate, nullableIsoDate, sqlDate, sqlNow } from "@/server/db/values"
 import { uuidv7 } from "@/server/db/uuid"
@@ -25,8 +26,8 @@ function address(row: typeof addresses.$inferSelect): CustomerAddress {
   return { ...row, line2: row.line2 ?? undefined, postalCode: row.postalCode ?? undefined, isDefault: row.isDefault === 1 }
 }
 
-export function createMysqlCustomerRepository(): ActorScoped<CustomerRepository> {
-  return {
+export function createMysqlCustomerRepository(): ActorScoped<CustomerOperations> {
+  return mysqlPolicy<CustomerOperations>({
     async findByEmail(actor, storeId, email) {
       requireStore(actor, storeId); requireSystem(actor, ["auth:customer", "migration"])
       const db = await database()
@@ -111,9 +112,9 @@ export function createMysqlCustomerRepository(): ActorScoped<CustomerRepository>
     },
     async listAddresses(actor, customerId) {
       requireCustomerOwner(actor, customerId, "customers:read")
-      if (actor.kind === "staff" && !actor.permissions.includes("customers:read_pii")) return []
       const db = await database()
-      const rows = await db.select(getTableColumns(addresses)).from(addresses).innerJoin(customers, eq(customers.id, addresses.customerId)).where(and(eq(customers.storeId, actor.storeId), eq(addresses.customerId, customerId))).orderBy(desc(addresses.isDefault), addresses.id)
+      const columns = actor.kind !== "staff" || actor.permissions.includes("customers:read_pii") ? getTableColumns(addresses) : { ...getTableColumns(addresses), fullName: firstWord(addresses.fullName), phone: maskedPhone(addresses.phone).mapWith((value: unknown) => value === null ? "" : String(value)), line1: constant("•••"), line2: maskedOptionalText(addresses.line2), postalCode: maskedOptionalText(addresses.postalCode) }
+      const rows = await db.select(columns).from(addresses).innerJoin(customers, eq(customers.id, addresses.customerId)).where(and(eq(customers.storeId, actor.storeId), eq(addresses.customerId, customerId))).orderBy(desc(addresses.isDefault), addresses.id)
       return rows.map(address)
     },
     async saveAddress(actor, customerId, input) {
@@ -171,7 +172,7 @@ export function createMysqlCustomerRepository(): ActorScoped<CustomerRepository>
       const [rows, [total]] = await Promise.all([db.select(projection(actor)).from(customers).where(where).orderBy(desc(customers.createdAt), customers.id).limit(query.pageSize).offset((query.page - 1) * query.pageSize), db.select({ count: count() }).from(customers).where(where)])
       return { customers: rows.map(customer), total: total.count }
     },
-  }
+  })
 }
 
 export async function rehashCustomerPassword(actor: Actor, customerId: string, previous: string, passwordHash: string) {

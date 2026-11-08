@@ -1,7 +1,7 @@
 import "server-only"
 
 import { isPermission, type Permission } from "@/server/admin/permissions"
-import type { AdminRepository } from "@/server/admin/repository"
+import type { AdminOperations } from "@/server/admin/repository"
 import type { Role, StaffInvite, StaffMember, StaffSession } from "@/server/admin/types"
 import { supabase, unwrap } from "@/server/db/supabase"
 import { DomainError } from "@/server/shared/errors"
@@ -157,7 +157,7 @@ const sessionColumns = (changes: Partial<StaffSession>): Record<string, unknown>
   return map
 }
 
-export function createSupabaseAdminRepository(): AdminRepository {
+export function createSupabaseAdminRepository(): AdminOperations {
   return {
     async findMemberByEmail(storeId, email) {
       const row = unwrap(await supabase().from("staff_members").select(MEMBER_COLUMNS).eq("store_id", storeId).ilike("email", email).maybeSingle()) as MemberRow | null

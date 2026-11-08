@@ -1,7 +1,8 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, eq, inArray } from "drizzle-orm"
-import type { PricingRepository } from "./repository"
+import type { PricingOperations } from "./repository"
 import type { ExchangeRates, PriceList } from "./types"
 import { type ActorScoped, requireGrant, requireStore } from "@/server/db/actor"
 import { database, withTransaction } from "@/server/db/client"
@@ -9,8 +10,8 @@ import { exchangeRates, priceLists, prices, products, variants } from "@/server/
 import { isoDate, jsonValue, nullableIsoDate } from "@/server/db/values"
 import { DomainError } from "@/server/shared/errors"
 
-export function createMysqlPricingRepository(): ActorScoped<PricingRepository> {
-  return {
+export function createMysqlPricingRepository(): ActorScoped<PricingOperations> {
+  return mysqlPolicy<PricingOperations>({
     async listPriceLists(actor, storeId) {
       requireStore(actor, storeId)
       const db = await database()
@@ -43,5 +44,5 @@ export function createMysqlPricingRepository(): ActorScoped<PricingRepository> {
         return rows.length
       })
     },
-  }
+  })
 }

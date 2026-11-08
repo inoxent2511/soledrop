@@ -2,9 +2,9 @@ import "server-only"
 
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
-import type { ShippingRepository } from "@/server/shipping/repository"
+import type { ShippingOperations } from "@/server/shipping/repository"
 
-export function createFixturesShippingRepository(): ShippingRepository {
+export function createFixturesShippingRepository(): ShippingOperations {
   return {
     async listZones() {
       return db().shippingZones

@@ -1,11 +1,11 @@
 import "server-only"
 
 import { supabase, unwrap } from "@/server/db/supabase"
-import type { ShippingRepository } from "@/server/shipping/repository"
+import type { ShippingOperations } from "@/server/shipping/repository"
 import type { ShippingRate, ShippingZone, TaxRate } from "@/server/shipping/types"
 import { DomainError } from "@/server/shared/errors"
 
-export function createSupabaseShippingRepository(): ShippingRepository {
+export function createSupabaseShippingRepository(): ShippingOperations {
   return {
     async listZones(storeId) {
       const rows = unwrap(

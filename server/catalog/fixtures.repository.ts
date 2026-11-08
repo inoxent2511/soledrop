@@ -1,6 +1,6 @@
 import "server-only"
 
-import type { CatalogRepository } from "@/server/catalog/repository"
+import type { CatalogOperations } from "@/server/catalog/repository"
 import type { AdminProductQuery, Product } from "@/server/catalog/types"
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
@@ -14,7 +14,7 @@ function matchesAdmin(product: Product, query: AdminProductQuery): boolean {
   return true
 }
 
-export function createFixturesCatalogRepository(): CatalogRepository {
+export function createFixturesCatalogRepository(): CatalogOperations {
   return {
     async listProducts(storeId) {
       return db().products.filter((product) => product.storeId === storeId && product.status === "active")

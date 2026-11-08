@@ -6,4 +6,4 @@ import { createSupabaseInventoryRepository } from "@/server/inventory/supabase.r
 
 /** Inventory has no business rules beyond the repository's atomic guarantees, so it is used directly. */
 export const inventory = selectRepository({ fixtures: createFixturesInventoryRepository, supabase: createSupabaseInventoryRepository })
-export type { InventoryRepository, StockRequest } from "@/server/inventory/repository"
+export type { InventoryOperations, StockRequest } from "@/server/inventory/repository"

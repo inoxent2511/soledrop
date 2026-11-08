@@ -2,13 +2,13 @@ import "server-only"
 
 import { createHmac, timingSafeEqual } from "node:crypto"
 
-import type { ContentRepository } from "@/server/content/repository"
+import type { ContentOperations } from "@/server/content/repository"
 import type { Faq } from "@/server/content/types"
 import type { EventTopic } from "@/server/platform/types"
 import { newId, now } from "@/server/shared/ids"
 
 type Deps = {
-  content: ContentRepository
+  content: ContentOperations
   publish: (topic: EventTopic, payload: Record<string, unknown>) => Promise<unknown>
   secret: string
 }

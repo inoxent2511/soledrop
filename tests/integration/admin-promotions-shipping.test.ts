@@ -1,8 +1,8 @@
+import { fixtureStaff } from "@/tests/helpers/staff"
 import { beforeEach, describe, expect, it } from "vitest"
 
 import { promotionInput, type PromotionInput } from "@/features/admin/promotions/schema"
-import { PRESET_ROLES } from "@/server/admin/permissions"
-import { resolvePermissions, type RequestMeta } from "@/server/admin/service"
+import { type RequestMeta } from "@/server/admin/service"
 import type { StaffContext } from "@/server/admin/types"
 import { STORE_ID } from "@/server/fixtures/seed"
 import { db, resetFixtures } from "@/server/fixtures/store"
@@ -17,15 +17,7 @@ const meta: RequestMeta = { ip: "203.0.113.9", userAgent: "vitest", requestId: "
 let audits: string[] = []
 
 function staffAs(roleKey: string): StaffContext {
-  const role = PRESET_ROLES.find((preset) => preset.key === roleKey)!
-  const { permissions, refundLimit } = resolvePermissions([{ permissions: [...role.permissions], refundLimit: role.refundLimit }])
-  return {
-    member: { userId: `user-${roleKey}`, storeId: STORE_ID, email: `${roleKey}@example.com`, displayName: role.name, status: "active", totpEnabledAt: "2026-01-01T00:00:00Z" },
-    session: { id: `s-${roleKey}`, aal: 2, mfaAt: new Date().toISOString(), createdAt: "2026-01-01T00:00:00Z", expiresAt: "2099-01-01T00:00:00Z" },
-    roles: [{ id: roleKey, key: roleKey, name: role.name, refundLimit: role.refundLimit }],
-    permissions,
-    refundLimit,
-  }
+  return fixtureStaff(roleKey)
 }
 
 const promotions = () => createStaffPromotions({ promotions: promotionsRepository(), orderNumber: async () => null, audit: async (_s, _m, entry) => void audits.push(entry.action), revalidate: () => undefined })

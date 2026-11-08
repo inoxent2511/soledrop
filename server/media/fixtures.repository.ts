@@ -5,7 +5,7 @@ import fs from "node:fs"
 import { db, localStore, transaction } from "@/server/fixtures/store"
 import { serverEnv } from "@/lib/env.server"
 import { localMediaFile, writeLocalMedia } from "@/server/db/local-media"
-import type { MediaRepository } from "@/server/media/repository"
+import type { MediaOperations } from "@/server/media/repository"
 import { DomainError } from "@/server/shared/errors"
 
 /**
@@ -18,7 +18,7 @@ function localFile(key: string) {
   return localMediaFile(localStore().directory, key)
 }
 
-export function createFixturesMediaRepository(): MediaRepository {
+export function createFixturesMediaRepository(): MediaOperations {
   return {
     async hasOrderUsage(storeId, url) {
       return db().orders.some((order) => order.storeId === storeId && order.lines.some((line) => line.imageUrl === url))

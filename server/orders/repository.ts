@@ -1,3 +1,4 @@
+import type { ActorScoped } from "@/server/db/actor"
 import type { EventTopic } from "@/server/platform/types"
 
 /** One line of the money ledger: a payment or a refund, with its order. */
@@ -14,7 +15,7 @@ export type PlaceOrderInput = {
   event: { topic: EventTopic; payload: Record<string, unknown> }
 }
 
-export interface OrderRepository {
+export interface OrderOperations {
   /**
    * place_order: in one transaction — replay by idempotency key, lock and decrement stock
    * (never below zero), release the cart's reservations, redeem promotions within their
@@ -51,3 +52,6 @@ export interface OrderRepository {
   /** Removes personal data from orders of a deleted customer, keeping amounts for accounting. */
   anonymiseCustomer(customerId: string): Promise<number>
 }
+
+/** Raw storage boundary; services receive explicitly bound operations. */
+export type OrderRepository = ActorScoped<OrderOperations>

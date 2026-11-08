@@ -1,7 +1,8 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, asc, count, desc, eq, exists, getTableColumns, gte, inArray, like, lt, or } from "drizzle-orm"
-import type { OrderRepository } from "./repository"
+import type { OrderOperations } from "./repository"
 import { createMysqlOrderWrites } from "./mysql-writes.repository"
 import { hydrateOrders, orderOwnerScope, orderProjection, payment, refund, returnRequest } from "./mysql-helpers.repository"
 import { type ActorScoped, requireCustomerOwner, requireGrant, requireStore } from "@/server/db/actor"
@@ -10,8 +11,8 @@ import { constant } from "@/server/db/query.repository"
 import { orderContacts, orderNotes, orders, payments, refunds, returns } from "@/server/db/schema"
 import { escapeLike, isoDate, sqlDate } from "@/server/db/values"
 
-export function createMysqlOrderRepository(): ActorScoped<OrderRepository> {
-  return {
+export function createMysqlOrderRepository(): ActorScoped<OrderOperations> {
+  return mysqlPolicy<OrderOperations>({
     ...createMysqlOrderWrites(),
     async findByNumber(actor, storeId, number) {
       requireStore(actor, storeId)
@@ -88,5 +89,5 @@ export function createMysqlOrderRepository(): ActorScoped<OrderRepository> {
       ])
       return { rows: rows.map((row) => ({ ...row, at: isoDate(row.at) })), total: total.count }
     },
-  }
+  })
 }

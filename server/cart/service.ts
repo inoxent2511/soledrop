@@ -3,16 +3,16 @@ import "server-only"
 import { createHash, randomBytes } from "node:crypto"
 
 import { MAX_LINE_QUANTITY } from "@/server/cart/fixtures.repository"
-import type { CartRepository } from "@/server/cart/repository"
+import type { CartOperations } from "@/server/cart/repository"
 import type { AppliedPromotion, Cart, CartLine, CartRow } from "@/server/cart/types"
 import type { CatalogService } from "@/server/catalog/service"
 import type { ProductView } from "@/server/catalog/types"
-import type { InventoryRepository } from "@/server/inventory/repository"
+import type { InventoryOperations } from "@/server/inventory/repository"
 import type { PricingService } from "@/server/pricing/service"
 import { evaluatePromotions, type PromotionResult } from "@/server/promotions/evaluate"
-import type { PromotionRepository } from "@/server/promotions/repository"
+import type { PromotionOperations } from "@/server/promotions/repository"
 import { quoteRates, taxFor, taxRateFor, zoneFor } from "@/server/shipping/calculate"
-import type { ShippingRepository } from "@/server/shipping/repository"
+import type { ShippingOperations } from "@/server/shipping/repository"
 import type { ShippingQuote } from "@/server/shipping/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
@@ -37,12 +37,12 @@ export type PricedCart = {
 }
 
 type Deps = {
-  carts: CartRepository
+  carts: CartOperations
   catalog: CatalogService
   pricing: PricingService
-  inventory: InventoryRepository
-  promotions: PromotionRepository
-  shipping: ShippingRepository
+  inventory: InventoryOperations
+  promotions: PromotionOperations
+  shipping: ShippingOperations
   enabledShippingCodes: () => Promise<Set<string>>
 }
 

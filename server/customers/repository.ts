@@ -1,3 +1,4 @@
+import type { ActorScoped } from "@/server/db/actor"
 import type { Address } from "@/server/orders/types"
 import type { Customer, CustomerAddress, PasswordReset, Session } from "@/server/customers/types"
 
@@ -6,7 +7,7 @@ export type CustomerUpdate = Partial<Pick<Customer, "fullName" | "phone" | "mark
 /** Staff customer search (admin A4). */
 export type CustomerQuery = { q?: string; group?: Customer["group"]; marketing?: boolean; page: number; pageSize: number }
 
-export interface CustomerRepository {
+export interface CustomerOperations {
   findByEmail(storeId: string, email: string): Promise<Customer | null>
   findById(id: string): Promise<Customer | null>
   /** Throws conflict when the email is already registered in the store. */
@@ -32,3 +33,6 @@ export interface CustomerRepository {
   /** Staff search by email, name or phone, newest first; erased accounts are left out. */
   search(storeId: string, query: CustomerQuery): Promise<{ customers: Customer[]; total: number }>
 }
+
+/** Raw storage boundary; services receive explicitly bound operations. */
+export type CustomerRepository = ActorScoped<CustomerOperations>

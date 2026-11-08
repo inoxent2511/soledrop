@@ -1,6 +1,7 @@
+import type { ActorScoped } from "@/server/db/actor"
 import type { CartRow } from "@/server/cart/types"
 
-export interface CartRepository {
+export interface CartOperations {
   findByTokenHash(storeId: string, tokenHash: string): Promise<CartRow | null>
   findById(id: string): Promise<CartRow | null>
   findActiveByCustomer(storeId: string, customerId: string): Promise<CartRow | null>
@@ -14,3 +15,6 @@ export interface CartRepository {
   /** Active carts with something in them, untouched for `olderThanHours` (admin A8), newest first. */
   listAbandoned(storeId: string, query: { olderThanHours: number; page: number; pageSize: number }): Promise<{ carts: CartRow[]; total: number }>
 }
+
+/** Raw storage boundary; services receive explicitly bound operations. */
+export type CartRepository = ActorScoped<CartOperations>

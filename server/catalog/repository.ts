@@ -1,7 +1,8 @@
+import type { ActorScoped } from "@/server/db/actor"
 import type { AdminProductQuery, AttributeDefinition, Brand, Collection, CustomFieldDefinition, Product } from "@/server/catalog/types"
 
 /** Catalogue reads. Both drivers return only `active` products unless `includeDrafts` is set. */
-export interface CatalogRepository {
+export interface CatalogOperations {
   listProducts(storeId: string): Promise<Product[]>
   getProductBySlug(storeId: string, slug: string): Promise<Product | null>
   getProductsByVariantIds(variantIds: string[]): Promise<Product[]>
@@ -29,3 +30,6 @@ export interface CatalogRepository {
   collectionProductIds(storeId: string, collectionId: string): Promise<string[]>
   createBrand(storeId: string, brand: Brand): Promise<Brand>
 }
+
+/** Raw storage boundary; services receive explicitly bound operations. */
+export type CatalogRepository = ActorScoped<CatalogOperations>

@@ -1,10 +1,10 @@
 import "server-only"
 
 import { db, transaction } from "@/server/fixtures/store"
-import type { PricingRepository } from "@/server/pricing/repository"
+import type { PricingOperations } from "@/server/pricing/repository"
 import { DomainError } from "@/server/shared/errors"
 
-export function createFixturesPricingRepository(): PricingRepository {
+export function createFixturesPricingRepository(): PricingOperations {
   return {
     async listPriceLists() {
       return db().priceLists

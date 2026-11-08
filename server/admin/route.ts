@@ -12,6 +12,9 @@ import { assertRequestOrigin } from "@/server/http/origin"
 import { finishAuthTiming } from "@/server/http/auth-timing"
 import { platform } from "@/server/platform"
 import { DomainError } from "@/server/shared/errors"
+import { anonymousActor } from "@/server/db/actor"
+import { currentStoreId } from "@/server/db/driver"
+import { withActor } from "@/server/db/context"
 
 /**
  * Every admin route handler is wrapped in `adminRoute(access, handler)`; an architecture test fails
@@ -51,7 +54,7 @@ async function authorise(access: AdminAccess): Promise<StaffContext | null> {
 export function adminRoute<Context = unknown>(access: "public", handler: Handler<Context, null>): (request: Request, context: Context) => Promise<Response>
 export function adminRoute<Context = unknown>(access: Exclude<AdminAccess, "public">, handler: Handler<Context, StaffContext>): (request: Request, context: Context) => Promise<Response>
 export function adminRoute<Context = unknown>(access: AdminAccess, handler: Handler<Context, null> | Handler<Context, StaffContext>) {
-  return async (request: Request, context: Context) => {
+  return async (request: Request, context: Context) => withActor(anonymousActor(currentStoreId()), async () => {
     const started = performance.now()
     try {
       await assertOwnOrigin(request)
@@ -71,5 +74,5 @@ export function adminRoute<Context = unknown>(access: AdminAccess, handler: Hand
     } finally {
       await finishAuthTiming(request, started)
     }
-  }
+  })
 }

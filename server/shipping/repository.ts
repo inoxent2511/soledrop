@@ -1,6 +1,7 @@
+import type { ActorScoped } from "@/server/db/actor"
 import type { ShippingZone, TaxRate } from "@/server/shipping/types"
 
-export interface ShippingRepository {
+export interface ShippingOperations {
   listZones(storeId: string): Promise<ShippingZone[]>
   listTaxRates(storeId: string): Promise<TaxRate[]>
 
@@ -11,3 +12,6 @@ export interface ShippingRepository {
   /** replace_tax_rates: the store's tax table, replaced as a whole. */
   replaceTaxRates(storeId: string, rates: TaxRate[]): Promise<TaxRate[]>
 }
+
+/** Raw storage boundary; services receive explicitly bound operations. */
+export type ShippingRepository = ActorScoped<ShippingOperations>

@@ -1,7 +1,7 @@
 import "server-only"
 
 import { OWNER_ROLE_KEY, isPermission } from "@/server/admin/permissions"
-import type { AdminRepository } from "@/server/admin/repository"
+import type { AdminOperations } from "@/server/admin/repository"
 import type { Role } from "@/server/admin/types"
 import { db, transaction } from "@/server/fixtures/store"
 import type { FixtureTables } from "@/server/fixtures/tables"
@@ -30,7 +30,7 @@ function keepingAnOwner<T>(tables: FixtureTables, storeId: string, change: () =>
   return result
 }
 
-export function createFixturesAdminRepository(clock: () => number = Date.now): AdminRepository {
+export function createFixturesAdminRepository(clock: () => number = Date.now): AdminOperations {
   return {
     async findMemberByEmail(storeId, email) {
       return structuredClone(db().staffMembers.find((row) => row.storeId === storeId && row.email === email.toLowerCase()) ?? null)

@@ -1,7 +1,8 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, asc, count, desc, eq } from "drizzle-orm"
-import type { ContentRepository } from "./repository"
+import type { ContentOperations } from "./repository"
 import type { HomeContent } from "./home-types"
 import type { Page, NewsletterSubscriber } from "./types"
 import { type ActorScoped, requireGrant, requireStore, requireSystem } from "@/server/db/actor"
@@ -14,8 +15,8 @@ function page(row: typeof pages.$inferSelect): Page {
   return { slug: row.slug, title: row.title, description: row.description, blocks: jsonValue<Page["blocks"]>(row.blocks), seo: jsonValue<Page["seo"]>(row.seo), updatedAt: isoDate(row.updatedAt), published: row.published === 1 }
 }
 
-export function createMysqlContentRepository(): ActorScoped<ContentRepository> {
-  return {
+export function createMysqlContentRepository(): ActorScoped<ContentOperations> {
+  return mysqlPolicy<ContentOperations>({
     async home(actor, storeId) {
       requireStore(actor, storeId)
       const db = await database()
@@ -142,5 +143,5 @@ export function createMysqlContentRepository(): ActorScoped<ContentRepository> {
       ])
       return { subscribers: rows.map((row): NewsletterSubscriber => ({ ...row, status: row.status as NewsletterSubscriber["status"], consentAt: isoDate(row.consentAt) })), total: total.count }
     },
-  }
+  })
 }

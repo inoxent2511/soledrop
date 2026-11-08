@@ -1,6 +1,7 @@
+import type { ActorScoped } from "@/server/db/actor"
 import type { AuditEntry, EventTopic, FeatureFlag, OutboxEvent, WebhookDelivery } from "@/server/platform/types"
 
-export interface PlatformRepository {
+export interface PlatformOperations {
   listFlags(storeId: string): Promise<FeatureFlag[]>
   enqueue(storeId: string, topic: EventTopic, payload: Record<string, unknown>): Promise<OutboxEvent>
   /** Claims up to `limit` due events (status pending, available_at ≤ now) for delivery. */
@@ -28,3 +29,6 @@ export interface PlatformRepository {
 }
 
 export type AuditQuery = { actor?: string; entity?: string; action?: string; q?: string; from?: string; to?: string; page: number; pageSize: number }
+
+/** Raw storage boundary; services receive explicitly bound operations. */
+export type PlatformRepository = ActorScoped<PlatformOperations>

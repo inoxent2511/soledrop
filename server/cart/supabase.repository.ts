@@ -1,6 +1,6 @@
 import "server-only"
 
-import type { CartRepository } from "@/server/cart/repository"
+import type { CartOperations } from "@/server/cart/repository"
 import type { CartRow } from "@/server/cart/types"
 import { supabase, unwrap } from "@/server/db/supabase"
 
@@ -36,7 +36,7 @@ function toCart(record: CartRecord): CartRow {
   }
 }
 
-export function createSupabaseCartRepository(): CartRepository {
+export function createSupabaseCartRepository(): CartOperations {
   return {
     async findByTokenHash(storeId, tokenHash) {
       const row = unwrap(

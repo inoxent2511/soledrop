@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import sharp from "sharp"
 import { eq } from "drizzle-orm"
 import { ALL_PERMISSIONS } from "@/server/admin/permissions"
-import type { MediaRepository } from "@/server/media/repository"
+import type { MediaOperations } from "@/server/media/repository"
 import { createFixturesMediaRepository } from "@/server/media/fixtures.repository"
 import { createMysqlMediaRepository } from "@/server/media/mysql.repository"
 import { systemActor } from "@/server/db/actor"
@@ -15,7 +15,7 @@ import { engines } from "./connections"
 
 for (const [engine, config] of [["fixtures", null] as const, ...engines] as const) describe(engine + " media contract", () => {
   const storeId = uuidv7(), actor = systemActor(storeId, "migration", ALL_PERMISSIONS), fixture = engine === "fixtures"
-  const media: MediaRepository = fixture ? createFixturesMediaRepository() : bindActor<MediaRepository>(createMysqlMediaRepository(), () => actor)
+  const media: MediaOperations = fixture ? createFixturesMediaRepository() : bindActor<MediaOperations>(createMysqlMediaRepository(), () => actor)
   beforeAll(async () => {
     if (fixture) { resetFixtures(); fixtures().media = [] }
     else { await closeDatabase(); process.env.DATABASE_URL = config!.appUrl; await (await database()).insert(stores).values({ id: storeId, name: "Media contract" }) }

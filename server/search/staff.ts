@@ -3,7 +3,7 @@ import "server-only"
 import type { Permission } from "@/server/admin/permissions"
 import type { RequestMeta } from "@/server/admin/service"
 import type { StaffContext } from "@/server/admin/types"
-import type { SearchRepository } from "@/server/search/repository"
+import type { SearchOperations } from "@/server/search/repository"
 import { DomainError } from "@/server/shared/errors"
 import { newId } from "@/server/shared/ids"
 
@@ -17,7 +17,7 @@ const need = (staff: StaffContext, permission: Permission) => {
 
 const clean = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ")
 
-export function createStaffSearch(deps: { search: SearchRepository; audit: Audit; revalidate: () => void }) {
+export function createStaffSearch(deps: { search: SearchOperations; audit: Audit; revalidate: () => void }) {
   const { search } = deps
   return {
     async report(staff: StaffContext, days: number) {

@@ -1,7 +1,8 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, asc, count, desc, eq, exists, getTableColumns, inArray, isNull, lt } from "drizzle-orm"
-import type { CartRepository } from "./repository"
+import type { CartOperations } from "./repository"
 import type { CartRow } from "./types"
 import { type Actor, type ActorScoped, requireCustomerOwner, requireGrant, requireStore } from "@/server/db/actor"
 import { database, type Database, withTransaction } from "@/server/db/client"
@@ -37,8 +38,8 @@ function assertOwnerAssignment(actor: Actor, customerId: string | null) {
   throw new DomainError("forbidden", "You don't have access to this account.")
 }
 
-export function createMysqlCartRepository(): ActorScoped<CartRepository> {
-  return {
+export function createMysqlCartRepository(): ActorScoped<CartOperations> {
+  return mysqlPolicy<CartOperations>({
     async findByTokenHash(actor, storeId, tokenHash) {
       requireStore(actor, storeId)
       const db = await database()
@@ -127,5 +128,5 @@ export function createMysqlCartRepository(): ActorScoped<CartRepository> {
       const [rows, [total]] = await Promise.all([db.select({ ...getTableColumns(carts), tokenHash: constant("") }).from(carts).where(where).orderBy(desc(carts.updatedAt), carts.id).limit(query.pageSize).offset((query.page - 1) * query.pageSize), db.select({ count: count() }).from(carts).where(where)])
       return { carts: await hydrate(db, rows), total: total.count }
     },
-  }
+  })
 }

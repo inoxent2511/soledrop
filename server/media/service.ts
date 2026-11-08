@@ -5,7 +5,7 @@ import sharp from "sharp"
 import type { RequestMeta } from "@/server/admin/service"
 import type { StaffContext } from "@/server/admin/types"
 import type { Permission } from "@/server/admin/permissions"
-import type { MediaRepository } from "@/server/media/repository"
+import type { MediaOperations } from "@/server/media/repository"
 import { mediaUrl, type MediaItem } from "@/server/media/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
@@ -58,7 +58,7 @@ const need = (staff: StaffContext, permission: Permission) => {
 export type MediaView = MediaItem & { url: string }
 const view = (item: MediaItem): MediaView => ({ ...item, url: mediaUrl(item) })
 
-export function createMediaService(deps: { media: MediaRepository; audit: Audit; usage: (storeId: string, url: string) => Promise<string[]> }) {
+export function createMediaService(deps: { media: MediaOperations; audit: Audit; usage: (storeId: string, url: string) => Promise<string[]> }) {
   const { media } = deps
   return {
     async list(staff: StaffContext, query: { q?: string; page: number; pageSize: number }) {

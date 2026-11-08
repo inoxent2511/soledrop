@@ -7,7 +7,7 @@ import type { CartService, Destination, ShopperContext } from "@/server/cart/ser
 import type { CartRow } from "@/server/cart/types"
 import type { CatalogService } from "@/server/catalog/service"
 import { validateCustomFields } from "@/server/custom-fields/validate"
-import type { OrderDraft, OrderRepository } from "@/server/orders/repository"
+import type { OrderDraft, OrderOperations } from "@/server/orders/repository"
 import { customerCanCancel, customerCanRequestReturn } from "@/server/orders/state-machine"
 import type { Address, Order, OrderLine, OrderStatus } from "@/server/orders/types"
 import { DomainError } from "@/server/shared/errors"
@@ -35,7 +35,7 @@ export type CheckoutResult = { order: Order; accessToken: string; next: PaymentN
 export type OrderViewer = { customerId: string | null; token: string | null }
 
 type Deps = {
-  orders: OrderRepository
+  orders: OrderOperations
   carts: CartService
   catalog: CatalogService
   payments: { get: (code: string) => PaymentProvider | undefined; available: () => Promise<PaymentProvider[]> }

@@ -7,7 +7,7 @@ import type { Permission } from "@/server/admin/permissions"
 import type { RequestMeta } from "@/server/admin/service"
 import type { StaffContext } from "@/server/admin/types"
 import { evaluatePromotions } from "@/server/promotions/evaluate"
-import type { PromotionRepository } from "@/server/promotions/repository"
+import type { PromotionOperations } from "@/server/promotions/repository"
 import type { Promotion } from "@/server/promotions/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId } from "@/server/shared/ids"
@@ -20,7 +20,7 @@ import { newId } from "@/server/shared/ids"
 
 type Audit = (staff: StaffContext, meta: RequestMeta, entry: { action: string; entity: string; entityId: string; before?: unknown; after?: unknown; reason?: string | null; storeId: string }) => Promise<void>
 
-type Deps = { promotions: PromotionRepository; orderNumber: (orderId: string) => Promise<string | null>; audit: Audit; revalidate: () => void }
+type Deps = { promotions: PromotionOperations; orderNumber: (orderId: string) => Promise<string | null>; audit: Audit; revalidate: () => void }
 
 export type PromotionState = "live" | "scheduled" | "ended" | "off" | "used_up"
 

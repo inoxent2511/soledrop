@@ -4,9 +4,9 @@ import type { ProductInput } from "@/features/admin/products/schema"
 import type { Permission } from "@/server/admin/permissions"
 import type { RequestMeta } from "@/server/admin/service"
 import type { StaffContext } from "@/server/admin/types"
-import type { CatalogRepository } from "@/server/catalog/repository"
+import type { CatalogOperations } from "@/server/catalog/repository"
 import { cardImage, type AdminProductQuery, type Collection, type CollectionRule, type Product, type ProductStatus } from "@/server/catalog/types"
-import type { InventoryRepository } from "@/server/inventory/repository"
+import type { InventoryOperations } from "@/server/inventory/repository"
 import type { PriceList, PriceRow } from "@/server/pricing/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
@@ -21,7 +21,7 @@ type Audit = (staff: StaffContext, meta: RequestMeta, entry: { action: string; e
 
 type Pricing = { priceLists: (storeId: string) => Promise<PriceList[]>; rawPrices: (variantIds: string[]) => Promise<PriceRow[]>; upsertPrices: (rows: PriceRow[]) => Promise<number> }
 
-type Deps = { catalog: CatalogRepository; pricing: Pricing; inventory: InventoryRepository; audit: Audit; revalidate: () => void; assertImages?: (storeId: string, urls: string[]) => Promise<void> }
+type Deps = { catalog: CatalogOperations; pricing: Pricing; inventory: InventoryOperations; audit: Audit; revalidate: () => void; assertImages?: (storeId: string, urls: string[]) => Promise<void> }
 
 const need = (staff: StaffContext, permission: Permission) => {
   if (!staff.permissions.includes(permission)) throw new DomainError("forbidden", "You don't have permission to do that.", { permission })

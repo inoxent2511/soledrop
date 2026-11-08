@@ -1,6 +1,7 @@
+import type { ActorScoped } from "@/server/db/actor"
 import type { SearchEvent, SearchReport, SynonymGroup, TrendingQuery } from "@/server/search/types"
 
-export interface SearchRepository {
+export interface SearchOperations {
   listSynonyms(storeId: string): Promise<SynonymGroup[]>
   /** Appends a search or click event; never read back by shoppers. */
   logEvent(storeId: string, event: SearchEvent): Promise<void>
@@ -14,3 +15,6 @@ export interface SearchRepository {
   saveSynonym(storeId: string, group: SynonymGroup): Promise<SynonymGroup>
   deleteSynonym(storeId: string, id: string): Promise<void>
 }
+
+/** Raw storage boundary; services receive explicitly bound operations. */
+export type SearchRepository = ActorScoped<SearchOperations>

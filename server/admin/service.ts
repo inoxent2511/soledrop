@@ -2,7 +2,7 @@ import "server-only"
 
 import { hashToken, newRecoveryCodes, newToken, sameTokenHash, seal, unseal } from "@/server/admin/crypto"
 import { ALL_PERMISSIONS, OWNER_ROLE_KEY, PERMISSIONS, PRESET_ROLES, isPermission, isSensitive, type Permission } from "@/server/admin/permissions"
-import type { AdminRepository } from "@/server/admin/repository"
+import type { AdminOperations } from "@/server/admin/repository"
 import { generateTotpSecret, otpauthUri, verifyTotp } from "@/server/admin/totp"
 import type { Role, StaffContext, StaffMember, StaffSession, StaffSummary } from "@/server/admin/types"
 import { decoyHash, hashPassword, passwordNeedsRehash, verifyPassword } from "@/server/customers/password"
@@ -36,7 +36,7 @@ const BAD_CODE = "That code didn't work. Check your authenticator app and try ag
 export type RequestMeta = { ip: string | null; userAgent: string | null; requestId: string | null }
 
 type Deps = {
-  repo: AdminRepository
+  repo: AdminOperations
   /** Fixed-window counter (platform.hit); returns the count after incrementing. */
   hit: (key: string, windowSeconds: number) => Promise<number>
   audit: (entry: Omit<AuditEntry, "id" | "at">) => Promise<void>

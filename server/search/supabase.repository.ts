@@ -1,11 +1,11 @@
 import "server-only"
 
 import { supabase, unwrap } from "@/server/db/supabase"
-import type { SearchRepository } from "@/server/search/repository"
+import type { SearchOperations } from "@/server/search/repository"
 import type { SynonymGroup, TrendingQuery } from "@/server/search/types"
 import { DomainError } from "@/server/shared/errors"
 
-export function createSupabaseSearchRepository(): SearchRepository {
+export function createSupabaseSearchRepository(): SearchOperations {
   return {
     async listSynonyms(storeId) {
       return unwrap(await supabase().from("search_synonyms").select("id, term, synonyms").eq("store_id", storeId).order("term")) as SynonymGroup[]

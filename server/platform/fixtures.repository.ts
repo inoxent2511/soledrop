@@ -4,12 +4,12 @@ import { sealDeliveryPayload } from "@/server/platform/private-payload"
 
 import { db } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
-import type { PlatformRepository } from "@/server/platform/repository"
+import type { PlatformOperations } from "@/server/platform/repository"
 import { newId, now } from "@/server/shared/ids"
 
 const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000
 
-export function createFixturesPlatformRepository(): PlatformRepository {
+export function createFixturesPlatformRepository(): PlatformOperations {
   return {
     async listFlags() {
       return db().flags

@@ -1,8 +1,9 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { createHash } from "node:crypto"
 import { and, asc, count, desc, eq, getTableColumns, gte, like, lt, lte, sql } from "drizzle-orm"
-import type { PlatformRepository } from "./repository"
+import type { PlatformOperations } from "./repository"
 import type { AuditEntry, EventTopic, FeatureFlag, OutboxEvent, WebhookDelivery } from "./types"
 import type { Permission } from "@/server/admin/permissions"
 import { type Actor, type ActorScoped, requireGrant, requireStore } from "@/server/db/actor"
@@ -25,8 +26,8 @@ function event(row: typeof outboxEvents.$inferSelect): OutboxEvent { return { id
 function audit(row: typeof auditLog.$inferSelect): AuditEntry { return { ...row, at: isoDate(row.at) } }
 function delivery(row: typeof webhookDeliveries.$inferSelect): WebhookDelivery { return { ...row, status: row.status as WebhookDelivery["status"], at: isoDate(row.at) } }
 
-export function createMysqlPlatformRepository(): ActorScoped<PlatformRepository> {
-  return {
+export function createMysqlPlatformRepository(): ActorScoped<PlatformOperations> {
+  return mysqlPolicy<PlatformOperations>({
     async listFlags(actor, storeId) {
       requireStore(actor, storeId)
       const db = await database()
@@ -157,5 +158,5 @@ export function createMysqlPlatformRepository(): ActorScoped<PlatformRepository>
       const [result] = await db.update(outboxEvents).set({ status: "pending", availableAt: sqlNow(), lastError: null }).where(and(eq(outboxEvents.storeId, actor.storeId), eq(outboxEvents.id, id), eq(outboxEvents.status, "failed")))
       if (!result.affectedRows) throw new DomainError("conflict", "Only failed events can be retried.")
     },
-  }
+  })
 }

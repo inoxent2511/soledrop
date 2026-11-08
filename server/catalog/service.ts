@@ -1,6 +1,6 @@
 import "server-only"
 
-import type { CatalogRepository } from "@/server/catalog/repository"
+import type { CatalogOperations } from "@/server/catalog/repository"
 import type {
   Collection,
   Facets,
@@ -12,7 +12,7 @@ import type {
   StockLevel,
   VariantPrice,
 } from "@/server/catalog/types"
-import type { InventoryRepository } from "@/server/inventory/repository"
+import type { InventoryOperations } from "@/server/inventory/repository"
 import type { PricingContext, PricingService } from "@/server/pricing/service"
 import { matchesAllRules } from "@/server/rules/engine"
 import { score, terms, type Searchable, type SynonymMap } from "@/server/search/match"
@@ -21,9 +21,9 @@ import { discountPercent } from "@/server/shared/money"
 export const DEFAULT_PAGE_SIZE = 9
 
 type Deps = {
-  catalog: CatalogRepository
+  catalog: CatalogOperations
   pricing: PricingService
-  inventory: InventoryRepository
+  inventory: InventoryOperations
   /** Merchant synonym groups for search (server/search); none when omitted. */
   synonyms?: (storeId: string) => Promise<SynonymMap>
 }

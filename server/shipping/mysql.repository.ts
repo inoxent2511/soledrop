@@ -1,7 +1,8 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, asc, eq, inArray } from "drizzle-orm"
-import type { ShippingRepository } from "./repository"
+import type { ShippingOperations } from "./repository"
 import type { ShippingZone } from "./types"
 import { type ActorScoped, requireGrant, requireStore } from "@/server/db/actor"
 import { database, withTransaction } from "@/server/db/client"
@@ -9,8 +10,8 @@ import { shippingRates, shippingZoneCities, shippingZoneCountries, shippingZones
 import { uuidv7 } from "@/server/db/uuid"
 import { DomainError } from "@/server/shared/errors"
 
-export function createMysqlShippingRepository(): ActorScoped<ShippingRepository> {
-  return {
+export function createMysqlShippingRepository(): ActorScoped<ShippingOperations> {
+  return mysqlPolicy<ShippingOperations>({
     async listZones(actor, storeId) {
       requireStore(actor, storeId)
       const db = await database()
@@ -64,5 +65,5 @@ export function createMysqlShippingRepository(): ActorScoped<ShippingRepository>
         return structuredClone(rates)
       })
     },
-  }
+  })
 }

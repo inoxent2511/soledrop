@@ -5,7 +5,7 @@ import { sealDeliveryPayload } from "@/server/platform/private-payload"
 import { db, transaction } from "@/server/fixtures/store"
 import type { FixtureTables } from "@/server/fixtures/tables"
 import { assertInventoryInvariants, releaseCartIn, releaseExpiredIn } from "@/server/inventory/fixtures.repository"
-import type { OrderRepository } from "@/server/orders/repository"
+import type { OrderOperations } from "@/server/orders/repository"
 import { canTransition, restocksOnTransition } from "@/server/orders/state-machine"
 import type { Order, OrderQuery, Payment } from "@/server/orders/types"
 import type { EventTopic } from "@/server/platform/types"
@@ -78,7 +78,7 @@ const SORTERS: Record<NonNullable<OrderQuery["sort"]>, (a: Order, b: Order) => n
   total_asc: (a, b) => a.total - b.total || b.placedAt.localeCompare(a.placedAt),
 }
 
-export function createFixturesOrderRepository(): OrderRepository {
+export function createFixturesOrderRepository(): OrderOperations {
   return {
     async placeOrder({ draft, cartId, promotionIds, event }) {
       return transaction((tables) => {

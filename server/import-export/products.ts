@@ -5,7 +5,7 @@ import { z } from "zod"
 import type { CatalogService } from "@/server/catalog/service"
 import { CONDITION_GRADES, type Product, type Variant } from "@/server/catalog/types"
 import { parseCsv, toCsv } from "@/server/import-export/csv"
-import type { InventoryRepository } from "@/server/inventory/repository"
+import type { InventoryOperations } from "@/server/inventory/repository"
 import type { PricingService } from "@/server/pricing/service"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
@@ -59,7 +59,7 @@ export type ImportReport = { products: number; variants: number; errors: { row: 
 
 const split = (value: string, separator = "|") => value.split(separator).map((item) => item.trim()).filter(Boolean)
 
-type Deps = { catalog: CatalogService; pricing: PricingService; inventory: InventoryRepository }
+type Deps = { catalog: CatalogService; pricing: PricingService; inventory: InventoryOperations }
 
 export function createProductTransfer({ catalog, pricing, inventory }: Deps) {
   async function baseList(storeId: string) {

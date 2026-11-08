@@ -1,7 +1,8 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { and, asc, desc, eq, getTableColumns, inArray, isNull, lte, or } from "drizzle-orm"
-import type { InventoryRepository, StockRequest } from "./repository"
+import type { InventoryOperations, StockRequest } from "./repository"
 import { type Actor, type ActorScoped, requireGrant } from "@/server/db/actor"
 import { database, type Database, withTransaction } from "@/server/db/client"
 import { auditLog, carts, inventoryLevels, inventoryMovements, inventoryReservations, products, stores, variants } from "@/server/db/schema"
@@ -65,8 +66,8 @@ function stockItems(items: StockRequest[]): StockRequest[] {
   return [...summed].sort(([a], [b]) => a.localeCompare(b)).map(([variantId, quantity]) => ({ variantId, quantity }))
 }
 
-export function createMysqlInventoryRepository(): ActorScoped<InventoryRepository> {
-  return {
+export function createMysqlInventoryRepository(): ActorScoped<InventoryOperations> {
+  return mysqlPolicy<InventoryOperations>({
     async availability(actor, variantIds, forCartId) {
       if (!variantIds.length) return new Map()
       const db = await database()
@@ -136,5 +137,5 @@ export function createMysqlInventoryRepository(): ActorScoped<InventoryRepositor
       const rows = await db.select(getTableColumns(inventoryMovements)).from(inventoryMovements).innerJoin(variants, eq(variants.id, inventoryMovements.variantId)).innerJoin(products, eq(products.id, variants.productId)).where(and(eq(products.storeId, actor.storeId), inArray(inventoryMovements.variantId, variantIds))).orderBy(desc(inventoryMovements.at)).limit(Math.min(1000, limit))
       return rows.map((row) => ({ ...row, at: isoDate(row.at) }))
     },
-  }
+  })
 }

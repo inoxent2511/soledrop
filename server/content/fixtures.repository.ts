@@ -1,11 +1,11 @@
 import "server-only"
 
-import type { ContentRepository } from "@/server/content/repository"
+import type { ContentOperations } from "@/server/content/repository"
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
 import { now } from "@/server/shared/ids"
 
-export function createFixturesContentRepository(): ContentRepository {
+export function createFixturesContentRepository(): ContentOperations {
   return {
     async home() { return structuredClone(db().home) },
     async saveHome(_storeId, content, expectedUpdatedAt) {

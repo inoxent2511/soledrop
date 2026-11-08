@@ -1,7 +1,7 @@
 import "server-only"
 
 import type { VariantPrice } from "@/server/catalog/types"
-import type { PricingRepository } from "@/server/pricing/repository"
+import type { PricingOperations } from "@/server/pricing/repository"
 import type { PriceList, PriceRow } from "@/server/pricing/types"
 import type { CurrencyCode } from "@/server/shared/money"
 
@@ -35,7 +35,7 @@ export function resolvePrices(lists: PriceList[], rows: PriceRow[], variantIds: 
   return result
 }
 
-export function createPricingService(repository: PricingRepository) {
+export function createPricingService(repository: PricingOperations) {
   return {
     async pricesFor(variantIds: string[], context: PricingContext) {
       const [lists, rows] = await Promise.all([repository.listPriceLists(context.storeId), repository.listPrices(variantIds)])

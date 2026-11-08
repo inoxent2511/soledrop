@@ -3,7 +3,7 @@ import "server-only"
 import type { Permission } from "@/server/admin/permissions"
 import type { RequestMeta } from "@/server/admin/service"
 import type { StaffContext } from "@/server/admin/types"
-import type { CustomerQuery, CustomerRepository } from "@/server/customers/repository"
+import type { CustomerQuery, CustomerOperations } from "@/server/customers/repository"
 import type { Customer, CustomerAddress, CustomerGroup } from "@/server/customers/types"
 import type { Order } from "@/server/orders/types"
 import { DomainError } from "@/server/shared/errors"
@@ -18,7 +18,7 @@ import { now } from "@/server/shared/ids"
 type Audit = (staff: StaffContext, meta: RequestMeta, entry: { action: string; entity: string; entityId: string; before?: unknown; after?: unknown; reason?: string | null; storeId: string }) => Promise<void>
 
 type Deps = {
-  customers: CustomerRepository
+  customers: CustomerOperations
   orders: { listForCustomer: (storeId: string, customerId: string) => Promise<Order[]>; anonymiseCustomer: (customerId: string) => Promise<number> }
   audit: Audit
   assertSteppedUp: (staff: StaffContext) => void
