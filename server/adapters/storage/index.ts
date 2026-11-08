@@ -8,7 +8,8 @@ export function storage(): StorageAdapter {
   if (!adapter) {
     const directory = process.env.STORAGE_DIR ?? (process.env.NODE_ENV !== "production" ? path.resolve(".data/mysql-uploads") : undefined)
     if (!directory) throw new Error("STORAGE_DIR must identify a persistent absolute directory outside the deployed application")
-    const root = path.resolve(directory), app = process.cwd()
+    // Uploaded objects are runtime data and must never be traced into a release bundle.
+    const root = path.resolve(/* turbopackIgnore: true */ directory), app = process.cwd()
     if (process.env.NODE_ENV === "production" && (root === app || root.startsWith(app + path.sep))) throw new Error("STORAGE_DIR must be outside the deployed application")
     adapter = new LocalDiskStorage(root)
   }

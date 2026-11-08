@@ -1,6 +1,8 @@
 import "server-only"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { catalogGuards, catalogProjections } from "@/server/db/fixture-guards.repository"
 
-import type { CatalogOperations } from "@/server/catalog/repository"
+import type { CatalogOperations, CatalogRepository } from "@/server/catalog/repository"
 import type { AdminProductQuery, Product } from "@/server/catalog/types"
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
@@ -14,8 +16,8 @@ function matchesAdmin(product: Product, query: AdminProductQuery): boolean {
   return true
 }
 
-export function createFixturesCatalogRepository(): CatalogOperations {
-  return {
+export function createFixturesCatalogRepository(): CatalogRepository {
+  const operations: CatalogOperations = {
     async listProducts(storeId) {
       return db().products.filter((product) => product.storeId === storeId && product.status === "active")
     },
@@ -52,6 +54,10 @@ export function createFixturesCatalogRepository(): CatalogOperations {
       })
     },
 
+    async reportProducts(storeId, page) {
+      if (!Number.isSafeInteger(page) || page < 1) throw new DomainError("validation", "Invalid page.")
+      return db().products.filter((row) => row.storeId === storeId).sort((a, b) => a.id.localeCompare(b.id)).slice((page - 1) * 1000, page * 1000)
+    },
     async searchProducts(storeId, query) {
       const found = db()
         .products.filter((product) => product.storeId === storeId && matchesAdmin(product, query))
@@ -145,4 +151,5 @@ export function createFixturesCatalogRepository(): CatalogOperations {
       })
     },
   }
+  return fixturePolicy<CatalogOperations>(operations, catalogGuards, catalogProjections)
 }

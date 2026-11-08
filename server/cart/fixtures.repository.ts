@@ -1,6 +1,8 @@
 import "server-only"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { cartGuards, cartProjections } from "@/server/db/fixture-guards.repository"
 
-import type { CartOperations } from "@/server/cart/repository"
+import type { CartOperations, CartRepository } from "@/server/cart/repository"
 import type { CartRow } from "@/server/cart/types"
 import { db, transaction } from "@/server/fixtures/store"
 import { releaseCartIn } from "@/server/inventory/fixtures.repository"
@@ -9,8 +11,8 @@ import { now } from "@/server/shared/ids"
 
 export const MAX_LINE_QUANTITY = 10
 
-export function createFixturesCartRepository(): CartOperations {
-  return {
+export function createFixturesCartRepository(): CartRepository {
+  const operations: CartOperations = {
     async findByTokenHash(storeId, tokenHash) {
       return structuredClone(db().carts.find((cart) => cart.storeId === storeId && cart.tokenHash === tokenHash && cart.status === "active") ?? null)
     },
@@ -73,4 +75,5 @@ export function createFixturesCartRepository(): CartOperations {
       return { carts: structuredClone(found.slice(start, start + query.pageSize)), total: found.length }
     },
   }
+  return fixturePolicy<CartOperations>(operations, cartGuards, cartProjections)
 }

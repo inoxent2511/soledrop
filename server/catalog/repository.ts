@@ -15,6 +15,8 @@ export interface CatalogOperations {
 
   // ─── Staff (admin A3): every status ───────────────────────────────────────
   searchProducts(storeId: string, query: AdminProductQuery): Promise<{ products: Product[]; total: number }>
+  /** Inventory reports include unpublished stock, without granting catalogue administration. */
+  reportProducts(storeId: string, page: number): Promise<Product[]>
   getProductById(storeId: string, id: string): Promise<Product | null>
   /**
    * save_product: creates or updates one product by id with its images, variants and collection

@@ -11,6 +11,7 @@ type Deps = {
   content: ContentOperations
   publish: (topic: EventTopic, payload: Record<string, unknown>) => Promise<unknown>
   secret: string
+  verifiedUnsubscribe?: (storeId: string, email: string) => Promise<void>
 }
 
 export function createContentService(deps: Deps) {
@@ -42,7 +43,7 @@ export function createContentService(deps: Deps) {
       const expected = Buffer.from(unsubscribeToken(normalised))
       const given = Buffer.from(token)
       if (expected.length !== given.length || !timingSafeEqual(expected, given)) return false
-      await content.unsubscribe(storeId, normalised)
+      await (deps.verifiedUnsubscribe ?? content.unsubscribe)(storeId, normalised)
       return true
     },
 

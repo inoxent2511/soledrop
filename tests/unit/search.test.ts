@@ -1,3 +1,7 @@
+import { bindActor } from "@/server/db/bind"
+import { systemActor } from "@/server/db/actor"
+import { ALL_PERMISSIONS } from "@/server/admin/permissions"
+import type { SearchOperations } from "@/server/search/repository"
 import { createElement, Fragment } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { beforeEach, describe, expect, it } from "vitest"
@@ -123,7 +127,7 @@ describe("search service (fixtures driver)", () => {
   beforeEach(() => resetFixtures())
 
   it("builds a symmetric, folded synonym map", async () => {
-    const map = await createSearchService({ search: createFixturesSearchRepository() }).synonymMap(STORE_ID)
+    const map = await createSearchService({ search: bindActor<SearchOperations>(createFixturesSearchRepository(), () => systemActor(STORE_ID, "migration", ALL_PERMISSIONS)) }).synonymMap(STORE_ID)
     expect(map.get("trainers")).toContain("sneakers")
     expect(map.get("sneakers")).toContain("trainers")
     expect(map.get("preloved")).toContain("pre loved")
@@ -131,7 +135,7 @@ describe("search service (fixtures driver)", () => {
 
   it("ranks trending by successful searches in the last 30 days and tops up from the curated list", async () => {
     const now = new Date("2026-11-04T12:00:00Z")
-    const service = createSearchService({ search: createFixturesSearchRepository(), now: () => now })
+    const service = createSearchService({ search: bindActor<SearchOperations>(createFixturesSearchRepository(), () => systemActor(STORE_ID, "migration", ALL_PERMISSIONS)), now: () => now })
     await service.logSearch(STORE_ID, "Air Max", 4, "overlay")
     await service.logSearch(STORE_ID, "air max", 4, "page")
     await service.logSearch(STORE_ID, "Kayano", 2, "overlay")
@@ -144,7 +148,7 @@ describe("search service (fixtures driver)", () => {
   })
 
   it("does not log blank queries and trims long ones", async () => {
-    const service = createSearchService({ search: createFixturesSearchRepository() })
+    const service = createSearchService({ search: bindActor<SearchOperations>(createFixturesSearchRepository(), () => systemActor(STORE_ID, "migration", ALL_PERMISSIONS)) })
     await service.logSearch(STORE_ID, "  !!  ", 0, "overlay")
     await service.logSearch(STORE_ID, "a".repeat(300), 0, "overlay")
     expect(db().searchEvents).toHaveLength(1)

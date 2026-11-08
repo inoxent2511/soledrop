@@ -1,4 +1,6 @@
 import "server-only"
+import { mysqlPolicy } from "@/server/db/policy.repository"
+import type { ActorBound } from "@/server/db/actor"
 
 import { and, desc, eq, getTableColumns, gt, isNull } from "drizzle-orm"
 import type { CustomerAuthRepository, CustomerSecurity } from "./auth"
@@ -20,7 +22,7 @@ async function lockCustomer(db: Database, actor: Actor, customerId: string) {
 const security = (row?: typeof customerSecurity.$inferSelect): CustomerSecurity => ({ emailVerifiedAt: nullableIsoDate(row?.emailVerifiedAt ?? null), failedLogins: row?.failedLogins ?? 0, lockedUntil: nullableIsoDate(row?.lockedUntil ?? null) })
 
 export function createMysqlCustomerAuthRepository(): CustomerAuthRepository {
-  return {
+  return mysqlPolicy<ActorBound<CustomerAuthRepository>>({
     async security(actor, customerId) {
       requireSystem(actor, ["auth:customer", "migration"])
       const db = await database()
@@ -113,5 +115,5 @@ export function createMysqlCustomerAuthRepository(): CustomerAuthRepository {
         await db.insert(oauthAccounts).values({ id: uuidv7(), customerId, provider, subject })
       })
     },
-  }
+  })
 }

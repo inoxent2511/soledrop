@@ -1,16 +1,20 @@
 import "server-only"
+import { currentActor } from "@/server/db/context"
+import { scopedKey } from "./scoped-key"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { platformGuards, platformProjections } from "@/server/db/fixture-private-guards.repository"
 import { serverEnv } from "@/lib/env.server"
 import { sealDeliveryPayload } from "@/server/platform/private-payload"
 
 import { db } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
-import type { PlatformOperations } from "@/server/platform/repository"
+import type { PlatformOperations, PlatformRepository } from "@/server/platform/repository"
 import { newId, now } from "@/server/shared/ids"
 
 const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000
 
-export function createFixturesPlatformRepository(): PlatformOperations {
-  return {
+export function createFixturesPlatformRepository(): PlatformRepository {
+  const operations: PlatformOperations = {
     async listFlags() {
       return db().flags
     },
@@ -52,6 +56,8 @@ export function createFixturesPlatformRepository(): PlatformOperations {
       return db().audit.filter((entry) => entry.entity === entity && entry.entityId === entityId)
     },
     async hit(key, windowSeconds) {
+      if (!Number.isInteger(windowSeconds) || windowSeconds < 1 || windowSeconds > 86400) throw new TypeError("Invalid rate-limit window")
+      key = scopedKey(currentActor(), key)
       const limits = db().rateLimits
       const windowStart = Math.floor(Date.now() / (windowSeconds * 1000))
       const current = limits.get(key)
@@ -60,11 +66,14 @@ export function createFixturesPlatformRepository(): PlatformOperations {
       return next.count
     },
     async getIdempotent(key) {
+      key = scopedKey(currentActor(), key, true)
       const entry = db().idempotency.get(key)
       if (!entry || Date.now() - entry.at > IDEMPOTENCY_TTL_MS) return null
       return { status: entry.status, body: entry.body }
     },
     async saveIdempotent(key, status, body) {
+      key = scopedKey(currentActor(), key, true)
+      if (db().idempotency.has(key)) return
       db().idempotency.set(key, { status, body, at: Date.now() })
     },
     async ping() {
@@ -107,4 +116,5 @@ export function createFixturesPlatformRepository(): PlatformOperations {
       event.lastError = null
     },
   }
+  return fixturePolicy<PlatformOperations>(operations, platformGuards, platformProjections)
 }

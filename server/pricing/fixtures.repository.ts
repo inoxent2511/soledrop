@@ -1,11 +1,13 @@
 import "server-only"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { pricingGuards } from "@/server/db/fixture-guards.repository"
 
 import { db, transaction } from "@/server/fixtures/store"
-import type { PricingOperations } from "@/server/pricing/repository"
+import type { PricingOperations, PricingRepository } from "@/server/pricing/repository"
 import { DomainError } from "@/server/shared/errors"
 
-export function createFixturesPricingRepository(): PricingOperations {
-  return {
+export function createFixturesPricingRepository(): PricingRepository {
+  const operations: PricingOperations = {
     async listPriceLists() {
       return db().priceLists
     },
@@ -28,4 +30,5 @@ export function createFixturesPricingRepository(): PricingOperations {
       })
     },
   }
+  return fixturePolicy<PricingOperations>(operations, pricingGuards)
 }

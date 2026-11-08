@@ -5,6 +5,8 @@ import { timingSafeEqual } from "node:crypto"
 import { serverEnv } from "@/lib/env.server"
 import { errorResponse } from "@/server/http/route"
 import { DomainError } from "@/server/shared/errors"
+import { withActor } from "@/server/db/context"
+import { systemActor } from "@/server/db/actor"
 
 /**
  * Scheduled jobs are plain POST endpoints guarded by `Authorization: Bearer $JOBS_SECRET`, so
@@ -17,7 +19,7 @@ export function job(work: () => Promise<Record<string, unknown>>) {
       const expected = Buffer.from(serverEnv.JOBS_SECRET)
       if (given.length !== expected.length || !timingSafeEqual(given, expected)) throw new DomainError("unauthorized", "Invalid job credentials.")
       const started = Date.now()
-      const result = await work()
+      const result = await withActor(systemActor(serverEnv.STORE_ID, "jobs", ["jobs:run"]), work)
       return Response.json({ ok: true, ...result, durationMs: Date.now() - started }, { headers: { "cache-control": "no-store" } })
     } catch (error) {
       return errorResponse(error)

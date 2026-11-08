@@ -5,8 +5,8 @@ import path from "node:path"
 import sharp from "sharp"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { ALL_PERMISSIONS } from "@/server/admin/permissions"
-import type { StaffContext } from "@/server/admin/types"
+import { fixtureStaff } from "@/tests/helpers/staff"
+
 import { catalogRepository, staffCatalog } from "@/server/catalog"
 import { contentRepository, staffContent } from "@/server/content"
 import { emptyHome } from "@/server/content/home-types"
@@ -86,7 +86,7 @@ describe("saved local store", () => {
   it("persists admin uploads, product publishing, homepage content and deletion across restarts", async () => {
     serverEnv.DATA_DRIVER = "local"; serverEnv.LOCAL_DATA_DIR = temporary()
     const storeId = serverEnv.STORE_ID
-    const staff: StaffContext = { member: { userId: "local-owner", storeId, email: "owner@example.com", displayName: "Owner", status: "active", totpEnabledAt: new Date().toISOString() }, session: { id: "local-session", aal: 2, mfaAt: new Date().toISOString(), createdAt: new Date().toISOString(), expiresAt: "2099-01-01T00:00:00Z" }, roles: [], permissions: [...ALL_PERMISSIONS], refundLimit: null }
+    const staff = fixtureStaff("owner", true, storeId)
     const meta = { ip: "127.0.0.1", userAgent: "test", requestId: "local-test" }
     expect(await catalogRepository().listProducts(storeId)).toEqual([])
     expect(await contentRepository().home(storeId)).toBeNull()

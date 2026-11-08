@@ -1,4 +1,5 @@
 import "server-only"
+import { staffService } from "@/server/db/staff-service"
 
 import { refreshStorefront } from "@/server/shared/revalidate"
 import { adminService } from "@/server/admin"
@@ -26,22 +27,23 @@ const audit = (
 ) => adminService().recordAudit(...args)
 
 export const reports = () =>
-  createReports({
+  staffService(createReports({
     orders: orderService(),
-    products: async (storeId) =>
-      (
-        await catalogRepository().searchProducts(storeId, {
-          page: 1,
-          pageSize: 100_000,
-        })
-      ).products,
-    levels: (variantIds) => inventory().levels(variantIds),
+    products: async (storeId) => {
+      const products = []
+      for (let page = 1; ; page++) {
+        const rows = await catalogRepository().reportProducts(storeId, page)
+        products.push(...rows)
+        if (rows.length < 1000) return products
+      }
+    },
+    levels: (variantIds) => inventory().reportLevels(variantIds),
     pricing: pricing(),
     audit: (staff, meta, entry) => audit(staff, meta, entry),
-  })
+  }))
 
 export const staffMarketing = () =>
-  createStaffMarketing({
+  staffService(createStaffMarketing({
     content: contentRepository(),
     carts: cartRepository(),
     products: (variantIds) =>
@@ -50,17 +52,17 @@ export const staffMarketing = () =>
     pricing: pricing(),
     audit: (staff, meta, entry) => audit(staff, meta, entry),
     assertSteppedUp: (staff) => adminService().assertSteppedUp(staff),
-  })
+  }))
 
 export const staffSearch = () =>
-  createStaffSearch({
+  staffService(createStaffSearch({
     search: searchRepository(),
     audit: (staff, meta, entry) => audit(staff, meta, entry),
     revalidate: () => refreshStorefront(),
-  })
+  }))
 
 export const staffPlatform = () =>
-  createStaffPlatform({
+  staffService(createStaffPlatform({
     platform: platform(),
     audit: (staff, meta, entry) => audit(staff, meta, entry),
     jobs: {
@@ -71,6 +73,6 @@ export const staffPlatform = () =>
     overrides: envOverrides,
     paymentProviders: () => orderService().providers(),
     revalidate: () => refreshStorefront(),
-  })
+  }))
 
-export const insights = () => createInsights({ orders: staffOrders(), catalog: staffCatalog(), customers: staffCustomers(), platform: platform() })
+export const insights = () => staffService(createInsights({ orders: staffOrders(), catalog: staffCatalog(), customers: staffCustomers(), platform: platform() }))

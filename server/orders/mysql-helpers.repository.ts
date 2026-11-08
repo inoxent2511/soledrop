@@ -19,7 +19,7 @@ export function orderOwnerScope(db: Database, actor: Actor, permission: "orders:
   const token = actor.orderAccessTokenHash ? eq(orders.accessTokenHash, actor.orderAccessTokenHash) : undefined
   const own = actor.kind === "customer" ? eq(orders.customerId, actor.id) : undefined
   const cart = actor.cartTokenHash ? exists(db.select({ id: carts.id }).from(carts).where(and(eq(carts.id, orders.checkoutCartId), eq(carts.storeId, actor.storeId), eq(carts.tokenHash, actor.cartTokenHash), actor.kind === "customer" ? or(eq(carts.customerId, actor.id), sql.fromList([carts.customerId, sql.raw(" IS NULL")])) : sql.fromList([carts.customerId, sql.raw(" IS NULL")])))) : undefined
-  const lookup = actor.kind === "anonymous" && actor.orderLookup ? and(eq(orders.number, actor.orderLookup.number), eq(orders.email, actor.orderLookup.email.trim().toLowerCase())) : undefined
+  const lookup = actor.orderLookup ? and(eq(orders.number, actor.orderLookup.number), eq(orders.email, actor.orderLookup.email.trim().toLowerCase())) : undefined
   if (!token && !own && !cart && !lookup) throw new DomainError("forbidden", "You don't have access to this order.")
   return or(token, own, cart, lookup)
 }

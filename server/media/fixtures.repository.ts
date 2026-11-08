@@ -1,11 +1,13 @@
 import "server-only"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { mediaGuards } from "@/server/db/fixture-guards.repository"
 
 import fs from "node:fs"
 
 import { db, localStore, transaction } from "@/server/fixtures/store"
 import { serverEnv } from "@/lib/env.server"
 import { localMediaFile, writeLocalMedia } from "@/server/db/local-media"
-import type { MediaOperations } from "@/server/media/repository"
+import type { MediaOperations, MediaRepository } from "@/server/media/repository"
 import { DomainError } from "@/server/shared/errors"
 
 /**
@@ -18,8 +20,8 @@ function localFile(key: string) {
   return localMediaFile(localStore().directory, key)
 }
 
-export function createFixturesMediaRepository(): MediaOperations {
-  return {
+export function createFixturesMediaRepository(): MediaRepository {
+  const operations: MediaOperations = {
     async hasOrderUsage(storeId, url) {
       return db().orders.some((order) => order.storeId === storeId && order.lines.some((line) => line.imageUrl === url))
     },
@@ -62,6 +64,7 @@ export function createFixturesMediaRepository(): MediaOperations {
       if (serverEnv.DATA_DRIVER !== "local") files.delete(item.path)
     },
     async read(path) {
+      if (!db().media.some((row) => row.path === path)) return null
       if (serverEnv.DATA_DRIVER === "local") {
         const file = localFile(path)
         return fs.existsSync(file) ? new Uint8Array(fs.readFileSync(file)) : null
@@ -69,4 +72,5 @@ export function createFixturesMediaRepository(): MediaOperations {
       return files.get(path) ?? null
     },
   }
+  return fixturePolicy<MediaOperations>(operations, mediaGuards)
 }

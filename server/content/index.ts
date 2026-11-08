@@ -1,4 +1,6 @@
 import "server-only"
+import { createMysqlContentRepository } from "@/server/content/mysql.repository"
+import { staffService } from "@/server/db/staff-service"
 
 import { refreshStorefront } from "@/server/shared/revalidate"
 import { serverEnv } from "@/lib/env.server"
@@ -10,8 +12,10 @@ import { createSupabaseContentRepository } from "@/server/content/supabase.repos
 import { localService, selectRepository } from "@/server/db/driver"
 import { assertMediaReferences } from "@/server/media/validate"
 import { publish } from "@/server/platform/events"
+import { systemActor } from "@/server/db/actor"
+import { currentActor, withActor } from "@/server/db/context"
 
-const repository = selectRepository({
+const repository = selectRepository({ mysql: createMysqlContentRepository,
   fixtures: createFixturesContentRepository,
   supabase: createSupabaseContentRepository,
 })
@@ -24,16 +28,17 @@ export const contentService = () =>
     content: repository(),
     publish,
     secret: serverEnv.SESSION_SECRET,
+    verifiedUnsubscribe: (storeId, email) => withActor(systemActor(currentActor().storeId, "auth:customer"), () => repository().unsubscribe(storeId, email)),
   })
 
 /** Staff (admin) pages and FAQs. */
 export const staffContent = () =>
-  localService(createStaffContent({
+  staffService(localService(createStaffContent({
     assertImages: assertMediaReferences,
     content: repository(),
     audit: (staff, meta, entry) =>
       adminService().recordAudit(staff, meta, entry),
     revalidate: () => refreshStorefront(),
-  }))
+  })))
 
 export type * from "@/server/content/types"

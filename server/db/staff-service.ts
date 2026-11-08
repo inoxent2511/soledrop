@@ -10,7 +10,10 @@ export function staffService<T extends object>(service: T): T {
     get(target, property, receiver) {
       const operation: unknown = Reflect.get(target, property, receiver)
       if (typeof operation !== "function") return operation
-      return (staff: StaffContext, ...args: unknown[]) => withActor(staffActor(staff), () => Reflect.apply(operation, target, [staff, ...args]))
+      return (staff: StaffContext, ...args: unknown[]) => {
+        if (!staff || typeof staff !== "object" || !("member" in staff) || !("session" in staff)) return Reflect.apply(operation, target, [staff, ...args])
+        return withActor(staffActor(staff), () => Reflect.apply(operation, target, [staff, ...args]))
+      }
     },
   })
 }

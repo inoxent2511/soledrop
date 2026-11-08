@@ -12,7 +12,10 @@ const optionalSecret = z.string().min(1).optional()
 const serverSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-    DATA_DRIVER: z.enum(["local", "fixtures", "supabase"]).default("local"),
+    DATA_DRIVER: z.enum(["local", "fixtures", "mysql", "supabase"]).default("local"),
+    DATABASE_URL: optionalSecret,
+    DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(50).default(5),
+    DATABASE_SSL: z.enum(["true", "false"]).default("false"),
     LOCAL_DATA_DIR: z.string().min(1).default(".data/store"),
     SUPABASE_URL: z.url().optional(),
     SUPABASE_SERVICE_ROLE_KEY: optionalSecret,
@@ -54,6 +57,7 @@ const serverSchema = z
     OIDC_CLIENT_SECRET: optionalSecret,
   })
   .superRefine((env, context) => {
+    if (env.DATA_DRIVER === "mysql" && !env.DATABASE_URL) context.addIssue({ code: "custom", message: "DATA_DRIVER=mysql requires DATABASE_URL" })
     const oidc = [env.OIDC_ISSUER, env.OIDC_CLIENT_ID, env.OIDC_CLIENT_SECRET]
     if (oidc.some(Boolean) && !oidc.every(Boolean)) context.addIssue({ code: "custom", message: "OIDC needs OIDC_ISSUER, OIDC_CLIENT_ID and OIDC_CLIENT_SECRET together" })
     if (env.DATA_DRIVER === "supabase" && (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY)) {

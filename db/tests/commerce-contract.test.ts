@@ -41,14 +41,14 @@ import { connect, engines } from "./connections"
 const hash = (value: string) => createHash("sha256").update(value).digest("hex")
 for (const [engine, configuration] of [["fixtures", null] as const, ...engines] as const) describe(engine + " identity/commerce/jobs contract", () => {
   const fixture = engine === "fixtures", storeId = uuidv7(), actor = systemActor(storeId, "migration", ALL_PERMISSIONS), resolve = () => actor
-  const admin: AdminOperations = fixture ? createFixturesAdminRepository() : bindActor<AdminOperations>(createMysqlAdminRepository(), resolve)
+  const admin: AdminOperations = bindActor<AdminOperations>(fixture ? createFixturesAdminRepository() : createMysqlAdminRepository(), resolve)
   const customers: CustomerOperations = bindActor<CustomerOperations>(fixture ? createFixturesCustomerRepository() : createMysqlCustomerRepository(), resolve)
-  const carts: CartOperations = fixture ? createFixturesCartRepository() : bindActor<CartOperations>(createMysqlCartRepository(), resolve)
-  const catalog: CatalogOperations = fixture ? createFixturesCatalogRepository() : bindActor<CatalogOperations>(createMysqlCatalogRepository(), resolve)
-  const inventory: InventoryOperations = fixture ? createFixturesInventoryRepository() : bindActor<InventoryOperations>(createMysqlInventoryRepository(), resolve)
-  const orders: OrderOperations = fixture ? createFixturesOrderRepository() : bindActor<OrderOperations>(createMysqlOrderRepository(), resolve)
-  const platform: PlatformOperations = fixture ? createFixturesPlatformRepository() : bindActor<PlatformOperations>(createMysqlPlatformRepository(), resolve)
-  const search: SearchOperations = fixture ? createFixturesSearchRepository() : bindActor<SearchOperations>(createMysqlSearchRepository(), resolve)
+  const carts: CartOperations = bindActor<CartOperations>(fixture ? createFixturesCartRepository() : createMysqlCartRepository(), resolve)
+  const catalog: CatalogOperations = bindActor<CatalogOperations>(fixture ? createFixturesCatalogRepository() : createMysqlCatalogRepository(), resolve)
+  const inventory: InventoryOperations = bindActor<InventoryOperations>(fixture ? createFixturesInventoryRepository() : createMysqlInventoryRepository(), resolve)
+  const orders: OrderOperations = bindActor<OrderOperations>(fixture ? createFixturesOrderRepository() : createMysqlOrderRepository(), resolve)
+  const platform: PlatformOperations = bindActor<PlatformOperations>(fixture ? createFixturesPlatformRepository() : createMysqlPlatformRepository(), resolve)
+  const search: SearchOperations = bindActor<SearchOperations>(fixture ? createFixturesSearchRepository() : createMysqlSearchRepository(), resolve)
   const variantId = uuidv7(), productId = uuidv7(), customerId = uuidv7(), ownerId = uuidv7(), secondOwnerId = uuidv7(), at = new Date().toISOString()
   let customer: Customer, cart: CartRow, order: Order
   let draft: OrderDraft
@@ -245,6 +245,49 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     expect(await raw.findByEmail(foreign, otherStore, customer.email)).toBeNull()
     await expect(raw.findByEmail(foreign, storeId, customer.email)).rejects.toMatchObject({ code: "forbidden" })
     expect((await customers.findById(customerId))?.fullName).toBe("Contract Customer")
+  })
+
+  it("prevents another customer from reading or changing carts, orders, returns and cached private responses", async () => {
+    const before = await orders.findById(order.id)
+    const outsider = await customers.create({ ...customer, id: uuidv7(), email: "outsider@example.test" })
+    const mine: Actor = { kind: "customer", id: customerId, email: customer.email, storeId, permissions: [], mfaVerifiedAt: null }
+    const other: Actor = { ...mine, id: outsider.id, email: outsider.email }
+    const rawOrders = fixture ? createFixturesOrderRepository() : createMysqlOrderRepository()
+    const rawCarts = fixture ? createFixturesCartRepository() : createMysqlCartRepository()
+    const rawPlatform = fixture ? createFixturesPlatformRepository() : createMysqlPlatformRepository()
+    expect((await rawOrders.findById(mine, order.id))?.id).toBe(order.id)
+    expect(await rawOrders.findById(other, order.id)).toBeNull()
+    expect(await rawOrders.findByNumber(other, storeId, order.number)).toBeNull()
+    expect(await rawOrders.findByIdempotencyKey(other, storeId, order.idempotencyKey)).toBeNull()
+    expect(await rawOrders.listByEmail(other, storeId, customer.email)).toEqual([])
+    await expect(rawOrders.listByCustomer(other, storeId, customerId)).rejects.toMatchObject({ code: "forbidden" })
+    await expect(rawOrders.transition(other, order.id, "cancelled", outsider.id)).rejects.toMatchObject({ code: "not_found" })
+    await expect(rawOrders.createReturn(other, { orderId: order.id, lines: [{ orderLineId: order.lines[0].id, quantity: 1 }], reason: "Foreign return" })).rejects.toMatchObject({ code: "not_found" })
+    expect(await rawCarts.findById(other, cart.id)).toBeNull()
+    await expect(rawCarts.save(other, cart)).rejects.toMatchObject({ code: "forbidden" })
+    await rawPlatform.saveIdempotent(mine, "same-key", 200, { private: customer.email })
+    expect(await rawPlatform.getIdempotent(other, "same-key")).toBeNull()
+    await rawPlatform.saveIdempotent(mine, "same-key", 201, { replaced: true })
+    expect(await rawPlatform.getIdempotent(mine, "same-key")).toEqual({ status: 200, body: { private: customer.email } })
+    expect(await orders.findById(order.id)).toEqual(before)
+  })
+
+  it("requires the actual guest cart or order proof for replay and hides it across stores", async () => {
+    const rawOrders = fixture ? createFixturesOrderRepository() : createMysqlOrderRepository()
+    const rawCarts = fixture ? createFixturesCartRepository() : createMysqlCartRepository()
+    const guestCart = await carts.create({ ...cart, id: uuidv7(), customerId: null, tokenHash: hash(uuidv7()), status: "active", lines: [{ ...cart.lines[0], id: uuidv7() }] })
+    const guest = { ...anonymousActor(storeId), cartTokenHash: guestCart.tokenHash }
+    const input = { cartId: guestCart.id, draft: { ...draft, customerId: null, lines: draft.lines.map((line) => ({ ...line, id: uuidv7() })), idempotencyKey: uuidv7(), accessTokenHash: hash(uuidv7()) }, promotionIds: [], event: { topic: "order.placed" as const, payload: {} } }
+    const placed = await rawOrders.placeOrder(guest, input)
+    expect((await rawOrders.findByIdempotencyKey(guest, storeId, input.draft.idempotencyKey))?.id).toBe(placed.order.id)
+    const stranger = { ...anonymousActor(storeId), cartTokenHash: hash(uuidv7()) }
+    expect(await rawOrders.findById(stranger, placed.order.id)).toBeNull()
+    expect(await rawOrders.findByIdempotencyKey(stranger, storeId, input.draft.idempotencyKey)).toBeNull()
+    await expect(rawOrders.placeOrder(stranger, input)).rejects.toMatchObject({ code: "not_found" })
+    expect(await rawCarts.findById(stranger, guestCart.id)).toBeNull()
+    const link = { ...anonymousActor(storeId), orderAccessTokenHash: input.draft.accessTokenHash }
+    expect((await rawOrders.findById(link, placed.order.id))?.id).toBe(placed.order.id)
+    expect(await rawOrders.findById({ ...link, storeId: uuidv7() }, placed.order.id)).toBeNull()
   })
 
   it("anonymises history and scrubs credentials/addresses without losing accounting totals", async () => {

@@ -1,12 +1,14 @@
 import "server-only"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { contentGuards } from "@/server/db/fixture-guards.repository"
 
-import type { ContentOperations } from "@/server/content/repository"
+import type { ContentOperations, ContentRepository } from "@/server/content/repository"
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
 import { now } from "@/server/shared/ids"
 
-export function createFixturesContentRepository(): ContentOperations {
-  return {
+export function createFixturesContentRepository(): ContentRepository {
+  const operations: ContentOperations = {
     async home() { return structuredClone(db().home) },
     async saveHome(_storeId, content, expectedUpdatedAt) {
       return transaction((tables) => {
@@ -96,4 +98,5 @@ export function createFixturesContentRepository(): ContentOperations {
       return { subscribers: structuredClone(found.slice(start, start + query.pageSize)), total: found.length }
     },
   }
+  return fixturePolicy<ContentOperations>(operations, contentGuards)
 }

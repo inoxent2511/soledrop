@@ -1,3 +1,7 @@
+import { currentActor } from "@/server/db/context"
+import { bindActor } from "@/server/db/bind"
+import type { ContentOperations } from "@/server/content/repository"
+import { staffService } from "@/server/db/staff-service"
 import { fixtureStaff } from "@/tests/helpers/staff"
 import { beforeEach, describe, expect, it } from "vitest"
 
@@ -19,7 +23,7 @@ function staffAs(roleKey: string): StaffContext {
   return fixtureStaff(roleKey)
 }
 
-const content = () => createStaffContent({ content: createFixturesContentRepository(), audit: async (_s, _m, entry) => void audits.push(entry.action), revalidate: () => undefined })
+const content = () => staffService(createStaffContent({ content: bindActor<ContentOperations>(createFixturesContentRepository(), currentActor), audit: async (_s, _m, entry) => void audits.push(entry.action), revalidate: () => undefined }))
 const page = (slug = "size-help") => pageInput.parse({ slug, title: "Size help", description: "Finding your size", blocks: [{ type: "heading", text: "Measure", level: 2 }, { type: "paragraph", text: "Stand on paper." }], seo: {} })
 
 beforeEach(() => {

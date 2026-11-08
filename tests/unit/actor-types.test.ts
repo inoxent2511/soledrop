@@ -1,3 +1,27 @@
+import type { createFixturesShippingRepository } from "@/server/shipping/fixtures.repository"
+import type { createMysqlShippingRepository } from "@/server/shipping/mysql.repository"
+import type { createFixturesSearchRepository } from "@/server/search/fixtures.repository"
+import type { createMysqlSearchRepository } from "@/server/search/mysql.repository"
+import type { createFixturesPromotionRepository } from "@/server/promotions/fixtures.repository"
+import type { createMysqlPromotionRepository } from "@/server/promotions/mysql.repository"
+import type { createFixturesPricingRepository } from "@/server/pricing/fixtures.repository"
+import type { createMysqlPricingRepository } from "@/server/pricing/mysql.repository"
+import type { createFixturesPlatformRepository } from "@/server/platform/fixtures.repository"
+import type { createMysqlPlatformRepository } from "@/server/platform/mysql.repository"
+import type { createFixturesOrderRepository } from "@/server/orders/fixtures.repository"
+import type { createMysqlOrderRepository } from "@/server/orders/mysql.repository"
+import type { createFixturesMediaRepository } from "@/server/media/fixtures.repository"
+import type { createMysqlMediaRepository } from "@/server/media/mysql.repository"
+import type { createFixturesInventoryRepository } from "@/server/inventory/fixtures.repository"
+import type { createMysqlInventoryRepository } from "@/server/inventory/mysql.repository"
+import type { createFixturesContentRepository } from "@/server/content/fixtures.repository"
+import type { createMysqlContentRepository } from "@/server/content/mysql.repository"
+import type { createFixturesCatalogRepository } from "@/server/catalog/fixtures.repository"
+import type { createMysqlCatalogRepository } from "@/server/catalog/mysql.repository"
+import type { createFixturesCartRepository } from "@/server/cart/fixtures.repository"
+import type { createMysqlCartRepository } from "@/server/cart/mysql.repository"
+import type { createFixturesAdminRepository } from "@/server/admin/fixtures.repository"
+import type { createMysqlAdminRepository } from "@/server/admin/mysql.repository"
 import { describe, expectTypeOf, it } from "vitest"
 import type { Actor } from "@/server/db/actor"
 import type { AdminRepository } from "@/server/admin/repository"
@@ -24,7 +48,31 @@ describe("required raw actor types", () => {
   it("requires the actor on every operation in all thirteen repository interfaces", () => {
     expectTypeOf<EveryRepository<Repositories>>().toEqualTypeOf<true>()
   })
-  it("keeps both customer storage factories behind the required-actor contract", () => {
+  it("keeps all twenty-six storage factories behind the required-actor contract", () => {
+    expectTypeOf<ReturnType<typeof createFixturesAdminRepository>>().toEqualTypeOf<AdminRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlAdminRepository>>().toEqualTypeOf<AdminRepository>()
+    expectTypeOf<ReturnType<typeof createFixturesCartRepository>>().toEqualTypeOf<CartRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlCartRepository>>().toEqualTypeOf<CartRepository>()
+    expectTypeOf<ReturnType<typeof createFixturesCatalogRepository>>().toEqualTypeOf<CatalogRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlCatalogRepository>>().toEqualTypeOf<CatalogRepository>()
+    expectTypeOf<ReturnType<typeof createFixturesContentRepository>>().toEqualTypeOf<ContentRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlContentRepository>>().toEqualTypeOf<ContentRepository>()
+    expectTypeOf<ReturnType<typeof createFixturesInventoryRepository>>().toEqualTypeOf<InventoryRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlInventoryRepository>>().toEqualTypeOf<InventoryRepository>()
+    expectTypeOf<ReturnType<typeof createFixturesMediaRepository>>().toEqualTypeOf<MediaRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlMediaRepository>>().toEqualTypeOf<MediaRepository>()
+    expectTypeOf<ReturnType<typeof createFixturesOrderRepository>>().toEqualTypeOf<OrderRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlOrderRepository>>().toEqualTypeOf<OrderRepository>()
+    expectTypeOf<ReturnType<typeof createFixturesPlatformRepository>>().toEqualTypeOf<PlatformRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlPlatformRepository>>().toEqualTypeOf<PlatformRepository>()
+    expectTypeOf<ReturnType<typeof createFixturesPricingRepository>>().toEqualTypeOf<PricingRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlPricingRepository>>().toEqualTypeOf<PricingRepository>()
+    expectTypeOf<ReturnType<typeof createFixturesPromotionRepository>>().toEqualTypeOf<PromotionRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlPromotionRepository>>().toEqualTypeOf<PromotionRepository>()
+    expectTypeOf<ReturnType<typeof createFixturesSearchRepository>>().toEqualTypeOf<SearchRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlSearchRepository>>().toEqualTypeOf<SearchRepository>()
+    expectTypeOf<ReturnType<typeof createFixturesShippingRepository>>().toEqualTypeOf<ShippingRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlShippingRepository>>().toEqualTypeOf<ShippingRepository>()
     expectTypeOf<ReturnType<typeof createFixturesCustomerRepository>>().toEqualTypeOf<CustomerRepository>()
     expectTypeOf<ReturnType<typeof createMysqlCustomerRepository>>().toEqualTypeOf<CustomerRepository>()
   })

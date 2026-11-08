@@ -1,4 +1,5 @@
 import "server-only"
+import { fixtureActorPolicy } from "@/server/db/fixtures-policy.repository"
 
 import type { CustomerAuthRepository, CustomerSecurity } from "./auth"
 import { requireCustomerOwner, requireStore, requireSystem, type Actor } from "@/server/db/actor"
@@ -14,7 +15,7 @@ function owner(actor: Actor, customerId: string) {
 }
 
 export function createFixturesCustomerAuthRepository(): CustomerAuthRepository {
-  return {
+  return fixtureActorPolicy<CustomerAuthRepository>({
     async security(actor, customerId) {
       requireSystem(actor, ["auth:customer", "migration"]); owner(actor, customerId)
       const row = db().customerSecurity?.find((entry) => entry.customerId === customerId) ?? empty()
@@ -101,5 +102,5 @@ export function createFixturesCustomerAuthRepository(): CustomerAuthRepository {
         rows.push({ storeId: actor.storeId, customerId, provider, subject })
       })
     },
-  }
+  })
 }

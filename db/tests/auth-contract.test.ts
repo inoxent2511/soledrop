@@ -35,8 +35,8 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
   const fixture = engine === "fixtures", storeId = uuidv7()
   const customerActor = systemActor(storeId, "auth:customer", ALL_PERMISSIONS), staffActor = systemActor(storeId, "auth:staff", ALL_PERMISSIONS), worker = systemActor(storeId, "migration", ALL_PERMISSIONS)
   const customers: CustomerOperations = bindActor<CustomerOperations>(fixture ? createFixturesCustomerRepository() : createMysqlCustomerRepository(), () => customerActor)
-  const staffRepo: AdminOperations = fixture ? createFixturesAdminRepository() : bindActor<AdminOperations>(createMysqlAdminRepository(), () => staffActor)
-  const platform: PlatformOperations = fixture ? createFixturesPlatformRepository() : bindActor<PlatformOperations>(createMysqlPlatformRepository(), () => worker)
+  const staffRepo: AdminOperations = bindActor<AdminOperations>(fixture ? createFixturesAdminRepository() : createMysqlAdminRepository(), () => staffActor)
+  const platform: PlatformOperations = bindActor<PlatformOperations>(fixture ? createFixturesPlatformRepository() : createMysqlPlatformRepository(), () => worker)
   const extra = fixture ? createFixturesCustomerAuthRepository() : createMysqlCustomerAuthRepository()
   const atomic = <T>(actor: Actor, operation: () => Promise<T>) => fixture ? fixtureAtomic(operation) : authTransaction(actor, operation)
   let at = Date.now(), customerSequence = 0, failAudit = false

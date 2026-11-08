@@ -1,11 +1,13 @@
 import "server-only"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { shippingGuards } from "@/server/db/fixture-guards.repository"
 
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
-import type { ShippingOperations } from "@/server/shipping/repository"
+import type { ShippingOperations, ShippingRepository } from "@/server/shipping/repository"
 
-export function createFixturesShippingRepository(): ShippingOperations {
-  return {
+export function createFixturesShippingRepository(): ShippingRepository {
+  const operations: ShippingOperations = {
     async listZones() {
       return db().shippingZones
     },
@@ -33,4 +35,5 @@ export function createFixturesShippingRepository(): ShippingOperations {
       })
     },
   }
+  return fixturePolicy<ShippingOperations>(operations, shippingGuards)
 }

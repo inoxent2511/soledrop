@@ -42,6 +42,8 @@ A14 is complete (2026-11-07): the live catalogue is saved, every displayed photo
 
 ## MySQL/MariaDB migration — current authorized work
 
+2026-11-08 update: the owner explicitly authorized completing the migration and pushing the verified release to the existing GitHub remote, then asking them to import it into Hostinger. Direct GitHub import (and its Hostinger build flow) is now the delivery target. This supersedes the earlier no-push/build-elsewhere restrictions for that verified release. Hosting-account actions, remote database access, real mail/payments and deployment remain outside this run.
+
 Baseline: `8bdc580`. User decision: Next.js remains the only backend; Hostinger MySQL/MariaDB replaces the legacy database/services. No push, deployment, remote database/account/DNS action, real email/payment or spending. Universal contracts are frozen; exact source inventory and their digests are in `migration-inventory.md`. Preserve the current saved catalogue and every rendered UI behavior.
 
 | Stage | Scope | Done when |

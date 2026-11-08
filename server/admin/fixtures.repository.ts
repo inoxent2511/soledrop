@@ -1,7 +1,10 @@
 import "server-only"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { adminGuards, adminProjections } from "@/server/db/fixture-private-guards.repository"
+import { currentActor } from "@/server/db/context"
 
 import { OWNER_ROLE_KEY, isPermission } from "@/server/admin/permissions"
-import type { AdminOperations } from "@/server/admin/repository"
+import type { AdminOperations, AdminRepository } from "@/server/admin/repository"
 import type { Role } from "@/server/admin/types"
 import { db, transaction } from "@/server/fixtures/store"
 import type { FixtureTables } from "@/server/fixtures/tables"
@@ -30,8 +33,8 @@ function keepingAnOwner<T>(tables: FixtureTables, storeId: string, change: () =>
   return result
 }
 
-export function createFixturesAdminRepository(clock: () => number = Date.now): AdminOperations {
-  return {
+export function createFixturesAdminRepository(clock: () => number = Date.now): AdminRepository {
+  const operations: AdminOperations = {
     async findMemberByEmail(storeId, email) {
       return structuredClone(db().staffMembers.find((row) => row.storeId === storeId && row.email === email.toLowerCase()) ?? null)
     },
@@ -56,6 +59,15 @@ export function createFixturesAdminRepository(clock: () => number = Date.now): A
           const member = tables.staffMembers.find((row) => row.storeId === storeId && row.userId === userId)
           if (!member) throw new DomainError("not_found", "Staff member not found.")
           if (expectedUpdatedAt && member.updatedAt !== expectedUpdatedAt) throw new DomainError("conflict", "Someone else changed this staff member. Reload to see their changes.")
+          if (changes.totpLastStep !== undefined && changes.totpLastStep !== null && member.totpLastStep !== null && changes.totpLastStep <= member.totpLastStep) throw new DomainError("unauthorized", "That code was already used. Wait for a new code.")
+          if (changes.recoveryCodes !== undefined && member.totpEnabledAt && changes.totpEnabledAt === undefined) {
+            const actor = currentActor()
+            if (actor.kind === "system" && actor.purpose === "auth:staff" && (changes.recoveryCodes.length !== member.recoveryCodes.length - 1 || changes.recoveryCodes.some((value) => !member.recoveryCodes.includes(value)))) throw new DomainError("unauthorized", "That recovery code was already used.")
+            if (actor.kind === "staff" && (!actor.mfaVerifiedAt || Date.parse(actor.mfaVerifiedAt) + 600_000 < Date.now())) throw new DomainError("forbidden", "Confirm it's you with your authenticator code to continue.", { stepUp: true })
+          }
+          if (changes.status === "suspended" || changes.passwordHash !== undefined || changes.email !== undefined || member.totpEnabledAt && changes.totpEnabledAt === null) {
+            for (const session of tables.staffSessions) if (session.storeId === storeId && session.userId === userId && !session.revokedAt) session.revokedAt = now()
+          }
           Object.assign(member, structuredClone(changes), { updatedAt: new Date(Math.max(Date.now(), Date.parse(member.updatedAt) + 1)).toISOString() })
           return structuredClone(member)
         }),
@@ -92,6 +104,8 @@ export function createFixturesAdminRepository(clock: () => number = Date.now): A
         if (!role) throw new DomainError("not_found", "Role not found.")
         if (expectedUpdatedAt && role.updatedAt !== expectedUpdatedAt) throw new DomainError("conflict", "Someone else changed this role. Reload to see their changes.")
         Object.assign(role, structuredClone(changes), { updatedAt: new Date(Math.max(Date.now(), Date.parse(role.updatedAt) + 1)).toISOString() })
+        const members = new Set(tables.staffRoleLinks.filter((link) => link.storeId === storeId && link.roleId === role.id).map((link) => link.userId))
+        for (const session of tables.staffSessions) if (session.storeId === storeId && members.has(session.userId) && !session.revokedAt) session.revokedAt = now()
         return structuredClone(role)
       })
     },
@@ -121,6 +135,7 @@ export function createFixturesAdminRepository(clock: () => number = Date.now): A
             ...tables.staffRoleLinks.filter((link) => !(link.storeId === storeId && link.userId === userId)),
             ...roles.map((role) => ({ storeId, userId, roleId: role.id })),
           ]
+          for (const session of tables.staffSessions) if (session.storeId === storeId && session.userId === userId && !session.revokedAt) session.revokedAt = now()
         }),
       )
     },
@@ -166,4 +181,5 @@ export function createFixturesAdminRepository(clock: () => number = Date.now): A
       }
     },
   }
+  return fixturePolicy<AdminOperations>(operations, adminGuards, adminProjections)
 }

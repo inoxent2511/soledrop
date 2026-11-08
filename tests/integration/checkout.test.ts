@@ -1,3 +1,5 @@
+import { anonymousActor } from "@/server/db/actor"
+import { withActor } from "@/server/db/context"
 import { beforeEach, describe, expect, it } from "vitest"
 
 import { cartService } from "@/server/cart"
@@ -43,7 +45,7 @@ beforeEach(() => {
 })
 
 describe("checkout on the fixtures driver", () => {
-  it.each(["remove", "reduce"])("releases checkout holds when a shopper changes the bag: %s", async (action) => {
+  it.each(["remove", "reduce"])("releases checkout holds when a shopper changes the bag: %s", async (action) => withActor(anonymousActor(STORE_ID), async () => {
     const level = stockedVariant(2)
     const carts = cartService()
     const row = await bagWith(level.variantId, 2)
@@ -53,9 +55,9 @@ describe("checkout on the fixtures driver", () => {
     else await carts.updateLine(row, row.lines[0].id, 1, shopper)
     expect(db().inventory.find((entry) => entry.variantId === level.variantId)?.reserved).toBe(0)
     expect(db().reservations.filter((entry) => entry.cartId === row.id)).toEqual([])
-  })
+  }))
 
-  it("prices on the server, takes stock and converts the bag", async () => {
+  it("prices on the server, takes stock and converts the bag", async () => withActor(anonymousActor(STORE_ID), async () => {
     const level = stockedVariant()
     const before = level.onHand
     const cart = await bagWith(level.variantId)
@@ -70,9 +72,9 @@ describe("checkout on the fixtures driver", () => {
     expect(db().carts.find((row) => row.id === cart.id)?.status).toBe("converted")
     expect(orderService().canView(order, { customerId: null, token: accessToken })).toBe(true)
     expect(orderService().canView(order, { customerId: null, token: "guess" })).toBe(false)
-  })
+  }))
 
-  it("replays a repeated submit with the same order and link", async () => {
+  it("replays a repeated submit with the same order and link", async () => withActor(anonymousActor(STORE_ID), async () => {
     const cart = await bagWith(stockedVariant().variantId)
     const first = await checkout(cart, "key-1")
     const second = await checkout(null, "key-1")
@@ -80,19 +82,19 @@ describe("checkout on the fixtures driver", () => {
     expect(second.order.id).toBe(first.order.id)
     expect(second.accessToken).toBe(first.accessToken)
     expect(db().orders).toHaveLength(1)
-  })
+  }))
 
-  it("never sells more than is on hand", async () => {
+  it("never sells more than is on hand", async () => withActor(anonymousActor(STORE_ID), async () => {
     const level = stockedVariant()
     const stock = level.onHand
     const results = await Promise.allSettled(
-      Array.from({ length: stock + 2 }, async (_, index) => checkout(await bagWith(level.variantId), `key-${index}`, `buyer${index}@example.com`)),
+      Array.from({ length: stock + 2 }, (_, index) => withActor(anonymousActor(STORE_ID), async () => checkout(await bagWith(level.variantId), `key-${index}`, `buyer${index}@example.com`))),
     )
     expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(stock)
     expect(db().inventory.find((row) => row.variantId === level.variantId)?.onHand).toBe(0)
-  })
+  }))
 
-  it("rejects a once-per-shopper code on a second order with the same email", async () => {
+  it("rejects a once-per-shopper code on a second order with the same email", async () => withActor(anonymousActor(STORE_ID), async () => {
     const level = stockedVariant(2)
     const carts = cartService()
     let cart = await bagWith(level.variantId)
@@ -105,9 +107,9 @@ describe("checkout on the fixtures driver", () => {
     again = await carts.applyCode(again, "WELCOME10", shopper)
     const second = await checkout(again, "key-2", "SANA@example.com")
     expect(second.order.discountTotal).toBe(0)
-  })
+  }))
 
-  it("cancels before packing and puts the pair back", async () => {
+  it("cancels before packing and puts the pair back", async () => withActor(anonymousActor(STORE_ID), async () => {
     const level = stockedVariant()
     const before = level.onHand
     const { order, accessToken } = await checkout(await bagWith(level.variantId), "key-1")
@@ -115,11 +117,11 @@ describe("checkout on the fixtures driver", () => {
     expect(cancelled.status).toBe("cancelled")
     expect(db().inventory.find((row) => row.variantId === level.variantId)?.onHand).toBe(before)
     await expect(orderService().cancelByCustomer(cancelled, { customerId: null, token: accessToken })).rejects.toThrow()
-  })
+  }))
 
-  it("leaves a bank transfer order waiting for payment with instructions", async () => {
+  it("leaves a bank transfer order waiting for payment with instructions", async () => withActor(anonymousActor(STORE_ID), async () => {
     const { order, next } = await checkout(await bagWith(stockedVariant().variantId), "key-1", "ayesha@example.com", "bank_transfer")
     expect(order.status).toBe("pending_payment")
     expect(next.type).toBe("instructions")
-  })
+  }))
 })

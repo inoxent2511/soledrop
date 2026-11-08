@@ -38,6 +38,9 @@ export const STOREFRONT = "/:path((?!admin(?:/|$)).*)"
 const nextConfig: NextConfig = {
   // Self-contained server bundle for the Dockerfile (docs/DEPLOYMENT-RUNBOOK.md).
   output: "standalone",
+  outputFileTracingExcludes: {
+    "/*": ["./.data/**/*", "./.env*", "./.git/**/*", "./.email-outbox/**/*", "./qa/out/**/*"],
+  },
   // sharp's native addon loads libvips through the OS loader, which file tracing can't follow;
   // without these libraries /_next/image silently serves every original photo (BUG-016).
   outputFileTracingIncludes: {

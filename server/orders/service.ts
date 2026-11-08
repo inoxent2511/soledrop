@@ -13,6 +13,7 @@ import type { Address, Order, OrderLine, OrderStatus } from "@/server/orders/typ
 import { DomainError } from "@/server/shared/errors"
 import { allocate } from "@/server/shared/money"
 import { newId } from "@/server/shared/ids"
+import { direct, type Atomic } from "@/server/shared/atomic"
 
 export type CheckoutInput = {
   /** Null when the cart was already converted — only valid for a replay of the same key. */
@@ -40,6 +41,7 @@ type Deps = {
   catalog: CatalogService
   payments: { get: (code: string) => PaymentProvider | undefined; available: () => Promise<PaymentProvider[]> }
   secret: string
+  trustedPayment?: Atomic
 }
 
 const hash = (value: string) => createHash("sha256").update(value).digest("hex")
@@ -99,7 +101,7 @@ export function createOrderService(deps: Deps) {
       idempotencyKey: `payment:${order.idempotencyKey}`,
       returnUrl: `${input.orderUrl(order.number)}?token=${accessToken}`,
     })
-    await orders.recordPayment({
+    await (deps.trustedPayment ?? direct)(() => orders.recordPayment({
       orderId: order.id,
       provider: provider.code,
       status: result.status,
@@ -107,7 +109,7 @@ export function createOrderService(deps: Deps) {
       currency: order.currency,
       providerRef: result.providerRef,
       idempotencyKey: `create:${order.idempotencyKey}`,
-    })
+    }))
     return result.next
   }
 
@@ -248,6 +250,7 @@ export function createOrderService(deps: Deps) {
       if (!provider?.parseWebhook) throw new DomainError("not_found", "Unknown payment provider.")
       const result = await provider.parseWebhook(rawBody, headers)
       if (!result) return null
+      return (deps.trustedPayment ?? direct)(async () => {
       const order = await orders.findById(result.orderId)
       if (!order) throw new DomainError("not_found", "Order not found.")
       if (result.status === "captured" && result.amount !== order.total) throw new DomainError("validation", "Paid amount does not match the order total.")
@@ -259,6 +262,7 @@ export function createOrderService(deps: Deps) {
         currency: order.currency,
         providerRef: result.providerRef,
         idempotencyKey: `webhook:${result.providerRef}:${result.status}`,
+      })
       })
     },
 

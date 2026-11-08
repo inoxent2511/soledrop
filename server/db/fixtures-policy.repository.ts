@@ -1,4 +1,5 @@
 import "server-only"
+import { withActor } from "./context"
 
 import { ACTOR_SCOPED, assertActor, attenuateStaffActor, type Actor, type ActorScoped } from "./actor"
 import { db, withFixtureStore } from "@/server/fixtures/store"
@@ -54,7 +55,7 @@ export function fixturePolicy<T extends object>(operations: T, guards: FixtureGu
           const effective = currentFixtureActor(actor), guard: unknown = Reflect.get(guards, property), project: unknown = Reflect.get(projections, property)
           if (typeof guard !== "function") throw new DomainError("forbidden", "This operation has no declared authorization policy.")
           Reflect.apply(guard, guards, [effective, ...args])
-          const result: unknown = await Reflect.apply(operation, target, args)
+          const result: unknown = await withActor(effective, () => Reflect.apply(operation, target, args))
           return structuredClone(typeof project === "function" ? Reflect.apply(project, projections, [effective, result, ...args]) : result)
         })
       }

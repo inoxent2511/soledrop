@@ -96,6 +96,13 @@ export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
         return incoming.length
       })
     },
+    async reportProducts(actor, storeId, page) {
+      requireStore(actor, storeId); requireGrant(actor, "reports:read")
+      if (!Number.isSafeInteger(page) || page < 1) throw new DomainError("validation", "Invalid page.")
+      const db = await database()
+      const rows = await db.select().from(products).where(eq(products.storeId, actor.storeId)).orderBy(asc(products.id)).limit(1000).offset((page - 1) * 1000)
+      return hydrate(db, actor, rows)
+    },
     async searchProducts(actor, storeId, query) {
       requireStore(actor, storeId); requireGrant(actor, "products:read")
       const db = await database()

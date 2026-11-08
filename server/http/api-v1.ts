@@ -2,13 +2,21 @@ import "server-only"
 
 import { createHash, timingSafeEqual } from "node:crypto"
 
-import { serverEnv } from "@/lib/env.server"
+import { secureCookies, serverEnv } from "@/lib/env.server"
+import { publicEnv } from "@/lib/env"
+import type { Permission } from "@/server/admin/permissions"
+import { systemActor } from "@/server/db/actor"
+import { withActor } from "@/server/db/context"
+import { assertRequestOrigin } from "@/server/http/origin"
 import { errorResponse } from "@/server/http/route"
 import { enforceRateLimit } from "@/server/platform/guards"
 import { DomainError } from "@/server/shared/errors"
 
 export type ApiScope = "read" | "write"
-export type ApiClient = { name: string; scopes: ApiScope[] }
+export type ApiClient = { name: string; scopes: ApiScope[]; identity: string }
+
+const readPermissions: Permission[] = ["orders:read", "customers:read_pii", "products:read", "products:export", "collections:read", "inventory:read", "pricing:read", "payments:read"]
+const writePermissions: Permission[] = ["orders:write", "orders:fulfil", "orders:mark_paid", "orders:cancel", "orders:refund", "orders:returns", "products:import", "products:write", "products:publish", "pricing:write", "inventory:adjust"]
 
 /** API_KEYS="name:key:read+write,other:key2:read". Keys are compared as SHA-256 digests in constant time. */
 function clients() {
@@ -27,7 +35,7 @@ function authenticate(request: Request, scope: ApiScope): ApiClient {
   const client = key ? clients().find((item) => timingSafeEqual(item.digest, digest)) : undefined
   if (!client) throw new DomainError("unauthorized", "Missing or invalid API key.")
   if (!client.scopes.includes(scope)) throw new DomainError("forbidden", `This key lacks the "${scope}" scope.`)
-  return { name: client.name, scopes: client.scopes }
+  return { name: client.name, scopes: client.scopes, identity: client.digest.toString("hex") }
 }
 
 /** Headless API handler: API-key auth with scopes, per-client rate limit, JSON errors. */
@@ -35,11 +43,15 @@ export function apiV1<Context = unknown>(scope: ApiScope, handler: (request: Req
   return async (request: Request, context: Context) => {
     try {
       const client = authenticate(request, scope)
-      await enforceRateLimit("api", `client:${client.name}`)
-      const response = await handler(request, client, context)
-      response.headers.set("x-api-version", "1")
-      if (!response.headers.has("cache-control")) response.headers.set("cache-control", "no-store")
-      return response
+      assertRequestOrigin(request, { siteUrl: publicEnv.NEXT_PUBLIC_SITE_URL, allowLoopbackHttp: !secureCookies(serverEnv) })
+      const actor = { ...systemActor(serverEnv.STORE_ID, "integration", [...readPermissions, ...(scope === "write" ? writePermissions : [])]), id: "api-key:" + client.identity }
+      return await withActor(actor, async () => {
+        await enforceRateLimit("api", `client:${client.identity}`)
+        const response = await handler(request, client, context)
+        response.headers.set("x-api-version", "1")
+        if (!response.headers.has("cache-control")) response.headers.set("cache-control", "no-store")
+        return response
+      })
     } catch (error) {
       return errorResponse(error)
     }

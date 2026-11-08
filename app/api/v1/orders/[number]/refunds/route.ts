@@ -16,12 +16,12 @@ const schema = z.object({
   idempotencyKey: z.string().min(8).max(80),
 })
 
-export const POST = apiV1<Context>("write", async (request, _client, { params }) => {
+export const POST = apiV1<Context>("write", async (request, client, { params }) => {
   const { number } = await params
   const input = await parseBody(request, schema)
   const service = orderService()
   const order = await service.lookupByNumber(currentStoreId(), number)
   if (!order) throw new DomainError("not_found", "Order not found.")
-  const refund = await service.refund({ ...input, orderId: order.id, idempotencyKey: `api:${input.idempotencyKey}` })
+  const refund = await service.refund({ ...input, orderId: order.id, idempotencyKey: `api:${client.identity}:${input.idempotencyKey}` })
   return Response.json({ refund }, { status: 201 })
 })

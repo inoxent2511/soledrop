@@ -45,3 +45,13 @@ export function establishOrderToken(token: string | null): void {
   const actor = currentActor()
   if (actor.kind === "anonymous" || actor.kind === "customer") establishActor({ ...actor, orderAccessTokenHash: token ? hashToken(token) : undefined })
 }
+
+export function establishOrderLookup(number: string, email: string): void {
+  const actor = currentActor()
+  if (actor.kind === "anonymous" || actor.kind === "customer") establishActor({ ...actor, orderLookup: { number: number.trim().toUpperCase(), email: email.trim().toLowerCase() } })
+}
+
+export function establishCheckoutEmail(email: string): void {
+  const actor = currentActor()
+  if (actor.kind === "anonymous") establishActor({ ...actor, checkoutEmail: email.trim().toLowerCase() })
+}

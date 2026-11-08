@@ -1,4 +1,5 @@
 import "server-only"
+import { createMysqlCustomerRepository, rehashCustomerPassword } from "@/server/customers/mysql.repository"
 
 import { createFixturesCustomerRepository } from "@/server/customers/fixtures.repository"
 import { adminService } from "@/server/admin"
@@ -17,18 +18,21 @@ import { platform } from "@/server/platform"
 import { currentActor } from "@/server/db/context"
 import { realmService } from "@/server/db/realm-service"
 import { staffService } from "@/server/db/staff-service"
+import { createMysqlCustomerAuthRepository } from "@/server/customers/auth.mysql.repository"
+import { authTransaction } from "@/server/db/auth.repository"
 
-const repository = selectRepository({ fixtures: createFixturesCustomerRepository, supabase: createSupabaseCustomerRepository })
+const repository = selectRepository({ mysql: createMysqlCustomerRepository,  fixtures: createFixturesCustomerRepository, supabase: createSupabaseCustomerRepository })
 
 /** The raw customer repository (admin lookups). */
 export const customerRepository = repository
-export const customerAuthRepository = () => localService(createFixturesCustomerAuthRepository())
+export const customerAuthRepository = () => dataDriver() === "mysql" ? createMysqlCustomerAuthRepository() : localService(createFixturesCustomerAuthRepository())
 
 export const customerService = () => {
   const orders = orderService()
   const service = createCustomerService({
     customers: repository(), publish, orders: { listForCustomer: orders.listForCustomer, anonymiseCustomer: orders.anonymiseCustomer },
-    atomic: dataDriver() === "local" ? (operation) => localStore().run(operation) : (operation) => withFixtureStore(currentActor(), () => fixtureAtomic(operation)),
+    atomic: dataDriver() === "mysql" ? (operation) => authTransaction(systemActor(currentActor().storeId, "auth:customer"), operation) : dataDriver() === "local" ? (operation) => localStore().run(operation) : (operation) => withFixtureStore(currentActor(), () => fixtureAtomic(operation)),
+    rehashPassword: dataDriver() === "mysql" ? (customer, next) => rehashCustomerPassword(systemActor(customer.storeId, "auth:customer"), customer.id, customer.passwordHash, next) : undefined,
     auth: dataDriver() === "supabase" ? undefined : { repository: customerAuthRepository(), actor: currentActor, magicLinkEnabled: serverEnv.AUTH_MAGIC_LINK === "on", verificationEnabled: serverEnv.AUTH_EMAIL_VERIFICATION === "on" },
     securityEvent: (customer, action) => platform().audit({ actor: customer.id, storeId: customer.storeId, action, entity: "customer", entityId: customer.id, before: null, after: null }),
   })
@@ -45,12 +49,12 @@ export const customerService = () => {
 export const staffCustomers = () => {
   const orders = orderService()
   const admin = adminService()
-  return staffService(createStaffCustomers({
+  return staffService(localService(createStaffCustomers({
     customers: repository(),
     orders: { listForCustomer: orders.listForCustomer, anonymiseCustomer: orders.anonymiseCustomer },
     audit: (staff, meta, entry) => admin.recordAudit(staff, meta, entry),
     assertSteppedUp: admin.assertSteppedUp,
-  }))
+  })))
 }
 
 export { SESSION_DAYS, toProfile } from "@/server/customers/service"

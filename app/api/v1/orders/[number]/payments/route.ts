@@ -16,7 +16,7 @@ const schema = z.object({
 })
 
 /** Records an offline payment: cash collected by the courier or a bank transfer seen on the statement. */
-export const POST = apiV1<Context>("write", async (request, _client, { params }) => {
+export const POST = apiV1<Context>("write", async (request, client, { params }) => {
   const { number } = await params
   const input = await parseBody(request, schema)
   const service = orderService()
@@ -29,7 +29,7 @@ export const POST = apiV1<Context>("write", async (request, _client, { params })
     amount: input.amount,
     currency: order.currency,
     providerRef: input.reference ?? null,
-    idempotencyKey: `api:${input.idempotencyKey}`,
+    idempotencyKey: `api:${client.identity}:${input.idempotencyKey}`,
   })
   return Response.json({ payment }, { status: 201 })
 })

@@ -1,3 +1,7 @@
+import { bindActor } from "@/server/db/bind"
+import { systemActor } from "@/server/db/actor"
+import { ALL_PERMISSIONS } from "@/server/admin/permissions"
+import type { AdminOperations } from "@/server/admin/repository"
 import { beforeEach, describe, expect, it } from "vitest"
 
 import { hashToken, newToken } from "@/server/admin/crypto"
@@ -19,7 +23,7 @@ let clockMs = Date.parse("2026-11-07T09:00:00Z")
 let audits: Omit<AuditEntry, "id" | "at">[] = []
 let windows = new Map<string, { start: number; count: number }>()
 
-const repo = createFixturesAdminRepository(() => clockMs)
+const repo = bindActor<AdminOperations>(createFixturesAdminRepository(() => clockMs), () => systemActor(STORE_ID, "auth:staff", ALL_PERMISSIONS))
 const service = () =>
   createAdminService({
     repo,

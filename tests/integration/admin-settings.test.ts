@@ -1,3 +1,5 @@
+import { anonymousActor, staffActor } from "@/server/db/actor"
+import { withActor } from "@/server/db/context"
 import { beforeEach, describe, expect, it } from "vitest"
 
 import { type RequestMeta } from "@/server/admin/service"
@@ -41,16 +43,16 @@ async function placeOrder(paymentMethod = "cod") {
 beforeEach(() => resetFixtures())
 
 describe("settings", () => {
-  it("switches flags with an audit entry, and keeps them to settings:flags", async () => {
+  it("switches flags with an audit entry, and keeps them to settings:flags", async () => withActor(anonymousActor(STORE_ID), async () => {
     const flag = structuredClone(db().flags[0])
     const saved = await staffPlatform().setFlag(staffAs("admin"), meta, flag.key, { enabled: !flag.enabled })
     expect(saved.enabled).toBe(!flag.enabled)
     expect(db().audit.at(-1)).toMatchObject({ action: "flag.changed", entityId: flag.key })
     await expect(staffPlatform().setFlag(staffAs("store_manager"), meta, flag.key, { enabled: flag.enabled })).resolves.toBeTruthy()
     await expect(staffPlatform().setFlag(staffAs("marketing"), meta, flag.key, { enabled: true })).rejects.toMatchObject({ code: "forbidden" })
-  })
+  }))
 
-  it("shows integrations without secrets, retries failed events and runs jobs on demand", async () => {
+  it("shows integrations without secrets, retries failed events and runs jobs on demand", async () => withActor(anonymousActor(STORE_ID), async () => {
     const integrations = await staffPlatform().integrations(staffAs("read_only"))
     expect(JSON.stringify(integrations)).not.toMatch(/secret|key=/i)
     const event = await platform().enqueue(STORE_ID, "contact.received", { name: "x" })
@@ -62,19 +64,20 @@ describe("settings", () => {
     await expect(staffPlatform().runJob(staffAs("support_agent"), meta, "release-reservations")).rejects.toMatchObject({ code: "forbidden" })
     expect(await staffPlatform().runJob(staffAs("admin"), meta, "release-reservations")).toEqual({ released: 0 })
     expect((await staffPlatform().health(staffAs("admin"))).database).toBe(true)
-  })
+  }))
 
-  it("searches the audit log for audit:read holders only", async () => {
+  it("searches the audit log for audit:read holders only", async () => withActor(anonymousActor(STORE_ID), async () => {
     const order = await placeOrder()
-    await orderService().transition(order.id, "processing", "staff:someone")
+    const fulfilment = staffAs("fulfilment")
+    await withActor(staffActor(fulfilment), () => orderService().transition(order.id, "processing", "staff:" + fulfilment.member.userId))
     const { entries } = await staffPlatform().audit(staffAs("owner"), { q: order.id, page: 1, pageSize: 50 })
     expect(entries.map((entry) => entry.action)).toContain("order.transition")
     await expect(staffPlatform().audit(staffAs("read_only"), { page: 1, pageSize: 50 })).rejects.toMatchObject({ code: "forbidden" })
-  })
+  }))
 })
 
 describe("notifications and command palette", () => {
-  it("lists what needs attention for each role, and searches only what the role may see", async () => {
+  it("lists what needs attention for each role, and searches only what the role may see", async () => withActor(anonymousActor(STORE_ID), async () => {
     const order = await placeOrder()
     await placeOrder("bank_transfer")
     const owner = await insights().attention(staffAs("owner"))
@@ -88,5 +91,5 @@ describe("notifications and command palette", () => {
     expect(pages.map((item) => item.label)).toContain("Pages & FAQs")
     expect(pages.map((item) => item.label)).not.toContain("Orders")
     expect(await insights().command(staffAs("content_editor"), order.number)).not.toContainEqual(expect.objectContaining({ group: "Orders" }))
-  })
+  }))
 })

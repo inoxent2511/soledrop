@@ -1,7 +1,7 @@
 import { DomainError } from "@/server/shared/errors"
 
 const loopback = (host: string) => ["localhost", "127.0.0.1", "[::1]"].includes(host)
-const hasAuthCookie = (request: Request) => /(?:^|;\s*)(?:sd_session|sd_staff|sd_cart)=/.test(request.headers.get("cookie") ?? "")
+const hasAuthCookie = (request: Request) => /(?:^|;\s*)(?:sd_session|sd_staff|sd_cart|sd_checkout)=/.test(request.headers.get("cookie") ?? "")
 
 /** Browser mutations use exact origins; bearer-only jobs/webhooks can omit Origin. */
 export function assertRequestOrigin(request: Request, options: { siteUrl: string; allowLoopbackHttp: boolean; requireOrigin?: boolean }) {

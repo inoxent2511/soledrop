@@ -1,3 +1,9 @@
+import { bindActor } from "@/server/db/bind"
+import type { PricingOperations } from "@/server/pricing/repository"
+import type { PromotionOperations } from "@/server/promotions/repository"
+import type { ShippingOperations } from "@/server/shipping/repository"
+import type { ContentOperations } from "@/server/content/repository"
+import type { CatalogOperations } from "@/server/catalog/repository"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { and, eq } from "drizzle-orm"
 import { ALL_PERMISSIONS } from "@/server/admin/permissions"
@@ -26,16 +32,16 @@ for (const [engine, config] of [["fixtures", null] as const, ...engines] as cons
   const storeId = uuidv7(), brandId = uuidv7(), collectionId = uuidv7(), productId = uuidv7(), variantId = uuidv7(), priceListId = uuidv7()
   const actor = systemActor(storeId, "migration", ALL_PERMISSIONS)
   const fixture = engine === "fixtures"
-  const catalog = fixture ? createFixturesCatalogRepository() : null
-  const content = fixture ? createFixturesContentRepository() : null
-  const shipping = fixture ? createFixturesShippingRepository() : null
-  const promotion = fixture ? createFixturesPromotionRepository() : null
-  const pricing = fixture ? createFixturesPricingRepository() : null
+  const catalog = fixture ? bindActor<CatalogOperations>(createFixturesCatalogRepository(), () => actor) : null
+  const content = fixture ? bindActor<ContentOperations>(createFixturesContentRepository(), () => actor) : null
+  const shipping = fixture ? bindActor<ShippingOperations>(createFixturesShippingRepository(), () => actor) : null
+  const promotion = fixture ? bindActor<PromotionOperations>(createFixturesPromotionRepository(), () => actor) : null
+  const pricing = fixture ? bindActor<PricingOperations>(createFixturesPricingRepository(), () => actor) : null
   const mysqlCatalog = createMysqlCatalogRepository(), mysqlContent = createMysqlContentRepository(), mysqlShipping = createMysqlShippingRepository(), mysqlPromotion = createMysqlPromotionRepository(), mysqlPricing = createMysqlPricingRepository()
   let saved: Product
   beforeAll(async () => {
     if (fixture) {
-      resetFixtures()
+      resetFixtures(); fixtures().stores[0].id = storeId
       Object.assign(fixtures(), { brands: [], products: [], collections: [], shippingZones: [], taxRates: [], promotions: [], home: null, pages: [], faqs: [], newsletter: [], priceLists: [{ id: priceListId, code: "contract-pkr", currency: "PKR", customerGroup: null, priority: 0, startsAt: null, endsAt: null }], prices: [] })
     } else {
       await closeDatabase()

@@ -5,6 +5,7 @@ import { connect, engines } from "./connections"
 import { migrate } from "../../scripts/migrate.mjs"
 import { migrationFiles, supportedEngine } from "../../scripts/database-common.mjs"
 import { uuidToBytes } from "../../server/db/uuid"
+import { appendOnlyTables } from "../../scripts/db-grants.mjs"
 
 for (const [engine, config] of engines) describe(engine + " foundation", () => {
   let admin: Connection
@@ -59,6 +60,12 @@ for (const [engine, config] of engines) describe(engine + " foundation", () => {
     try {
       await app.execute("INSERT INTO audit_log (id, actor, action, entity, entity_id) VALUES (?, 'test', 'schema.test', 'schema', 'test')", [uuidToBytes(randomUUID())])
     } finally { await app.rollback() }
+  })
+
+  it.each(appendOnlyTables)("denies runtime UPDATE and DELETE on append-only %s", async (table) => {
+    if (!/^[a-z_]+$/.test(table)) throw new Error("Invalid probe identifier")
+    await expect(app.query("UPDATE `" + table + "` SET id = id WHERE 1 = 0")).rejects.toMatchObject({ code: "ER_TABLEACCESS_DENIED_ERROR" })
+    await expect(app.query("DELETE FROM `" + table + "` WHERE 1 = 0")).rejects.toMatchObject({ code: "ER_TABLEACCESS_DENIED_ERROR" })
   })
 
   it("enforces CHECKs, UUID byte length, money safety, normalization and foreign keys", async () => {

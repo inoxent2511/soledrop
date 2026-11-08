@@ -1,8 +1,10 @@
 import "server-only"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { inventoryGuards } from "@/server/db/fixture-guards.repository"
 
 import { db, transaction } from "@/server/fixtures/store"
 import type { FixtureTables } from "@/server/fixtures/tables"
-import type { InventoryOperations } from "@/server/inventory/repository"
+import type { InventoryOperations, InventoryRepository } from "@/server/inventory/repository"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
 
@@ -35,8 +37,8 @@ export function assertInventoryInvariants(tables: FixtureTables): void {
   }
 }
 
-export function createFixturesInventoryRepository(): InventoryOperations {
-  return {
+export function createFixturesInventoryRepository(): InventoryRepository {
+  const operations: InventoryOperations = {
     async availability(variantIds, forCartId) {
       const tables = db()
       const result = new Map<string, number>()
@@ -87,6 +89,10 @@ export function createFixturesInventoryRepository(): InventoryOperations {
         return level.onHand
       })
     },
+    async reportLevels(variantIds) {
+      const wanted = new Set(variantIds)
+      return structuredClone(db().inventory.filter((row) => wanted.has(row.variantId)))
+    },
     async levels(variantIds) {
       const wanted = new Set(variantIds)
       return structuredClone(db().inventory.filter((row) => wanted.has(row.variantId)))
@@ -96,4 +102,5 @@ export function createFixturesInventoryRepository(): InventoryOperations {
       return structuredClone(db().inventoryMovements.filter((row) => wanted.has(row.variantId)).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit))
     },
   }
+  return fixturePolicy<InventoryOperations>(operations, inventoryGuards)
 }

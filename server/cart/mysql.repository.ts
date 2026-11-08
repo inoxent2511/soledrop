@@ -57,7 +57,7 @@ export function createMysqlCartRepository(): ActorScoped<CartOperations> {
     },
     async create(actor, input) {
       requireStore(actor, input.storeId); assertOwnerAssignment(actor, input.customerId)
-      if (actor.kind === "anonymous" && (!actor.cartTokenHash || actor.cartTokenHash !== input.tokenHash) && (input.lines.length || input.status !== "active")) throw new DomainError("forbidden", "A verified cart capability is required.")
+      if (actor.kind === "anonymous" && (!actor.cartTokenHash || actor.cartTokenHash !== input.tokenHash) && (input.lines.length || input.promotionCodes.length || input.status !== "active")) throw new DomainError("forbidden", "A verified cart capability is required.")
       return withTransaction(async (db) => {
         await lockStore(db, actor)
         if (input.customerId) {

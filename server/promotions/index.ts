@@ -1,4 +1,6 @@
 import "server-only"
+import { createMysqlPromotionRepository } from "@/server/promotions/mysql.repository"
+import { staffService } from "@/server/db/staff-service"
 
 import { refreshStorefront } from "@/server/shared/revalidate"
 import { adminService } from "@/server/admin"
@@ -8,7 +10,7 @@ import { createFixturesPromotionRepository } from "@/server/promotions/fixtures.
 import { createStaffPromotions } from "@/server/promotions/staff"
 import { createSupabasePromotionRepository } from "@/server/promotions/supabase.repository"
 
-export const promotionsRepository = selectRepository({
+export const promotionsRepository = selectRepository({ mysql: createMysqlPromotionRepository,
   fixtures: createFixturesPromotionRepository,
   supabase: createSupabasePromotionRepository,
 })
@@ -21,11 +23,11 @@ export type {
 
 /** Staff (admin) promotion operations. */
 export const staffPromotions = () =>
-  createStaffPromotions({
+  staffService(createStaffPromotions({
     promotions: promotionsRepository(),
     orderNumber: async (orderId) =>
       (await orderService().findById(orderId))?.number ?? null,
     audit: (staff, meta, entry) =>
       adminService().recordAudit(staff, meta, entry),
     revalidate: () => refreshStorefront(),
-  })
+  }))

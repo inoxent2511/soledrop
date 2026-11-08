@@ -2,7 +2,7 @@ import { checkoutSchema } from "@/features/checkout/schemas/checkout"
 import { siteConfig } from "@/lib/site"
 import { customerService } from "@/server/customers"
 import { loadCart } from "@/server/http/cart"
-import { clearCartCookie, clientKey, currentCustomer, parseBody, route } from "@/server/http/route"
+import { clearCartCookie, clientKey, currentCustomer, parseBody, rememberCheckoutCart, route } from "@/server/http/route"
 import { orderService } from "@/server/orders"
 import { enforceRateLimit } from "@/server/platform/guards"
 import { DomainError } from "@/server/shared/errors"
@@ -34,6 +34,7 @@ export const POST = route(async (request) => {
   })
 
   if (!result.replayed) {
+    await rememberCheckoutCart()
     await clearCartCookie()
     if (customer && input.saveAddress) await customerService().saveAddress(customer.id, { ...input.address, isDefault: false })
   }

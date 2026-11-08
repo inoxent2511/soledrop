@@ -1,3 +1,7 @@
+import { currentActor } from "@/server/db/context"
+import { bindActor } from "@/server/db/bind"
+import type { MediaOperations } from "@/server/media/repository"
+import { staffService } from "@/server/db/staff-service"
 import { fixtureStaff } from "@/tests/helpers/staff"
 import sharp from "sharp"
 import { beforeEach, describe, expect, it } from "vitest"
@@ -25,13 +29,13 @@ function staffAs(roleKey: string): StaffContext {
 }
 
 const catalog = () =>
-  createStaffCatalog({
+  staffService(createStaffCatalog({
     catalog: catalogRepository(),
     pricing: pricing(),
     inventory: inventory(),
     audit: async (_staff, _meta, entry) => void audits.push(entry),
     revalidate: () => void (revalidations += 1),
-  })
+  }))
 
 const input = (changes: Partial<ProductInput> = {}): ProductInput => ({
   title: "Test Runner",
@@ -171,7 +175,7 @@ describe("media uploads", () => {
 
   it("uploads, serves and protects images in use", async () => {
     let used: string[] = []
-    const service = createMediaService({ media: createFixturesMediaRepository(), audit: async (_s, _m, entry) => void audits.push(entry), usage: async () => used })
+    const service = staffService(createMediaService({ media: bindActor<MediaOperations>(createFixturesMediaRepository(), currentActor), audit: async (_s, _m, entry) => void audits.push(entry), usage: async () => used }))
     const item = await service.upload(staffAs("content_editor"), meta, { name: "../../evil name.png", bytes: await pngBytes() }, "Lime square")
     expect(item).toMatchObject({ mime: "image/webp", width: 64, height: 48, alt: "Lime square", filename: ".._.._evil name.png" })
     expect(item.url).toBe(`/media/${item.id}.webp`)

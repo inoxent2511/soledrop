@@ -1,11 +1,13 @@
 import "server-only"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { searchGuards } from "@/server/db/fixture-guards.repository"
 
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
-import type { SearchOperations } from "@/server/search/repository"
+import type { SearchOperations, SearchRepository } from "@/server/search/repository"
 
-export function createFixturesSearchRepository(): SearchOperations {
-  return {
+export function createFixturesSearchRepository(): SearchRepository {
+  const operations: SearchOperations = {
     async listSynonyms() {
       return structuredClone(db().searchSynonyms)
     },
@@ -56,4 +58,5 @@ export function createFixturesSearchRepository(): SearchOperations {
       })
     },
   }
+  return fixturePolicy<SearchOperations>(operations, searchGuards)
 }

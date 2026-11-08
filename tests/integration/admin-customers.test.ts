@@ -1,3 +1,4 @@
+import { staffService } from "@/server/db/staff-service"
 import { fixtureStaff } from "@/tests/helpers/staff"
 import { beforeEach, describe, expect, it } from "vitest"
 
@@ -27,14 +28,14 @@ function staffAs(roleKey: string, steppedUp = true): StaffContext {
 
 const staff = () => {
   const orders = orderService()
-  return createStaffCustomers({
+  return staffService(createStaffCustomers({
     customers: bindActor<CustomerOperations>(createFixturesCustomerRepository(), () => systemActor(STORE_ID, "migration", ALL_PERMISSIONS)),
     orders: { listForCustomer: orders.listForCustomer, anonymiseCustomer: orders.anonymiseCustomer },
     audit: async (_staff, _meta, entry) => void audits.push(entry),
     assertSteppedUp: (member) => {
       if (!member.session.mfaAt || Date.parse(member.session.mfaAt) + 600_000 < Date.now()) throw new DomainError("forbidden", "Step up", { stepUp: true })
     },
-  })
+  }))
 }
 
 async function register(email: string, fullName: string, phone: string | null = null) {

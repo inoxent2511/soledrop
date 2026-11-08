@@ -1,4 +1,6 @@
 import "server-only"
+import { createMysqlCatalogRepository } from "@/server/catalog/mysql.repository"
+import { staffService } from "@/server/db/staff-service"
 
 import { refreshStorefront } from "@/server/shared/revalidate"
 import { adminService } from "@/server/admin"
@@ -12,7 +14,7 @@ import { inventory } from "@/server/inventory"
 import { pricing } from "@/server/pricing"
 import { searchService } from "@/server/search"
 
-const repository = selectRepository({
+const repository = selectRepository({ mysql: createMysqlCatalogRepository,
   fixtures: createFixturesCatalogRepository,
   supabase: createSupabaseCatalogRepository,
 })
@@ -29,7 +31,7 @@ export const catalogRepository = repository
 
 /** Staff catalogue operations; a save refreshes every cached storefront page (ISR) at once. */
 export const staffCatalog = () =>
-  localService(createStaffCatalog({
+  staffService(localService(createStaffCatalog({
     assertImages: assertMediaReferences,
     catalog: repository(),
     pricing: pricing(),
@@ -37,5 +39,5 @@ export const staffCatalog = () =>
     audit: (staff, meta, entry) =>
       adminService().recordAudit(staff, meta, entry),
     revalidate: () => refreshStorefront(),
-  }))
+  })))
 export type * from "@/server/catalog/types"

@@ -90,6 +90,15 @@ These are resolved migration-development findings. They do not close the earlier
 
 ## Investigated, not a defect
 
+Migration authorization follow-up (2026-11-08):
+
+| ID | Finding | Fix and regression evidence |
+| --- | --- | --- |
+| MIG-015 | SQL masking removed customer address cards instead of preserving their masked shape. | Project masked address fields in SQL; shared fixtures/MySQL/MariaDB contract retains cards without exposing contact data. |
+| MIG-016 | Clearing the guest cart cookie after checkout removed the proof needed to recover a lost successful response. | HttpOnly, SameSite=Lax checkout cookie scoped to /api/checkout for 30 minutes; raw replay still requires the actual cart/customer/order proof. Shared ownership checks reject a different shopper with the same idempotency key. Full HTTP retries remain part of production acceptance. |
+| MIG-017 | Finance reports depended on broader catalogue/stock permissions. | Separate reports:read catalogue/stock projections retain unpublished stock in valuation without changing preset grants. Integration and live raw-permission matrices pass. |
+| MIG-018 | Importing the migration utility from runtime code caused whole-project file tracing. | Separate dependency-free engine checker, runtime storage tracing opt-out, explicit secret/private-data bundle exclusions, clean standalone rebuild. Build has no tracing warnings; private data and environment files are absent from the generated artifact. |
+
 - **Slow client navigation under CPU contention.** The header suite flaked once per run when all three
   engines ran with three workers each (navigation over 5 s). `qa/nav-race.mjs` measured: nothing is lost.
   Navigations take 200–550 ms unthrottled and 1.4–3.5 s at 6× CPU throttling. Cross-browser suites run with

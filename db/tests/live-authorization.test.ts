@@ -5,6 +5,14 @@ import { createMysqlAdminRepository } from "@/server/admin/mysql.repository"
 import { createMysqlCatalogRepository } from "@/server/catalog/mysql.repository"
 import { createMysqlMediaRepository } from "@/server/media/mysql.repository"
 import { createMysqlPlatformRepository } from "@/server/platform/mysql.repository"
+import { createMysqlContentRepository } from "@/server/content/mysql.repository"
+import { createMysqlCustomerRepository } from "@/server/customers/mysql.repository"
+import { createMysqlInventoryRepository } from "@/server/inventory/mysql.repository"
+import { createMysqlOrderRepository } from "@/server/orders/mysql.repository"
+import { createMysqlPromotionRepository } from "@/server/promotions/mysql.repository"
+import { createMysqlSearchRepository } from "@/server/search/mysql.repository"
+import { createMysqlCartRepository } from "@/server/cart/mysql.repository"
+import type { Permission } from "@/server/admin/permissions"
 import { currentStaffActor } from "@/server/db/policy.repository"
 import { anonymousActor, systemActor, type Actor } from "@/server/db/actor"
 import { closeDatabase, database, withTransaction } from "@/server/db/client"
@@ -109,5 +117,38 @@ for (const [engine, config] of engines) describe(engine + " live repository auth
     await expect(media.list(current, storeId, { page: 1, pageSize: 10 })).rejects.toMatchObject({ code: "unauthorized" })
     expect(await platform.listAudit(worker, "staff", memberId)).toEqual(expect.arrayContaining([expect.objectContaining({ action: "staff.signed_out_everywhere" })]))
     await reset()
+  })
+
+  const reads: { permission: Permission; label: string; run: (actor: Actor) => Promise<unknown> }[] = [
+    { permission: "products:read", label: "catalogue", run: (a) => catalog.searchProducts(a, storeId, { page: 1, pageSize: 10 }) },
+    { permission: "reports:read", label: "report catalogue", run: (a) => catalog.reportProducts(a, storeId, 1) },
+    { permission: "collections:read", label: "collection contents", run: (a) => catalog.collectionProductIds(a, storeId, uuidv7()) },
+    { permission: "staff:read", label: "members", run: (a) => admin.listMembers(a, storeId) },
+    { permission: "staff:read", label: "roles", run: (a) => admin.listRoles(a, storeId) },
+    { permission: "media:read", label: "media", run: (a) => media.list(a, storeId, { page: 1, pageSize: 10 }) },
+    { permission: "content:read", label: "draft pages", run: (a) => createMysqlContentRepository().staffPages(a, storeId) },
+    { permission: "customers:read", label: "customers", run: (a) => createMysqlCustomerRepository().search(a, storeId, { page: 1, pageSize: 10 }) },
+    { permission: "inventory:read", label: "stock", run: (a) => createMysqlInventoryRepository().levels(a, []) },
+    { permission: "reports:read", label: "report stock", run: (a) => createMysqlInventoryRepository().reportLevels(a, []) },
+    { permission: "orders:read", label: "orders", run: (a) => createMysqlOrderRepository().search(a, storeId, { page: 1, pageSize: 10 }) },
+    { permission: "payments:read", label: "ledger", run: (a) => createMysqlOrderRepository().ledger(a, storeId, { kind: "payments", page: 1, pageSize: 10 }) },
+    { permission: "promotions:read", label: "promotions", run: (a) => createMysqlPromotionRepository().listAll(a, storeId) },
+    { permission: "search:read", label: "analytics", run: (a) => createMysqlSearchRepository().report(a, storeId, 30, 10) },
+    { permission: "marketing:read", label: "abandoned carts", run: (a) => createMysqlCartRepository().listAbandoned(a, storeId, { olderThanHours: 1, page: 1, pageSize: 10 }) },
+    { permission: "marketing:read", label: "subscribers", run: (a) => createMysqlContentRepository().listSubscribers(a, storeId, { page: 1, pageSize: 10 }) },
+    { permission: "audit:read", label: "audit", run: (a) => platform.searchAudit(a, storeId, { page: 1, pageSize: 10 }) },
+  ]
+  it.each(PRESET_ROLES)("enforces stored $key grants across protected raw reads, even with inflated caller claims", async (role) => {
+    await reset(role.key)
+    for (const read of reads) {
+      const result = read.run(actor())
+      if (role.permissions.includes(read.permission)) await expect(result, read.label).resolves.toBeDefined()
+      else await expect(result, read.label).rejects.toMatchObject({ code: "forbidden" })
+    }
+    await reset()
+  })
+  it.each(["anonymous", "customer"])("denies all protected raw reads to %s", async (kind) => {
+    const visitor: Actor = kind === "anonymous" ? anonymousActor(storeId) : { kind: "customer", id: uuidv7(), email: "customer@example.test", storeId, permissions: ALL_PERMISSIONS, mfaVerifiedAt: null }
+    for (const read of reads) await expect(read.run(visitor), read.label).rejects.toMatchObject({ code: "forbidden" })
   })
 })

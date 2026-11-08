@@ -17,6 +17,7 @@ import { DomainError, isDomainError } from "@/server/shared/errors"
 
 export const SESSION_COOKIE = "sd_session"
 export const CART_COOKIE = "sd_cart"
+export const CHECKOUT_COOKIE = "sd_checkout"
 
 export type ApiError = { error: { code: string; message: string; details?: Record<string, unknown> } }
 
@@ -95,10 +96,16 @@ export async function clearCartCookie() {
   ;(await cookies()).delete(CART_COOKIE)
 }
 
+/** Preserve cart ownership for a lost checkout response after the active bag is cleared. */
+export async function rememberCheckoutCart() {
+  const jar = await cookies(), token = jar.get(CART_COOKIE)?.value
+  if (token) jar.set(CHECKOUT_COOKIE, token, { ...cookieBase, path: "/api/checkout", maxAge: 30 * 60 })
+}
+
 /** The signed-in customer for this request, if any. */
 export async function currentCustomer(): Promise<Customer | null> {
   const jar = await cookies(), token = jar.get(SESSION_COOKIE)?.value
-  establishCartToken(jar.get(CART_COOKIE)?.value)
+  establishCartToken(jar.get(CART_COOKIE)?.value ?? jar.get(CHECKOUT_COOKIE)?.value)
   const customer = await customerService().fromSession(token)
   if (customer && token && currentActor().kind !== "staff") establishCustomer(customer, token)
   else if (!customer && currentActor().kind === "customer") {

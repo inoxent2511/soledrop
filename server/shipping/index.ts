@@ -1,4 +1,6 @@
 import "server-only"
+import { createMysqlShippingRepository } from "@/server/shipping/mysql.repository"
+import { staffService } from "@/server/db/staff-service"
 
 import { refreshStorefront } from "@/server/shared/revalidate"
 import { adminService } from "@/server/admin"
@@ -7,7 +9,7 @@ import { createFixturesShippingRepository } from "@/server/shipping/fixtures.rep
 import { createStaffShipping } from "@/server/shipping/staff"
 import { createSupabaseShippingRepository } from "@/server/shipping/supabase.repository"
 
-export const shippingRepository = selectRepository({
+export const shippingRepository = selectRepository({ mysql: createMysqlShippingRepository,
   fixtures: createFixturesShippingRepository,
   supabase: createSupabaseShippingRepository,
 })
@@ -26,9 +28,9 @@ export type {
 
 /** Staff (admin) shipping and tax operations. */
 export const staffShipping = () =>
-  createStaffShipping({
+  staffService(createStaffShipping({
     shipping: shippingRepository(),
     audit: (staff, meta, entry) =>
       adminService().recordAudit(staff, meta, entry),
     revalidate: () => refreshStorefront(),
-  })
+  }))

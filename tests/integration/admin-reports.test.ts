@@ -1,3 +1,5 @@
+import { anonymousActor } from "@/server/db/actor"
+import { withActor } from "@/server/db/context"
 import { fixtureStaff } from "@/tests/helpers/staff"
 import { beforeEach, describe, expect, it } from "vitest"
 
@@ -49,7 +51,7 @@ async function placeOrder() {
 beforeEach(() => resetFixtures())
 
 describe("reports", () => {
-  it("counts today's sales, leaves cancelled orders out and values the stock", async () => {
+  it("counts today's sales, leaves cancelled orders out and values the stock", async () => withActor(anonymousActor(STORE_ID), async () => {
     const kept = await placeOrder()
     const cancelled = await placeOrder()
     await orderService().transition(cancelled.id, "cancelled", "test")
@@ -64,11 +66,11 @@ describe("reports", () => {
     await expect(reports().sales(staffAs("support_agent"), today, today)).rejects.toMatchObject({ code: "forbidden" })
     const csv = parseCsv(await reports().exportSales(staffAs("finance"), meta, today, today))
     expect(csv[0]).toMatchObject({ day: today, orders: "1" })
-  })
+  }))
 })
 
 describe("marketing and search tools", () => {
-  it("lists subscribers (masked without PII access), exports them, and finds abandoned bags", async () => {
+  it("lists subscribers (masked without PII access), exports them, and finds abandoned bags", async () => withActor(anonymousActor(STORE_ID), async () => {
     await contentService().subscribe(STORE_ID, "nadia@example.com", "footer")
     const owner = staffAs("owner")
     expect((await staffMarketing().subscribers(owner, { status: "subscribed", page: 1, pageSize: 50 })).rows[0].email).toBe("nadia@example.com")
@@ -81,9 +83,9 @@ describe("marketing and search tools", () => {
     const abandoned = await staffMarketing().abandoned(staffAs("marketing"), { olderThanHours: 2, page: 1, pageSize: 50 })
     expect(abandoned.rows.map((row) => row.id)).toEqual([cart.id])
     expect(abandoned.rows[0].value).toBeGreaterThan(0)
-  })
+  }))
 
-  it("reports searches that found nothing and fixes them with synonyms", async () => {
+  it("reports searches that found nothing and fixes them with synonyms", async () => withActor(anonymousActor(STORE_ID), async () => {
     await searchService().logSearch(STORE_ID, "trainers", 0, "page")
     await searchService().logSearch(STORE_ID, "Trainers", 0, "overlay")
     const marketing = staffAs("marketing")
@@ -94,5 +96,5 @@ describe("marketing and search tools", () => {
     await expect(staffSearch().saveSynonym(marketing, meta, { term: "trainers", synonyms: ["kicks"] })).rejects.toMatchObject({ code: "conflict" })
     expect((await searchService().synonymMap(STORE_ID)).get("trainers")).toEqual(expect.arrayContaining(["sneakers", "shoes"]))
     await expect(staffSearch().saveSynonym(staffAs("support_agent"), meta, { term: "x", synonyms: ["y"] })).rejects.toMatchObject({ code: "forbidden" })
-  })
+  }))
 })

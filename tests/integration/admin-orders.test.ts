@@ -1,3 +1,6 @@
+import { anonymousActor } from "@/server/db/actor"
+import { withActor } from "@/server/db/context"
+import { staffService } from "@/server/db/staff-service"
 import { fixtureStaff } from "@/tests/helpers/staff"
 import { beforeEach, describe, expect, it } from "vitest"
 
@@ -20,13 +23,13 @@ function staffAs(roleKey: string, { steppedUp = true } = {}): StaffContext {
   return fixtureStaff(roleKey, steppedUp)
 }
 
-const staff = createStaffOrders({
+const staff = staffService(createStaffOrders({
   orders: orderService(),
   audit: async (_staff, _meta, entry) => void audits.push(entry),
   assertSteppedUp: (member) => {
     if (!member.session.mfaAt || Date.parse(member.session.mfaAt) + 600_000 < Date.now()) throw new DomainError("forbidden", "Step up", { stepUp: true })
   },
-})
+}))
 
 async function placeOrder({ email = "ayesha@example.com", fullName = "Ayesha Khan", paymentMethod = "cod", key = crypto.randomUUID() } = {}) {
   const level = db().inventory.find((row) => row.onHand >= 1)!
@@ -54,7 +57,7 @@ beforeEach(() => {
 })
 
 describe("staff orders", () => {
-  it("lists and searches orders, and masks contact details without customers:read_pii", async () => {
+  it("lists and searches orders, and masks contact details without customers:read_pii", async () => withActor(anonymousActor(STORE_ID), async () => {
     const first = await placeOrder({ email: "ayesha@example.com" })
     await placeOrder({ email: "bilal@example.com", fullName: "Bilal Ahmed" })
     const support = staffAs("support_agent")
@@ -75,9 +78,9 @@ describe("staff orders", () => {
     expect(detail.actions).toMatchObject({ transitions: [], markPaid: false, refund: false, note: false })
 
     await expect(staff.list(staffAs("content_editor"), { page: 1, pageSize: 25 })).rejects.toMatchObject({ code: "forbidden" })
-  })
+  }))
 
-  it("moves orders along the state machine with the right permission, a tracking number and a reason to cancel", async () => {
+  it("moves orders along the state machine with the right permission, a tracking number and a reason to cancel", async () => withActor(anonymousActor(STORE_ID), async () => {
     const order = await placeOrder()
     const fulfilment = staffAs("fulfilment")
     expect((await staff.detail(fulfilment, order.number)).actions.transitions).toEqual(["processing"])
@@ -99,9 +102,9 @@ describe("staff orders", () => {
     await staff.transition(support, meta, other.number, { to: "cancelled", reason: "Customer asked" })
     expect(db().inventory.find((row) => row.variantId === other.lines[0].variantId)!.onHand).toBe(stockBefore + 1)
     expect(audits.at(-1)).toMatchObject({ action: "order.cancelled", reason: "Customer asked" })
-  })
+  }))
 
-  it("records an offline payment once per idempotency key and confirms a bank-transfer order", async () => {
+  it("records an offline payment once per idempotency key and confirms a bank-transfer order", async () => withActor(anonymousActor(STORE_ID), async () => {
     const order = await placeOrder({ paymentMethod: "bank_transfer" })
     expect(order.status).toBe("pending_payment")
     const finance = staffAs("finance")
@@ -113,9 +116,9 @@ describe("staff orders", () => {
     expect(detail.order).toMatchObject({ status: "confirmed", paymentStatus: "paid" })
     expect(detail.actions.markPaid).toBe(false)
     await expect(staff.markPaid(staffAs("fulfilment"), meta, order.number, { ...input, idempotencyKey: "pay-key-0002" })).rejects.toMatchObject({ code: "forbidden" })
-  })
+  }))
 
-  it("refunds within the role's ceiling, only after a fresh second factor", async () => {
+  it("refunds within the role's ceiling, only after a fresh second factor", async () => withActor(anonymousActor(STORE_ID), async () => {
     const order = await placeOrder()
     await staff.markPaid(staffAs("finance"), meta, order.number, { provider: "cod", amount: order.total, idempotencyKey: "cod-collected-1" })
     const line = order.lines[0]
@@ -135,9 +138,9 @@ describe("staff orders", () => {
     expect(db().inventory.find((row) => row.variantId === line.variantId)!.onHand).toBe(stockBefore + 1)
     expect(audits.filter((entry) => entry.action === "order.refunded")).toHaveLength(2)
     await expect(staff.refund(staffAs("owner"), meta, order.number, { ...input, amount: order.total, idempotencyKey: "refund-key-2", lines: [] })).rejects.toMatchObject({ code: "validation" })
-  })
+  }))
 
-  it("approves and receives returns, and keeps staff notes", async () => {
+  it("approves and receives returns, and keeps staff notes", async () => withActor(anonymousActor(STORE_ID), async () => {
     const order = await placeOrder()
     const owner = staffAs("owner")
     for (const to of ["processing", "shipped", "delivered"] as const) await staff.transition(owner, meta, order.number, { to, trackingNumber: "LEO-1" })
@@ -153,9 +156,9 @@ describe("staff orders", () => {
     await expect(staff.addNote(staffAs("read_only"), meta, order.number, "x")).rejects.toMatchObject({ code: "forbidden" })
     const detail = await staff.detail(owner, order.number)
     expect(detail.notes).toMatchObject([{ authorName: "Support Agent", body: "Customer called about sizing." }])
-  })
+  }))
 
-  it("exports CSV that can't run formulas and hides contact details without PII access", async () => {
+  it("exports CSV that can't run formulas and hides contact details without PII access", async () => withActor(anonymousActor(STORE_ID), async () => {
     await placeOrder({ fullName: "=HYPERLINK(\"http://evil\")", email: "eve@example.com" })
     const rows = parseCsv(await staff.exportCsv(staffAs("finance"), meta, {}))
     expect(rows[0].customer).toBe("'=HYPERLINK(\"http://evil\")")
@@ -165,11 +168,11 @@ describe("staff orders", () => {
     expect(storeManagerRows[0].email).toBe("eve@example.com")
     await expect(staff.exportCsv(staffAs("support_agent"), meta, {})).rejects.toMatchObject({ code: "forbidden" })
     expect(audits.filter((entry) => entry.action === "order.exported")).toHaveLength(2)
-  })
+  }))
 })
 
 describe("staff payments", () => {
-  it("queues bank transfers, reconciles them once, and keeps the ledger", async () => {
+  it("queues bank transfers, reconciles them once, and keeps the ledger", async () => withActor(anonymousActor(STORE_ID), async () => {
     const order = await placeOrder({ paymentMethod: "bank_transfer" })
     await placeOrder()
     const finance = staffAs("finance")
@@ -189,5 +192,5 @@ describe("staff payments", () => {
     await expect(staff.reconcile(finance, meta, cod.number, { ...input, idempotencyKey: "reconcile-0002" })).rejects.toMatchObject({ code: "validation" })
     await expect(staff.reconcile(staffAs("support_agent"), meta, order.number, input)).rejects.toMatchObject({ code: "forbidden" })
     await expect(staff.paymentsOverview(staffAs("fulfilment"))).rejects.toMatchObject({ code: "forbidden" })
-  })
+  }))
 })

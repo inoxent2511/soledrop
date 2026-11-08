@@ -124,6 +124,12 @@ export function createMysqlInventoryRepository(): ActorScoped<InventoryOperation
         return onHand
       })
     },
+    async reportLevels(actor, variantIds) {
+      requireGrant(actor, "reports:read")
+      if (!variantIds.length) return []
+      const db = await database()
+      return db.select({ variantId: inventoryLevels.variantId, onHand: inventoryLevels.onHand, reserved: inventoryLevels.reserved }).from(inventoryLevels).innerJoin(variants, eq(variants.id, inventoryLevels.variantId)).innerJoin(products, eq(products.id, variants.productId)).where(and(eq(products.storeId, actor.storeId), inArray(inventoryLevels.variantId, variantIds)))
+    },
     async levels(actor, variantIds) {
       requireGrant(actor, "inventory:read")
       if (!variantIds.length) return []

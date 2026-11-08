@@ -126,7 +126,7 @@ export function createMysqlAdminRepository(): ActorScoped<AdminOperations> {
             await db.delete(staffRecoveryCodes).where(and(eq(staffRecoveryCodes.storeId, actor.storeId), eq(staffRecoveryCodes.userId, userId)))
             if (codes.length) await db.insert(staffRecoveryCodes).values(codes.map((value, position) => ({ userId, storeId, value, position })))
           }
-          if (rest.status === "suspended" || rest.passwordHash !== undefined) await db.update(staffSessions).set({ revokedAt: sqlNow() }).where(and(eq(staffSessions.storeId, actor.storeId), eq(staffSessions.userId, userId), isNull(staffSessions.revokedAt)))
+          if (rest.status === "suspended" || rest.passwordHash !== undefined || rest.email !== undefined || row.totpEnabledAt && rest.totpEnabledAt === null) await db.update(staffSessions).set({ revokedAt: sqlNow() }).where(and(eq(staffSessions.storeId, actor.storeId), eq(staffSessions.userId, userId), isNull(staffSessions.revokedAt)))
           saved = await member(db, actor, (await db.select(memberProjection(actor, own)).from(staffMembers).where(where))[0])
         })
         return saved!

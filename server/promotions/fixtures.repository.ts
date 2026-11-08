@@ -1,15 +1,17 @@
 import "server-only"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { promotionGuards, promotionProjections } from "@/server/db/fixture-guards.repository"
 
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
-import type { PromotionOperations } from "@/server/promotions/repository"
+import type { PromotionOperations, PromotionRepository } from "@/server/promotions/repository"
 
 const matchesShopper = (order: { customerId: string | null; email: string }, shopper: { customerId: string | null; email: string | null }) =>
   (shopper.customerId !== null && order.customerId === shopper.customerId) ||
   (shopper.email !== null && order.email.toLowerCase() === shopper.email.toLowerCase())
 
-export function createFixturesPromotionRepository(): PromotionOperations {
-  return {
+export function createFixturesPromotionRepository(): PromotionRepository {
+  const operations: PromotionOperations = {
     async listActive(storeId) {
       return structuredClone(db().promotions.filter((promotion) => promotion.storeId === storeId && promotion.active))
     },
@@ -55,4 +57,5 @@ export function createFixturesPromotionRepository(): PromotionOperations {
       return structuredClone(db().promotionRedemptions.filter((row) => row.promotionId === promotionId).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit))
     },
   }
+  return fixturePolicy<PromotionOperations>(operations, promotionGuards, promotionProjections)
 }

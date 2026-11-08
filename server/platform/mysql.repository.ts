@@ -1,7 +1,7 @@
 import "server-only"
 import { mysqlPolicy } from "@/server/db/policy.repository"
 
-import { createHash } from "node:crypto"
+import { scopedKey } from "./scoped-key"
 import { and, asc, count, desc, eq, getTableColumns, gte, like, lt, lte, sql } from "drizzle-orm"
 import type { PlatformOperations } from "./repository"
 import type { AuditEntry, EventTopic, FeatureFlag, OutboxEvent, WebhookDelivery } from "./types"
@@ -17,11 +17,6 @@ import { serverEnv } from "@/lib/env.server"
 import { sealDeliveryPayload } from "@/server/platform/private-payload"
 
 function job(actor: Actor) { if (actor.kind !== "system" || !["jobs", "migration"].includes(actor.purpose)) requireGrant(actor, "jobs:run") }
-function scopedKey(actor: Actor, key: string, identity = false) {
-  const owner = actor.kind === "anonymous" ? actor.cartTokenHash ?? actor.orderAccessTokenHash : actor.id
-  if (identity && !owner) throw new DomainError("forbidden", "A session or cart capability is required.")
-  return createHash("sha256").update(actor.storeId + ":" + (identity ? actor.kind + ":" + owner + ":" : "") + key).digest("hex")
-}
 function event(row: typeof outboxEvents.$inferSelect): OutboxEvent { return { id: row.id, topic: row.topic as EventTopic, payload: jsonValue<OutboxEvent["payload"]>(row.payload), status: row.status as OutboxEvent["status"], attempts: row.attempts, availableAt: isoDate(row.availableAt), createdAt: isoDate(row.createdAt), lastError: row.lastError } }
 function audit(row: typeof auditLog.$inferSelect): AuditEntry { return { ...row, at: isoDate(row.at) } }
 function delivery(row: typeof webhookDeliveries.$inferSelect): WebhookDelivery { return { ...row, status: row.status as WebhookDelivery["status"], at: isoDate(row.at) } }
@@ -146,7 +141,7 @@ export function createMysqlPlatformRepository(): ActorScoped<PlatformOperations>
       const scope = eq(outboxEvents.storeId, actor.storeId), pii = actor.permissions.includes("customers:read_pii")
       const [counts, failed, deliveries] = await Promise.all([
         db.select({ status: outboxEvents.status, count: count() }).from(outboxEvents).where(scope).groupBy(outboxEvents.status),
-        db.select({ ...getTableColumns(outboxEvents), payload: pii ? outboxEvents.payload : constant(null) }).from(outboxEvents).where(and(scope, eq(outboxEvents.status, "failed"))).orderBy(desc(outboxEvents.createdAt)).limit(20),
+        db.select({ ...getTableColumns(outboxEvents), payload: pii ? outboxEvents.payload : constant(null), lastError: pii ? outboxEvents.lastError : constant("Delivery failed. See restricted server logs.") }).from(outboxEvents).where(and(scope, eq(outboxEvents.status, "failed"))).orderBy(desc(outboxEvents.createdAt)).limit(20),
         db.select({ ...getTableColumns(webhookDeliveries), endpoint: actor.permissions.includes("settings:webhooks") ? webhookDeliveries.endpoint : constant("•••") }).from(webhookDeliveries).innerJoin(outboxEvents, eq(outboxEvents.id, webhookDeliveries.eventId)).where(scope).orderBy(desc(webhookDeliveries.at)).limit(20),
       ])
       const total = (status: string) => counts.find((row) => row.status === status)?.count ?? 0

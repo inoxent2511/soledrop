@@ -8,7 +8,7 @@ import type { Pool, PoolConnection, RowDataPacket } from "mysql2/promise"
 import { drizzle, type MySql2Database } from "drizzle-orm/mysql2"
 import { DomainError } from "@/server/shared/errors"
 import * as schema from "./schema"
-import { supportedEngine } from "../../scripts/database-common.mjs"
+import { supportedEngine } from "../../scripts/database-engine.mjs"
 
 export type Database = MySql2Database<typeof schema>
 type Engine = { engine: "mysql" | "mariadb"; version: string }

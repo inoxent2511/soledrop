@@ -7,7 +7,7 @@ export type SystemPurpose = "auth:customer" | "auth:staff" | "bootstrap" | "migr
 type Base = { storeId: string; permissions: readonly Permission[]; mfaVerifiedAt: string | null }
 export type Actor = Base & (
   | { kind: "anonymous"; id: null; cartTokenHash?: string; orderAccessTokenHash?: string; checkoutEmail?: string; orderLookup?: { number: string; email: string } }
-  | { kind: "customer"; id: string; email: string; sessionTokenHash?: string; cartTokenHash?: string; orderAccessTokenHash?: string }
+  | { kind: "customer"; id: string; email: string; sessionTokenHash?: string; cartTokenHash?: string; orderAccessTokenHash?: string; orderLookup?: { number: string; email: string } }
   | { kind: "staff"; id: string; sessionId: string; refundLimit: number | null; roleKeys: readonly string[] }
   | { kind: "system"; id: string; purpose: SystemPurpose }
 )
@@ -39,15 +39,15 @@ export function attenuateStaffActor(current: Actor, requested: Extract<Actor, { 
   return { ...requested, permissions: requested.permissions.filter((permission) => current.permissions.includes(permission)), roleKeys: requested.roleKeys.filter((role) => current.roleKeys.includes(role)), refundLimit: requested.refundLimit === null ? current.refundLimit : current.refundLimit === null ? requested.refundLimit : Math.min(requested.refundLimit, current.refundLimit), mfaVerifiedAt: Number.isFinite(proof) && current.mfaVerifiedAt ? new Date(Math.min(proof, Date.parse(current.mfaVerifiedAt))).toISOString() : null }
 }
 
-export function anonymousActor(storeId: string): Actor {
+export function anonymousActor(storeId: string): Extract<Actor, { kind: "anonymous" }> {
   return { kind: "anonymous", id: null, storeId, permissions: [], mfaVerifiedAt: null }
 }
 
-export function staffActor(staff: StaffContext): Actor {
+export function staffActor(staff: StaffContext): Extract<Actor, { kind: "staff" }> {
   return { kind: "staff", id: staff.member.userId, storeId: staff.member.storeId, sessionId: staff.session.id, permissions: staff.permissions, mfaVerifiedAt: staff.session.aal === 2 ? staff.session.mfaAt : null, refundLimit: staff.refundLimit, roleKeys: staff.roles.map((role) => role.key) }
 }
 
-export function systemActor(storeId: string, purpose: SystemPurpose, permissions: readonly Permission[] = []): Actor {
+export function systemActor(storeId: string, purpose: SystemPurpose, permissions: readonly Permission[] = []): Extract<Actor, { kind: "system" }> {
   return { kind: "system", id: purpose, storeId, purpose, permissions, mfaVerifiedAt: null }
 }
 

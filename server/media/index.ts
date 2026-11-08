@@ -1,4 +1,6 @@
 import "server-only"
+import { createMysqlMediaRepository } from "@/server/media/mysql.repository"
+import { staffService } from "@/server/db/staff-service"
 
 import { adminService } from "@/server/admin"
 import { localService, selectRepository } from "@/server/db/driver"
@@ -8,11 +10,11 @@ import { createSupabaseMediaRepository } from "@/server/media/supabase.repositor
 import { catalogRepository } from "@/server/catalog"
 import { contentRepository } from "@/server/content"
 
-const repository = selectRepository({ fixtures: createFixturesMediaRepository, supabase: createSupabaseMediaRepository })
+const repository = selectRepository({ mysql: createMysqlMediaRepository,  fixtures: createFixturesMediaRepository, supabase: createSupabaseMediaRepository })
 export const mediaRepository = repository
 
 export const mediaService = () =>
-  localService(createMediaService({
+  staffService(localService(createMediaService({
     media: repository(),
     audit: (staff, meta, entry) => adminService().recordAudit(staff, meta, entry),
     usage: async (storeId, url) => {
@@ -29,7 +31,7 @@ export const mediaService = () =>
       if (await repository().hasOrderUsage(storeId, url)) used.add("Order history")
       return [...used]
     },
-  }))
+  })))
 
 export { mediaUrl, type MediaItem } from "@/server/media/types"
 export type { MediaView } from "@/server/media/service"

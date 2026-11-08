@@ -18,6 +18,8 @@ export interface InventoryOperations {
   adjust(variantId: string, delta: number, reason: string, actor: string): Promise<number>
   /** On hand and reserved per variant (admin inventory). */
   levels(variantIds: string[]): Promise<StockLevelRow[]>
+  /** Report projection; does not grant access to stock adjustments or movement history. */
+  reportLevels(variantIds: string[]): Promise<StockLevelRow[]>
   /** The adjustment ledger, newest first. */
   movements(variantIds: string[], limit: number): Promise<StockMovement[]>
 }

@@ -1,11 +1,13 @@
 import "server-only"
+import { fixturePolicy } from "@/server/db/fixtures-policy.repository"
+import { orderGuards, orderProjections } from "@/server/db/fixture-private-guards.repository"
 import { serverEnv } from "@/lib/env.server"
 import { sealDeliveryPayload } from "@/server/platform/private-payload"
 
 import { db, transaction } from "@/server/fixtures/store"
 import type { FixtureTables } from "@/server/fixtures/tables"
 import { assertInventoryInvariants, releaseCartIn, releaseExpiredIn } from "@/server/inventory/fixtures.repository"
-import type { OrderOperations } from "@/server/orders/repository"
+import type { OrderOperations, OrderRepository } from "@/server/orders/repository"
 import { canTransition, restocksOnTransition } from "@/server/orders/state-machine"
 import type { Order, OrderQuery, Payment } from "@/server/orders/types"
 import type { EventTopic } from "@/server/platform/types"
@@ -78,8 +80,8 @@ const SORTERS: Record<NonNullable<OrderQuery["sort"]>, (a: Order, b: Order) => n
   total_asc: (a, b) => a.total - b.total || b.placedAt.localeCompare(a.placedAt),
 }
 
-export function createFixturesOrderRepository(): OrderOperations {
-  return {
+export function createFixturesOrderRepository(): OrderRepository {
+  const operations: OrderOperations = {
     async placeOrder({ draft, cartId, promotionIds, event }) {
       return transaction((tables) => {
         const replay = tables.orders.find((order) => order.storeId === draft.storeId && order.idempotencyKey === draft.idempotencyKey)
@@ -330,4 +332,5 @@ export function createFixturesOrderRepository(): OrderOperations {
       })
     },
   }
+  return fixturePolicy<OrderOperations>(operations, orderGuards, orderProjections)
 }

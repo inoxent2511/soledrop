@@ -15,9 +15,9 @@ import { engines } from "./connections"
 
 for (const [engine, config] of [["fixtures", null] as const, ...engines] as const) describe(engine + " media contract", () => {
   const storeId = uuidv7(), actor = systemActor(storeId, "migration", ALL_PERMISSIONS), fixture = engine === "fixtures"
-  const media: MediaOperations = fixture ? createFixturesMediaRepository() : bindActor<MediaOperations>(createMysqlMediaRepository(), () => actor)
+  const media: MediaOperations = bindActor<MediaOperations>(fixture ? createFixturesMediaRepository() : createMysqlMediaRepository(), () => actor)
   beforeAll(async () => {
-    if (fixture) { resetFixtures(); fixtures().media = [] }
+    if (fixture) { resetFixtures(); fixtures().stores[0].id = storeId; fixtures().media = [] }
     else { await closeDatabase(); process.env.DATABASE_URL = config!.appUrl; await (await database()).insert(stores).values({ id: storeId, name: "Media contract" }) }
   })
   afterAll(async () => { if (!fixture) { try { await (await database()).delete(stores).where(eq(stores.id, storeId)) } finally { await closeDatabase() } } })

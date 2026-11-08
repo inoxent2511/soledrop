@@ -1,3 +1,4 @@
+import { staffService } from "@/server/db/staff-service"
 import { fixtureStaff } from "@/tests/helpers/staff"
 import { beforeEach, describe, expect, it } from "vitest"
 
@@ -20,8 +21,8 @@ function staffAs(roleKey: string): StaffContext {
   return fixtureStaff(roleKey)
 }
 
-const promotions = () => createStaffPromotions({ promotions: promotionsRepository(), orderNumber: async () => null, audit: async (_s, _m, entry) => void audits.push(entry.action), revalidate: () => undefined })
-const shipping = () => createStaffShipping({ shipping: shippingRepository(), audit: async (_s, _m, entry) => void audits.push(entry.action), revalidate: () => undefined })
+const promotions = () => staffService(createStaffPromotions({ promotions: promotionsRepository(), orderNumber: async () => null, audit: async (_s, _m, entry) => void audits.push(entry.action), revalidate: () => undefined }))
+const shipping = () => staffService(createStaffShipping({ shipping: shippingRepository(), audit: async (_s, _m, entry) => void audits.push(entry.action), revalidate: () => undefined }))
 
 const draft = (changes: Partial<PromotionInput> = {}): PromotionInput =>
   promotionInput.parse({ title: "Ten off pre-loved", code: "preloved10", conditions: [{ type: "product_kind", kind: "preloved" }], actions: [{ type: "percent_off_items", basisPoints: 1000, kind: "preloved" }], startsAt: null, endsAt: null, usageLimit: null, perCustomerLimit: null, ...changes })

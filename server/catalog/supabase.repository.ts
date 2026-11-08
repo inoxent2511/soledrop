@@ -126,6 +126,9 @@ export function createSupabaseCatalogRepository(): CatalogOperations {
       return result
     },
 
+    async reportProducts(storeId, page) {
+      return (await this.searchProducts(storeId, { page, pageSize: 1000 })).products
+    },
     async searchProducts(storeId, query) {
       let request = supabase().from("products").select(PRODUCT_SELECT, { count: "exact" }).eq("store_id", storeId)
       const term = query.q ? searchTerm(query.q) : ""

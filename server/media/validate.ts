@@ -3,10 +3,11 @@ import "server-only"
 import { serverEnv } from "@/lib/env.server"
 import { selectRepository } from "@/server/db/driver"
 import { createFixturesMediaRepository } from "@/server/media/fixtures.repository"
+import { createMysqlMediaRepository } from "@/server/media/mysql.repository"
 import { createSupabaseMediaRepository } from "@/server/media/supabase.repository"
 import { DomainError } from "@/server/shared/errors"
 
-const repository = selectRepository({ fixtures: createFixturesMediaRepository, supabase: createSupabaseMediaRepository })
+const repository = selectRepository({ fixtures: createFixturesMediaRepository, mysql: createMysqlMediaRepository, supabase: createSupabaseMediaRepository })
 
 export async function assertMediaReferences(storeId: string, urls: string[]) {
   for (const url of new Set(urls)) {
