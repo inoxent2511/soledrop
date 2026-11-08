@@ -113,3 +113,11 @@ Migration authorization follow-up (2026-11-08):
   layout is identical. Engine limitation; Safari on macOS/iOS is under *Needs manual check*.
 - **Firefox size-chip click.** `check({ force: true })` on a visually hidden radio misses in Firefox;
   shoppers click the visible chip. The tests select sizes with the keyboard instead.
+
+Migration adapter findings (2026-11-08):
+
+| ID | Finding | Fix and regression evidence |
+| --- | --- | --- |
+| MIG-019 | Retrying a partially delivered outbox event could resend its successful channel; an expired worker could overwrite a newer receipt. | Independent fenced delivery leases/receipts, busy deferral and bounded jobs. Shared fixture/MySQL/MariaDB retry, stale-worker and successful-channel regressions pass. SMTP acceptance before receipt commit remains at least once and is documented. |
+| MIG-020 | Expired idempotency rows stayed permanently occupied; a large unrelated expiry backlog could prevent a requested stock reservation. | Refresh expired keys under lock while keeping live first-writer values; release all expired holds for requested variants and keep scheduled sweeps bounded. Shared 501-hold backlog and replay regressions pass. |
+| MIG-021 | Native search collation and supplementary-plane LIKE optimization disagreed with the preserved pure search model. | Binary folded projections, surrogate-safe bounded terms and supplementary-prefix comparison fallback. 176 real-engine parity cases include long terms, sharp s/ss and supplementary Unicode. |

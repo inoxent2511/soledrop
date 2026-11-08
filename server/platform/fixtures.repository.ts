@@ -15,6 +15,37 @@ const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000
 
 export function createFixturesPlatformRepository(): PlatformRepository {
   const operations: PlatformOperations = {
+    async claimDelivery(eventId, channel) {
+      if (!/^[a-z0-9:_-]{1,190}$/.test(channel)) throw new DomainError("validation", "Invalid delivery channel.")
+      if (!db().outbox.some((event) => event.id === eventId)) throw new DomainError("not_found", "Event not found.")
+      const rows = db().deliveryChannels ??= new Map(), key = eventId + ":" + channel, row = rows.get(key)
+      if (row?.status === "delivered") return { status: "delivered", token: null }
+      if (row && row.leaseUntil > Date.now()) return { status: "busy", token: null }
+      const token = newId()
+      rows.set(key, { status: "sending", leaseUntil: Date.now() + 120_000, token })
+      return { status: "claimed", token }
+    },
+    async finishDelivery(eventId, channel, token, delivered) {
+      const row = db().deliveryChannels?.get(eventId + ":" + channel)
+      if (row?.status !== "sending" || row.token !== token) return false
+      Object.assign(row, { status: delivered ? "delivered" : "pending", leaseUntil: 0 })
+      return true
+    },
+    async deferEvent(eventId, availableAt) {
+      const event = db().outbox.find((row) => row.id === eventId && row.status === "pending")
+      if (event) Object.assign(event, { availableAt, attempts: Math.max(0, event.attempts - 1) })
+    },
+    async cleanup(limit) {
+      if (!Number.isInteger(limit) || limit < 1 || limit > 1000) throw new DomainError("validation", "Cleanup limit must be between 1 and 1000.")
+      const tables = db(), now = Date.now(), counts = { rateLimits: 0, idempotency: 0, sessions: 0, tokens: 0 }
+      for (const [key, value] of tables.idempotency) if (counts.idempotency < limit && value.at + IDEMPOTENCY_TTL_MS < now) { tables.idempotency.delete(key); counts.idempotency++ }
+      for (const [key, value] of tables.rateLimits) if (counts.rateLimits < limit && value.expiresAt !== undefined && value.expiresAt + 86_400_000 < now) { tables.rateLimits.delete(key); counts.rateLimits++ }
+      const expired = <T extends { expiresAt: string }>(rows: T[]) => { let count = 0; const kept = rows.filter((row) => !(Date.parse(row.expiresAt) < now && count++ < limit)); return { kept, count: rows.length - kept.length } }
+      const customer = expired(tables.sessions), staff = expired(tables.staffSessions), resets = expired(tables.passwordResets), tokens = expired(tables.customerTokens ?? [])
+      tables.sessions = customer.kept; tables.staffSessions = staff.kept; tables.passwordResets = resets.kept; tables.customerTokens = tokens.kept
+      counts.sessions = customer.count + staff.count; counts.tokens = resets.count + tokens.count
+      return counts
+    },
     async listFlags() {
       return db().flags
     },
@@ -25,10 +56,11 @@ export function createFixturesPlatformRepository(): PlatformRepository {
       return event
     },
     async claimDue(limit) {
+      if (!Number.isInteger(limit) || limit < 1) throw new DomainError("validation", "Invalid claim limit.")
       const at = Date.now()
       return db()
         .outbox.filter((event) => event.status === "pending" && Date.parse(event.availableAt) <= at)
-        .slice(0, limit)
+        .slice(0, Math.min(100, limit))
         .map((event) => {
           event.attempts += 1
           event.availableAt = new Date(at + 60_000).toISOString()
@@ -62,7 +94,7 @@ export function createFixturesPlatformRepository(): PlatformRepository {
       const windowStart = Math.floor(Date.now() / (windowSeconds * 1000))
       const current = limits.get(key)
       const next = current && current.windowStart === windowStart ? { windowStart, count: current.count + 1 } : { windowStart, count: 1 }
-      limits.set(key, next)
+      limits.set(key, { ...next, expiresAt: (windowStart + 1) * windowSeconds * 1000 })
       return next.count
     },
     async getIdempotent(key) {
@@ -73,7 +105,8 @@ export function createFixturesPlatformRepository(): PlatformRepository {
     },
     async saveIdempotent(key, status, body) {
       key = scopedKey(currentActor(), key, true)
-      if (db().idempotency.has(key)) return
+      const previous = db().idempotency.get(key)
+      if (previous && Date.now() - previous.at <= IDEMPOTENCY_TTL_MS) return
       db().idempotency.set(key, { status, body, at: Date.now() })
     },
     async ping() {

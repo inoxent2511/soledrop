@@ -43,7 +43,7 @@ export async function releaseReservations(db: Database, actor: Actor, rows: (typ
     if (quantity > level.reserved) throw new DomainError("conflict", "Stock reservation accounting needs attention.")
     await db.update(inventoryLevels).set({ reserved: level.reserved - quantity }).where(eq(inventoryLevels.variantId, level.variantId))
   }
-  await db.delete(inventoryReservations).where(inArray(inventoryReservations.id, rows.map((row) => row.id)))
+  for (let start = 0; start < rows.length; start += 1000) await db.delete(inventoryReservations).where(inArray(inventoryReservations.id, rows.slice(start, start + 1000).map((row) => row.id)))
 }
 
 export async function releaseCartReservations(db: Database, actor: Actor, cartId: string) {
@@ -51,8 +51,11 @@ export async function releaseCartReservations(db: Database, actor: Actor, cartId
   await releaseReservations(db, actor, rows)
 }
 
-export async function releaseExpiredReservations(db: Database, actor: Actor, limit = 500) {
-  const rows = await db.select(getTableColumns(inventoryReservations)).from(inventoryReservations).innerJoin(carts, eq(carts.id, inventoryReservations.cartId)).where(and(eq(carts.storeId, actor.storeId), lte(inventoryReservations.expiresAt, sqlNow()))).orderBy(inventoryReservations.variantId, inventoryReservations.id).limit(limit).for("update")
+export async function releaseExpiredReservations(db: Database, actor: Actor, limit = 500, requestedVariants?: string[]) {
+  if (requestedVariants && !requestedVariants.length) return 0
+  const selection = db.select(getTableColumns(inventoryReservations)).from(inventoryReservations).innerJoin(carts, eq(carts.id, inventoryReservations.cartId)).where(and(eq(carts.storeId, actor.storeId), lte(inventoryReservations.expiresAt, sqlNow()), requestedVariants ? inArray(inventoryReservations.variantId, requestedVariants) : undefined)).orderBy(inventoryReservations.variantId, inventoryReservations.id).$dynamic()
+  // Scheduled sweeps are bounded; checkout must release every expired hold on the sizes it buys.
+  const rows = await (requestedVariants ? selection.for("update") : selection.limit(limit).for("update"))
   await releaseReservations(db, actor, rows)
   return rows.length
 }
@@ -82,7 +85,7 @@ export function createMysqlInventoryRepository(): ActorScoped<InventoryOperation
         await lockStore(db, actor)
         const cart = await lockCart(db, actor, cartId)
         if (cart.status !== "active") throw new DomainError("conflict", "This cart is no longer active.")
-        await releaseExpiredReservations(db, actor)
+        await releaseExpiredReservations(db, actor, 500, items.map((item) => item.variantId))
         await releaseCartReservations(db, actor, cartId)
         const levels = await lockLevels(db, actor, items.map((item) => item.variantId))
         const expiresAt = sqlDate(new Date(Date.now() + ttlMinutes * 60_000).toISOString())

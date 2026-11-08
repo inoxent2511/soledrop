@@ -48,6 +48,8 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   images: {
+    loader: "custom",
+    loaderFile: "./lib/image-loader.ts",
     formats: ["image/avif", "image/webp"],
     // Product photos are served from /public/images; a CDN host is added here when photos move (phase-2.md).
     remotePatterns: [],

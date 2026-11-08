@@ -1,9 +1,18 @@
 import { mysqlTable, varchar, char, text, int, tinyint, datetime, decimal } from "drizzle-orm/mysql-core"
 import { uuid } from "./uuid"
 import { portableJson, safeBigint } from "./columns"
-import { sqlNow } from "./values"
+import { sqlDate, sqlNow } from "./values"
 
 /** Column mappings; committed db/migrations SQL is the schema source of truth. */
+export const outboxChannels = mysqlTable("outbox_channels", {
+  eventId: uuid("event_id").notNull(),
+  channel: varchar("channel", { length: 190 }).notNull(),
+  status: varchar("status", { length: 16 }).notNull(),
+  leaseUntil: datetime("lease_until", { mode: "string", fsp: 3 }),
+  leaseToken: char("lease_token", { length: 36 }),
+  deliveredAt: datetime("delivered_at", { mode: "string", fsp: 3 }),
+})
+
 export const auditLog = mysqlTable("audit_log", {
   id: uuid("id").notNull(),
   actor: varchar("actor", { length: 190 }).notNull(),
@@ -26,7 +35,7 @@ export const idempotencyKeys = mysqlTable("idempotency_keys", {
   status: int("status").notNull(),
   body: portableJson("body"),
   createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
-  expiresAt: datetime("expires_at", { mode: "string", fsp: 3 }).notNull().default("(now() + '24:00:00'::interval)"),
+  expiresAt: datetime("expires_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(() => sqlDate(new Date(Date.now() + 86_400_000).toISOString())),
 })
 
 export const permissions = mysqlTable("permissions", {
@@ -687,6 +696,19 @@ export const searchDocuments = mysqlTable("search_documents", {
   body: text("body").notNull(),
   prefix: varchar("prefix", { length: 190 }).notNull(),
   updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+})
+
+export const searchFieldTerms = mysqlTable("search_field_terms", {
+  productId: uuid("product_id").notNull(),
+  field: varchar("field", { length: 8 }).notNull(),
+  term: varchar("term", { length: 300 }).notNull(),
+  position: int("position").notNull(),
+})
+
+export const searchSkus = mysqlTable("search_skus", {
+  storeId: uuid("store_id").notNull(),
+  compact: varchar("compact", { length: 190 }).notNull(),
+  productId: uuid("product_id").notNull(),
 })
 
 export const searchTerms = mysqlTable("search_terms", {

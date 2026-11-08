@@ -30,7 +30,9 @@ import { createMysqlSearchRepository } from "@/server/search/mysql.repository"
 import { anonymousActor, systemActor, type Actor } from "@/server/db/actor"
 import { bindActor } from "@/server/db/bind"
 import { closeDatabase, database } from "@/server/db/client"
-import { orderNumberSequences, orders as orderRows, products, staffRoles, stores } from "@/server/db/schema"
+import { inventoryLevels, inventoryReservations, orderNumberSequences, orders as orderRows, products, staffRoles, stores } from "@/server/db/schema"
+import { sqlDate } from "@/server/db/values"
+import { scopedKey } from "@/server/platform/scoped-key"
 import { uuidv7 } from "@/server/db/uuid"
 import { db as fixtureDb, resetFixtures } from "@/server/fixtures/store"
 import type { Order } from "@/server/orders/types"
@@ -233,6 +235,25 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     await expect(raw.findById({ ...reader, permissions: [] }, customerId)).rejects.toMatchObject({ code: "forbidden" })
   })
 
+  it("claims each delivery channel once, retains completed receipts and defers without spending attempts", async () => {
+    const event = await platform.enqueue(storeId, "contact.received", { id: uuidv7() })
+    const claims = await Promise.all([platform.claimDelivery(event.id, "email"), platform.claimDelivery(event.id, "email")])
+    expect(claims.map((claim) => claim.status).sort()).toEqual(["busy", "claimed"])
+    await platform.finishDelivery(event.id, "email", claims.find((claim) => claim.status === "claimed")!.token!, true)
+    expect((await platform.claimDelivery(event.id, "email")).status).toBe("delivered")
+    const webhook = await platform.claimDelivery(event.id, "webhook:test")
+    expect(webhook.status).toBe("claimed")
+    await platform.finishDelivery(event.id, "webhook:test", webhook.token!, false)
+    expect((await platform.claimDelivery(event.id, "webhook:test")).status).toBe("claimed")
+    expect((await platform.claimDelivery(event.id, "email")).status).toBe("delivered")
+    const due = await platform.claimDue(100), claimed = due.find((row) => row.id === event.id)!
+    expect(claimed.attempts).toBe(1)
+    await platform.deferEvent(event.id, new Date(Date.now() + 3_600_000).toISOString())
+    expect((await platform.claimDue(100)).some((row) => row.id === event.id)).toBe(false)
+    await expect(platform.cleanup(1001)).rejects.toMatchObject({ code: "validation" })
+    expect(await platform.cleanup(10)).toMatchObject({ rateLimits: expect.any(Number), idempotency: expect.any(Number) })
+  })
+
   it("applies customer ownership and store predicates inside the raw fixture/SQL boundary", async () => {
     const raw = fixture ? createFixturesCustomerRepository() : createMysqlCustomerRepository()
     const owner: Actor = { kind: "customer", id: customerId, email: customer.email, storeId, permissions: [], mfaVerifiedAt: null }
@@ -245,6 +266,24 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     expect(await raw.findByEmail(foreign, otherStore, customer.email)).toBeNull()
     await expect(raw.findByEmail(foreign, storeId, customer.email)).rejects.toMatchObject({ code: "forbidden" })
     expect((await customers.findById(customerId))?.fullName).toBe("Contract Customer")
+  })
+
+  it("fences an expired delivery worker out of a replacement worker's receipt", async () => {
+    const event = await platform.enqueue(storeId, "contact.received", { id: uuidv7() })
+    const old = await platform.claimDelivery(event.id, "email")
+    if (fixture) fixtureDb().deliveryChannels!.get(event.id + ":email")!.leaseUntil = 0
+    else {
+      const maintenance = await connect(configuration!.migratorUrl)
+      try { await maintenance.execute("UPDATE outbox_channels SET lease_until = '2000-01-01 00:00:00' WHERE event_id = ? AND channel = 'email'", [Buffer.from(event.id.replaceAll("-", ""), "hex")]) }
+      finally { await maintenance.end() }
+    }
+    const replacement = await platform.claimDelivery(event.id, "email")
+    expect(replacement.status).toBe("claimed")
+    expect(replacement.token).not.toBe(old.token)
+    expect(await platform.finishDelivery(event.id, "email", old.token!, true)).toBe(false)
+    expect((await platform.claimDelivery(event.id, "email")).status).toBe("busy")
+    expect(await platform.finishDelivery(event.id, "email", replacement.token!, true)).toBe(true)
+    expect((await platform.claimDelivery(event.id, "email")).status).toBe("delivered")
   })
 
   it("prevents another customer from reading or changing carts, orders, returns and cached private responses", async () => {
@@ -298,5 +337,49 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     expect(scrubbed?.passwordHash).toBe("")
     expect(await customers.listAddresses(customerId)).toEqual([])
     expect((await orders.findById(order.id))?.total).toBe(10000)
+  })
+
+  it("refreshes an expired idempotency entry while retaining first-write-wins within its live window", async () => {
+    const key = "expired-cache-refresh"
+    await platform.saveIdempotent(key, 200, { version: 1 })
+    if (fixture) fixtureDb().idempotency.get(scopedKey(actor, key, true))!.at = 0
+    else {
+      const maintenance = await connect(configuration!.migratorUrl)
+      try { await maintenance.execute("UPDATE idempotency_keys SET expires_at = '2000-01-01 00:00:00' WHERE `key` = ?", [scopedKey(actor, key, true)]) }
+      finally { await maintenance.end() }
+    }
+    expect(await platform.getIdempotent(key)).toBeNull()
+    await platform.saveIdempotent(key, 201, { version: 2 })
+    await platform.saveIdempotent(key, 202, { version: 3 })
+    expect(await platform.getIdempotent(key)).toEqual({ status: 201, body: { version: 2 } })
+  })
+
+  it("bounds scheduled expiry but never lets an unrelated backlog block a shopper's own sizes", async () => {
+    const original = (await catalog.getProductById(storeId, productId))!
+    const oldVariant = { ...original.variants[0], id: "00000000" + uuidv7().slice(8), sku: "OLD-HOLDS-" + storeId }
+    await catalog.saveProduct(storeId, { ...original, id: uuidv7(), slug: "old-holds-" + storeId, variants: [oldVariant] }, null)
+    await inventory.adjust(oldVariant.id, 501, "Expired hold backlog", "migration")
+    const oldCart = await carts.create({ ...cart, id: uuidv7(), customerId: null, tokenHash: hash(uuidv7()), status: "active", lines: [] })
+    const activeCart = await carts.create({ ...oldCart, id: uuidv7(), tokenHash: hash(uuidv7()) })
+    const quantity = (await inventory.levels([variantId]))[0].onHand
+    const expired = Array.from({ length: 501 }, () => ({ id: uuidv7(), cartId: oldCart.id, variantId: oldVariant.id, quantity: 1, expiresAt: "2000-01-01T00:00:00.000Z" }))
+    expired.push({ id: uuidv7(), cartId: oldCart.id, variantId, quantity, expiresAt: "2000-01-01T00:00:00.000Z" })
+    if (fixture) {
+      fixtureDb().reservations.push(...expired)
+      fixtureDb().inventory.find((row) => row.variantId === oldVariant.id)!.reserved = 501
+      fixtureDb().inventory.find((row) => row.variantId === variantId)!.reserved = quantity
+    } else {
+      const db = await database()
+      await db.insert(inventoryReservations).values(expired.map((row) => ({ ...row, expiresAt: sqlDate(row.expiresAt) })))
+      await db.update(inventoryLevels).set({ reserved: 501 }).where(eq(inventoryLevels.variantId, oldVariant.id))
+      await db.update(inventoryLevels).set({ reserved: quantity }).where(eq(inventoryLevels.variantId, variantId))
+    }
+    await inventory.reserve(activeCart.id, [{ variantId, quantity }], 15)
+    expect((await inventory.levels([variantId]))[0]).toMatchObject({ onHand: quantity, reserved: quantity })
+    expect(await inventory.releaseExpired()).toBe(500)
+    expect(await inventory.releaseExpired()).toBe(1)
+    expect(await inventory.releaseExpired()).toBe(0)
+    await inventory.release(activeCart.id)
+    expect((await inventory.levels([variantId]))[0]).toMatchObject({ onHand: quantity, reserved: 0 })
   })
 })

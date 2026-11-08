@@ -60,7 +60,7 @@ export function createFixturesCartRepository(): CartRepository {
     async purgeAbandoned(olderThanDays) {
       return transaction((tables) => {
         const cutoff = Date.now() - olderThanDays * 86_400_000
-        const stale = tables.carts.filter((cart) => cart.customerId === null && Date.parse(cart.updatedAt) < cutoff)
+        const stale = tables.carts.filter((cart) => cart.customerId === null && Date.parse(cart.updatedAt) < cutoff).sort((a, b) => a.id.localeCompare(b.id)).slice(0, 200)
         for (const cart of stale) releaseCartIn(tables, cart.id)
         tables.carts = tables.carts.filter((cart) => !stale.includes(cart))
         return stale.length

@@ -16,12 +16,14 @@ function listApplies(list: PriceList, context: PricingContext): boolean {
   return true
 }
 
+export const applicablePriceLists = (lists: PriceList[], context: PricingContext) => lists.filter((list) => listApplies(list, context)).sort((a, b) => b.priority - a.priority)
+
 /**
  * Resolves the price of each variant: among applicable price lists that price it, the highest
  * priority wins. Prices are never accepted from the client — carts and orders call this.
  */
 export function resolvePrices(lists: PriceList[], rows: PriceRow[], variantIds: string[], context: PricingContext): Map<string, VariantPrice> {
-  const applicable = lists.filter((list) => listApplies(list, context)).sort((a, b) => b.priority - a.priority)
+  const applicable = applicablePriceLists(lists, context)
   const result = new Map<string, VariantPrice>()
   for (const variantId of variantIds) {
     for (const list of applicable) {

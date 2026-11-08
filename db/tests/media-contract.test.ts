@@ -27,6 +27,13 @@ for (const [engine, config] of [["fixtures", null] as const, ...engines] as cons
     const saved = await media.create(input, data)
     expect(saved.id).toBe(id)
     expect(await media.read(saved.path)).toEqual(data)
+    for (const format of ["webp", "avif"] as const) {
+      const variant = await media.readVariant(saved.path, 640, format)
+      expect(variant).not.toBeNull()
+      expect((await sharp(variant!).metadata()).format).toBe(format === "avif" ? "heif" : "webp")
+      expect((await sharp(variant!).metadata()).width).toBe(8)
+    }
+    await expect(media.readVariant(saved.path, 123, "webp")).rejects.toMatchObject({ code: "validation" })
     expect(await media.find(storeId, id)).toEqual(saved)
     expect(await media.findById(id)).toEqual(saved)
     expect((await media.list(storeId, { q: "contract", page: 1, pageSize: 1 })).items).toEqual([saved])
@@ -39,6 +46,7 @@ for (const [engine, config] of [["fixtures", null] as const, ...engines] as cons
     await media.remove(storeId, id)
     expect(await media.findById(id)).toBeNull()
     expect(await media.read(saved.path)).toBeNull()
+    expect(await media.readVariant(saved.path, 640, "avif")).toBeNull()
     await media.remove(storeId, second.id)
   })
 })

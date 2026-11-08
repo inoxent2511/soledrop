@@ -16,13 +16,27 @@ const serverSchema = z
     DATABASE_URL: optionalSecret,
     DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(50).default(5),
     DATABASE_SSL: z.enum(["true", "false"]).default("false"),
+    STORAGE_DRIVER: z.enum(["local-disk", "s3"]).default("local-disk"),
+    STORAGE_DIR: optionalSecret,
+    S3_ENDPOINT: z.url().optional(),
+    S3_BUCKET: optionalSecret,
+    S3_REGION: z.string().min(1).default("auto"),
+    S3_ACCESS_KEY: optionalSecret,
+    S3_SECRET_KEY: optionalSecret,
     LOCAL_DATA_DIR: z.string().min(1).default(".data/store"),
     SUPABASE_URL: z.url().optional(),
     SUPABASE_SERVICE_ROLE_KEY: optionalSecret,
     SESSION_SECRET: z.string().min(32).default("local-development-session-secret-change-me-0000"),
     // The seeded store (server/fixtures/seed.ts, supabase/seed.sql); one store per deployment.
     STORE_ID: z.string().min(1).default("00000000-0000-4000-8000-000000000001"),
-    EMAIL_PROVIDER: z.enum(["console", "resend"]).default("console"),
+    EMAIL_PROVIDER: z.enum(["file", "console", "smtp", "resend"]).default("file"),
+    EMAIL_OUTBOX_DIR: z.string().min(1).default(".email-outbox"),
+    SMTP_HOST: optionalSecret,
+    SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
+    SMTP_SECURE: z.enum(["true", "false"]).default("false"),
+    SMTP_USER: optionalSecret,
+    SMTP_PASS: optionalSecret,
+    SMTP_HOURLY_LIMIT: z.coerce.number().int().min(1).max(100000).default(100),
     RESEND_API_KEY: optionalSecret,
     EMAIL_FROM: z.string().default("Sole Drop <orders@soledrop.local>"),
     STRIPE_SECRET_KEY: optionalSecret,
@@ -36,6 +50,7 @@ const serverSchema = z
       .refine((value) => /^PK\d{2}[A-Z]{4}\d{16}$/.test(value.replace(/\s/g, "")), "BANK_IBAN must be a 24-character Pakistani IBAN (PK36 SCBL 0000 0011 2345 6702)")
       .optional(),
     JOBS_SECRET: z.string().min(16).default("local-jobs-secret-0000"),
+    CRON_SECRET: z.string().min(16).optional(),
     API_KEYS: z.string().default(""),
     WEBHOOK_ENDPOINTS: z.string().default(""),
     FEATURE_FLAGS: z.string().default(""),
@@ -58,6 +73,7 @@ const serverSchema = z
   })
   .superRefine((env, context) => {
     if (env.DATA_DRIVER === "mysql" && !env.DATABASE_URL) context.addIssue({ code: "custom", message: "DATA_DRIVER=mysql requires DATABASE_URL" })
+    if (env.STORAGE_DRIVER === "s3" && [env.S3_ENDPOINT, env.S3_BUCKET, env.S3_ACCESS_KEY, env.S3_SECRET_KEY].some((value) => !value)) context.addIssue({ code: "custom", message: "STORAGE_DRIVER=s3 requires endpoint, bucket and private credentials" })
     const oidc = [env.OIDC_ISSUER, env.OIDC_CLIENT_ID, env.OIDC_CLIENT_SECRET]
     if (oidc.some(Boolean) && !oidc.every(Boolean)) context.addIssue({ code: "custom", message: "OIDC needs OIDC_ISSUER, OIDC_CLIENT_ID and OIDC_CLIENT_SECRET together" })
     if (env.DATA_DRIVER === "supabase" && (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY)) {
@@ -66,11 +82,12 @@ const serverSchema = z
     if (env.EMAIL_PROVIDER === "resend" && !env.RESEND_API_KEY) {
       context.addIssue({ code: "custom", message: "EMAIL_PROVIDER=resend needs RESEND_API_KEY" })
     }
+    if (env.EMAIL_PROVIDER === "smtp" && (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASS)) context.addIssue({ code: "custom", message: "EMAIL_PROVIDER=smtp requires SMTP_HOST, SMTP_USER and SMTP_PASS" })
     if (env.NODE_ENV === "production" && env.SESSION_SECRET.startsWith("local-")) {
       context.addIssue({ code: "custom", message: "Set a real SESSION_SECRET in production" })
     }
-    if (env.NODE_ENV === "production" && env.JOBS_SECRET.startsWith("local-")) {
-      context.addIssue({ code: "custom", message: "Set a real JOBS_SECRET in production" })
+    if (env.NODE_ENV === "production" && (env.CRON_SECRET ?? env.JOBS_SECRET).startsWith("local-")) {
+      context.addIssue({ code: "custom", message: "Set a real CRON_SECRET in production" })
     }
     if (env.ADMIN_DEMO_STAFF === "on" && env.DATA_DRIVER !== "fixtures") {
       context.addIssue({ code: "custom", message: "ADMIN_DEMO_STAFF=on is for the fixtures driver only; never with a real database" })

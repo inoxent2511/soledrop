@@ -91,7 +91,7 @@ export function createFixturesOrderRepository(): OrderRepository {
         if (!cart || cart.status !== "active") throw new DomainError("conflict", "This bag has already been checked out.")
 
         // The cart's own holds are released first, so its units count as free stock for this order.
-        releaseExpiredIn(tables)
+        releaseExpiredIn(tables, Date.now(), Infinity, draft.lines.map((line) => line.variantId))
         releaseCartIn(tables, cartId)
         for (const line of draft.lines) {
           const level = tables.inventory.find((row) => row.variantId === line.variantId)

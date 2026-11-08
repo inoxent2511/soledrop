@@ -8,11 +8,16 @@ import { createFixturesCatalogRepository } from "@/server/catalog/fixtures.repos
 import { createStaffCatalog } from "@/server/catalog/staff"
 import { createCatalogService } from "@/server/catalog/service"
 import { createSupabaseCatalogRepository } from "@/server/catalog/supabase.repository"
-import { localService, selectRepository } from "@/server/db/driver"
+import { dataDriver, localService, selectRepository } from "@/server/db/driver"
 import { assertMediaReferences } from "@/server/media/validate"
 import { inventory } from "@/server/inventory"
 import { pricing } from "@/server/pricing"
 import { searchService } from "@/server/search"
+import { createMysqlStorefrontRepository } from "./storefront.mysql.repository"
+import { bindActor } from "@/server/db/bind"
+import { currentActor } from "@/server/db/context"
+import { applicablePriceLists } from "@/server/pricing/service"
+import type { StorefrontQueries } from "./storefront.repository"
 
 const repository = selectRepository({ mysql: createMysqlCatalogRepository,
   fixtures: createFixturesCatalogRepository,
@@ -25,6 +30,14 @@ export const catalog = () =>
     pricing: pricing(),
     inventory: inventory(),
     synonyms: (storeId) => searchService().synonymMap(storeId),
+    ...(dataDriver() === "mysql" ? {
+      selectPage: async (query, context) => {
+        const [lists, groups, collections] = await Promise.all([pricing().priceLists(context.storeId), searchService().synonymMap(context.storeId), repository().listCollections(context.storeId)])
+        return bindActor<StorefrontQueries>(createMysqlStorefrontRepository(), currentActor).selectPage(context.storeId, query, applicablePriceLists(lists, context).map((list) => list.id), collections.find((collection) => collection.slug === query.collection), groups)
+      },
+      indexedVocabulary: (storeId) => bindActor<StorefrontQueries>(createMysqlStorefrontRepository(), currentActor).vocabulary(storeId),
+      selectRelated: (product, context, limit) => bindActor<StorefrontQueries>(createMysqlStorefrontRepository(), currentActor).related(context.storeId, product, limit),
+    } : {}),
   })
 /** The raw catalogue repository, for staff operations that see every status (server/catalog/staff.ts). */
 export const catalogRepository = repository

@@ -41,7 +41,7 @@ export function createMysqlOrderWrites(): Writes {
           quantitiesByVariant.set(line.variantId, (quantitiesByVariant.get(line.variantId) ?? 0) + line.quantity)
         }
         if (cartRows.length !== quantitiesByVariant.size || cartRows.some((line) => quantitiesByVariant.get(line.variantId) !== line.quantity)) throw new DomainError("conflict", "Your bag changed. Review it before placing your order.")
-        await releaseExpiredReservations(db, actor)
+        await releaseExpiredReservations(db, actor, 500, [...quantitiesByVariant.keys()])
         await releaseCartReservations(db, actor, cart.id)
         const levels = await lockLevels(db, actor, [...quantitiesByVariant.keys()])
         for (const [variantId, quantity] of [...quantitiesByVariant].sort(([a], [b]) => a.localeCompare(b))) {

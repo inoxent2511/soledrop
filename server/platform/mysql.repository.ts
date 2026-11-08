@@ -2,14 +2,14 @@ import "server-only"
 import { mysqlPolicy } from "@/server/db/policy.repository"
 
 import { scopedKey } from "./scoped-key"
-import { and, asc, count, desc, eq, getTableColumns, gte, like, lt, lte, sql } from "drizzle-orm"
+import { and, asc, count, desc, eq, exists, getTableColumns, gte, like, lt, lte, sql } from "drizzle-orm"
 import type { PlatformOperations } from "./repository"
 import type { AuditEntry, EventTopic, FeatureFlag, OutboxEvent, WebhookDelivery } from "./types"
 import type { Permission } from "@/server/admin/permissions"
 import { type Actor, type ActorScoped, requireGrant, requireStore } from "@/server/db/actor"
 import { database, withTransaction } from "@/server/db/client"
 import { constant } from "@/server/db/query.repository"
-import { auditLog, featureFlagCustomerGroups, featureFlags, idempotencyKeys, outboxEvents, rateLimits, webhookDeliveries } from "@/server/db/schema"
+import { auditLog, authTokens, customers, featureFlagCustomerGroups, featureFlags, idempotencyKeys, outboxChannels, outboxEvents, passwordResets, rateLimits, sessions, staffSessions, webhookDeliveries } from "@/server/db/schema"
 import { escapeLike, isoDate, jsonValue, sqlDate, sqlNow } from "@/server/db/values"
 import { uuidv7 } from "@/server/db/uuid"
 import { DomainError } from "@/server/shared/errors"
@@ -23,6 +23,47 @@ function delivery(row: typeof webhookDeliveries.$inferSelect): WebhookDelivery {
 
 export function createMysqlPlatformRepository(): ActorScoped<PlatformOperations> {
   return mysqlPolicy<PlatformOperations>({
+    async claimDelivery(actor, eventId, channel) {
+      job(actor)
+      if (!/^[a-z0-9:_-]{1,190}$/.test(channel)) throw new DomainError("validation", "Invalid delivery channel.")
+      return withTransaction(async (db) => {
+        const [event] = await db.select({ id: outboxEvents.id }).from(outboxEvents).where(and(eq(outboxEvents.storeId, actor.storeId), eq(outboxEvents.id, eventId))).for("update")
+        if (!event) throw new DomainError("not_found", "Event not found.")
+        await db.insert(outboxChannels).values({ eventId, channel, status: "pending" }).onDuplicateKeyUpdate({ set: { channel } })
+        const where = and(eq(outboxChannels.eventId, eventId), eq(outboxChannels.channel, channel))
+        const [row] = await db.select().from(outboxChannels).where(where).for("update")
+        if (row.status === "delivered") return { status: "delivered", token: null }
+        if (row.leaseUntil && Date.parse(isoDate(row.leaseUntil)) > Date.now()) return { status: "busy", token: null }
+        const token = uuidv7()
+        await db.update(outboxChannels).set({ status: "sending", leaseToken: token, leaseUntil: sqlDate(new Date(Date.now() + 120_000).toISOString()) }).where(where)
+        return { status: "claimed", token }
+      })
+    },
+    async finishDelivery(actor, eventId, channel, token, delivered) {
+      job(actor)
+      const db = await database()
+      const owned = exists(db.select({ id: outboxEvents.id }).from(outboxEvents).where(and(eq(outboxEvents.id, outboxChannels.eventId), eq(outboxEvents.storeId, actor.storeId))))
+      const [result] = await db.update(outboxChannels).set({ status: delivered ? "delivered" : "pending", leaseUntil: null, leaseToken: null, deliveredAt: delivered ? sqlNow() : null }).where(and(eq(outboxChannels.eventId, eventId), eq(outboxChannels.channel, channel), eq(outboxChannels.leaseToken, token), eq(outboxChannels.status, "sending"), owned))
+      return result.affectedRows === 1
+    },
+    async deferEvent(actor, eventId, availableAt) {
+      job(actor)
+      const db = await database()
+      await db.update(outboxEvents).set({ availableAt: sqlDate(availableAt), attempts: sql.fromList([sql.raw("GREATEST(0, "), outboxEvents.attempts, sql.raw(" - 1)")]) }).where(and(eq(outboxEvents.storeId, actor.storeId), eq(outboxEvents.id, eventId), eq(outboxEvents.status, "pending")))
+    },
+    async cleanup(actor, limit) {
+      job(actor)
+      if (!Number.isInteger(limit) || limit < 1 || limit > 1000) throw new DomainError("validation", "Cleanup limit must be between 1 and 1000.")
+      const db = await database(), now = sqlNow()
+      const owner = (customerId: typeof sessions.customerId | typeof passwordResets.customerId) => exists(db.select({ id: customers.id }).from(customers).where(and(eq(customers.id, customerId), eq(customers.storeId, actor.storeId))))
+      const [rates] = await db.delete(rateLimits).where(lt(rateLimits.windowStart, sqlDate(new Date(Date.now() - 86_400_000).toISOString()))).limit(limit)
+      const [cached] = await db.delete(idempotencyKeys).where(lt(idempotencyKeys.expiresAt, now)).limit(limit)
+      const [customerSessions] = await db.delete(sessions).where(and(lt(sessions.expiresAt, now), owner(sessions.customerId))).limit(limit)
+      const [staff] = await db.delete(staffSessions).where(and(eq(staffSessions.storeId, actor.storeId), lt(staffSessions.expiresAt, now))).limit(limit)
+      const [tokens] = await db.delete(authTokens).where(and(eq(authTokens.storeId, actor.storeId), lt(authTokens.expiresAt, now))).limit(limit)
+      const [resets] = await db.delete(passwordResets).where(and(lt(passwordResets.expiresAt, now), owner(passwordResets.customerId))).limit(limit)
+      return { rateLimits: rates.affectedRows, idempotency: cached.affectedRows, sessions: customerSessions.affectedRows + staff.affectedRows, tokens: tokens.affectedRows + resets.affectedRows }
+    },
     async listFlags(actor, storeId) {
       requireStore(actor, storeId)
       const db = await database()
@@ -41,6 +82,7 @@ export function createMysqlPlatformRepository(): ActorScoped<PlatformOperations>
     },
     async claimDue(actor, limit) {
       job(actor)
+      if (!Number.isInteger(limit) || limit < 1) throw new DomainError("validation", "Invalid claim limit.")
       return withTransaction(async (db) => {
         const rows = await db.select().from(outboxEvents).where(and(eq(outboxEvents.storeId, actor.storeId), eq(outboxEvents.status, "pending"), lte(outboxEvents.availableAt, sqlNow()))).orderBy(asc(outboxEvents.availableAt), outboxEvents.id).limit(Math.min(100, limit)).for("update", { skipLocked: true })
         const availableAt = sqlDate(new Date(Date.now() + 60_000).toISOString())
@@ -100,10 +142,13 @@ export function createMysqlPlatformRepository(): ActorScoped<PlatformOperations>
       return row ?? null
     },
     async saveIdempotent(actor, key, status, body) {
-      const db = await database()
       const values = { key: scopedKey(actor, key, true), status, body, expiresAt: sqlDate(new Date(Date.now() + 86_400_000).toISOString()) }
-      // First successful response wins; replay never rewrites a different result.
-      await db.insert(idempotencyKeys).values(values).onDuplicateKeyUpdate({ set: { key: values.key } })
+      await withTransaction(async (db) => {
+        // The insert/duplicate check locks the key. Unexpired responses cannot be replaced.
+        await db.insert(idempotencyKeys).values(values).onDuplicateKeyUpdate({ set: { key: values.key } })
+        const [row] = await db.select({ expiresAt: idempotencyKeys.expiresAt }).from(idempotencyKeys).where(eq(idempotencyKeys.key, values.key)).for("update")
+        if (Date.parse(isoDate(row.expiresAt)) < Date.now()) await db.update(idempotencyKeys).set({ ...values, createdAt: sqlNow() }).where(eq(idempotencyKeys.key, values.key))
+      })
     },
     async ping(_actor) {
       await database()

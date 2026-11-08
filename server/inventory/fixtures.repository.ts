@@ -9,8 +9,8 @@ import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
 
 /** Drops expired reservations and gives their quantity back. Called inside a transaction. */
-export function releaseExpiredIn(tables: FixtureTables, at = Date.now()): number {
-  const expired = tables.reservations.filter((reservation) => Date.parse(reservation.expiresAt) <= at)
+export function releaseExpiredIn(tables: FixtureTables, at = Date.now(), limit = Infinity, requestedVariants?: string[]): number {
+  const expired = tables.reservations.filter((reservation) => Date.parse(reservation.expiresAt) <= at && (!requestedVariants || requestedVariants.includes(reservation.variantId))).sort((a, b) => a.variantId.localeCompare(b.variantId) || a.id.localeCompare(b.id)).slice(0, limit)
   for (const reservation of expired) {
     const level = tables.inventory.find((row) => row.variantId === reservation.variantId)
     if (level) level.reserved -= reservation.quantity
@@ -53,7 +53,7 @@ export function createFixturesInventoryRepository(): InventoryRepository {
     },
     async reserve(cartId, items, ttlMinutes) {
       transaction((tables) => {
-        releaseExpiredIn(tables)
+        releaseExpiredIn(tables, Date.now(), Infinity, items.map((item) => item.variantId))
         releaseCartIn(tables, cartId)
         const expiresAt = new Date(Date.now() + ttlMinutes * 60_000).toISOString()
         for (const item of items) {
@@ -71,7 +71,7 @@ export function createFixturesInventoryRepository(): InventoryRepository {
       transaction((tables) => releaseCartIn(tables, cartId))
     },
     async releaseExpired() {
-      return transaction((tables) => releaseExpiredIn(tables))
+      return transaction((tables) => releaseExpiredIn(tables, Date.now(), 500))
     },
     async onHand(variantIds) {
       const levels = db().inventory

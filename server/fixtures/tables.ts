@@ -68,9 +68,10 @@ export type FixtureTables = {
   searchEvents: SearchEvent[]
   flags: FeatureFlag[]
   outbox: OutboxEvent[]
+  deliveryChannels?: Map<string, { status: "pending" | "sending" | "delivered"; leaseUntil: number; token: string }>
   webhookDeliveries: WebhookDelivery[]
   audit: AuditEntry[]
-  rateLimits: Map<string, { windowStart: number; count: number }>
+  rateLimits: Map<string, { windowStart: number; count: number; expiresAt?: number }>
   idempotency: Map<string, { status: number; body: unknown; at: number }>
   exchangeRates: ExchangeRates
 }

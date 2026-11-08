@@ -9,6 +9,7 @@ import { serverEnv } from "@/lib/env.server"
 import { localMediaFile, writeLocalMedia } from "@/server/db/local-media"
 import type { MediaOperations, MediaRepository } from "@/server/media/repository"
 import { DomainError } from "@/server/shared/errors"
+import { variantKey, writeImageVariants } from "./variants"
 
 /**
  * Fixtures driver: index rows in the fixture tables, file bytes in process memory beside them
@@ -40,6 +41,10 @@ export function createFixturesMediaRepository(): MediaRepository {
       return structuredClone(db().media.find((item) => item.id === id) ?? null)
     },
     async create(item, data) {
+      await writeImageVariants(item.path, data, async (key, bytes) => {
+        if (serverEnv.DATA_DRIVER === "local") writeLocalMedia(localStore().directory, key, bytes)
+        else files.set(key, bytes)
+      })
       if (serverEnv.DATA_DRIVER === "local") {
         writeLocalMedia(localStore().directory, item.path, data)
       } else files.set(item.path, data)
@@ -70,6 +75,15 @@ export function createFixturesMediaRepository(): MediaRepository {
         return fs.existsSync(file) ? new Uint8Array(fs.readFileSync(file)) : null
       }
       return files.get(path) ?? null
+    },
+    async readVariant(path, width, format) {
+      const key = variantKey(path, width, format)
+      if (!db().media.some((row) => row.path === path)) return null
+      if (serverEnv.DATA_DRIVER === "local") {
+        const file = localFile(key)
+        return fs.existsSync(file) ? new Uint8Array(fs.readFileSync(file)) : null
+      }
+      return files.get(key) ?? null
     },
   }
   return fixturePolicy<MediaOperations>(operations, mediaGuards)

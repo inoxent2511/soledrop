@@ -26,6 +26,10 @@ export interface PlatformOperations {
   outboxSummary(storeId: string): Promise<{ pending: number; delivered: number; failed: number; recentFailed: OutboxEvent[]; deliveries: WebhookDelivery[] }>
   /** Puts a failed event back in the queue for the next worker run. */
   retryEvent(storeId: string, id: string): Promise<void>
+  claimDelivery(eventId: string, channel: string): Promise<{ status: "claimed" | "delivered" | "busy"; token: string | null }>
+  finishDelivery(eventId: string, channel: string, token: string, delivered: boolean): Promise<boolean>
+  deferEvent(eventId: string, availableAt: string): Promise<void>
+  cleanup(limit: number): Promise<{ rateLimits: number; idempotency: number; sessions: number; tokens: number }>
 }
 
 export type AuditQuery = { actor?: string; entity?: string; action?: string; q?: string; from?: string; to?: string; page: number; pageSize: number }

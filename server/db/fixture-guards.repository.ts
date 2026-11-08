@@ -63,9 +63,14 @@ export const pricingGuards: FixtureGuards<PricingOperations> = {
 }
 export const mediaGuards: FixtureGuards<MediaOperations> = {
   list: storeGrant("media:read"), find: storeGrant("media:read"), findById: publicRead,
-  create(actor, item) { storeGrant("media:write")(actor, item.storeId); if (actor.kind === "staff" && item.createdBy !== actor.id) throw new DomainError("forbidden", "Upload identity does not match the actor.") },
+  create(actor, item) {
+    storeGrant("media:write")(actor, item.storeId)
+    if (!item.path.startsWith(actor.storeId + "/") || /[\\\x00-\x1f]/.test(item.path) || item.path.split("/").some((part) => !part || part === "." || part === "..")) throw new DomainError("validation", "Invalid media key.")
+    if (db().media.some((row) => row.id === item.id || row.path === item.path)) throw new DomainError("conflict", "Media already exists.")
+    if (actor.kind === "staff" && item.createdBy !== actor.id) throw new DomainError("forbidden", "Upload identity does not match the actor.")
+  },
   updateAlt: storeGrant("media:write"), remove: storeGrant("media:write"),
-  read: publicRead,
+  read: publicRead, readVariant: publicRead,
   hasOrderUsage: storeGrant("media:read"),
 }
 export const inventoryGuards: FixtureGuards<InventoryOperations> = {

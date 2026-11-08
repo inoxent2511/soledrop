@@ -106,6 +106,7 @@ export const platformGuards: FixtureGuards<PlatformOperations> = {
   listFlags: store,
   enqueue(actor, storeId, topic) { store(actor, storeId); if (actor.kind === "anonymous" && !["contact.received", "newsletter.subscribed"].includes(topic) && !actor.cartTokenHash) throw new DomainError("forbidden", "A verified capability is required.") },
   claimDue: jobGrant, markDelivered: jobGrant, markFailed: jobGrant, recordDelivery: jobGrant,
+  claimDelivery: jobGrant, finishDelivery: jobGrant, deferEvent: jobGrant, cleanup: jobGrant,
   audit(actor, entry) { if (entry.storeId) store(actor, entry.storeId); if (actor.kind !== "system" && (actor.kind !== "staff" || entry.actor !== actor.id)) throw new DomainError("forbidden", "Audit identity does not match the actor.") },
   listAudit(actor, entity) { const grants: Record<string, Permission> = { order: "orders:read", product: "products:read", customer: "customers:read", promotion: "promotions:read" }; requireGrant(actor, actor.permissions.includes("audit:read") ? "audit:read" : grants[entity] ?? "audit:read") },
   hit(actor) { requireStore(actor, actor.storeId) }, getIdempotent(actor) { if (actor.kind === "anonymous" && !actor.cartTokenHash && !actor.orderAccessTokenHash) throw new DomainError("forbidden", "A session or cart capability is required.") },

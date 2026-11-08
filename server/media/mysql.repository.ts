@@ -15,6 +15,7 @@ import { lockStore } from "@/server/inventory/mysql.repository"
 import type { HomeContent } from "@/server/content/home-types"
 import type { Collection } from "@/server/catalog/types"
 import { DomainError } from "@/server/shared/errors"
+import { variantKey, writeImageVariants } from "./variants"
 
 function item(row: typeof media.$inferSelect): MediaItem { return { ...row, mime: row.mime as MediaItem["mime"], createdAt: isoDate(row.createdAt) } }
 
@@ -44,6 +45,7 @@ export function createMysqlMediaRepository(): ActorScoped<MediaOperations> {
       if (actor.kind === "staff" && input.createdBy !== actor.id) throw new DomainError("forbidden", "Upload identity does not match the actor.")
       const saved = { ...input, path: input.storeId + "/" + input.id + "/" + digest(data) + ".webp" }
       await storage().put(saved.path, data)
+      await writeImageVariants(saved.path, data, (key, bytes) => storage().put(key, bytes))
       const db = await database()
       await db.insert(media).values({ ...saved, createdAt: sqlDate(saved.createdAt) })
       return saved
@@ -81,6 +83,11 @@ export function createMysqlMediaRepository(): ActorScoped<MediaOperations> {
       const db = await database()
       const [row] = await db.select({ path: media.path }).from(media).where(and(eq(media.storeId, actor.storeId), eq(media.path, path))).limit(1)
       return row ? (await storage().get(row.path))?.data ?? null : null
+    },
+    async readVariant(actor, path, width, format) {
+      const key = variantKey(path, width, format), db = await database()
+      const [row] = await db.select({ path: media.path }).from(media).where(and(eq(media.storeId, actor.storeId), eq(media.path, path))).limit(1)
+      return row ? (await storage().get(key))?.data ?? null : null
     },
     async hasOrderUsage(actor, storeId, url) {
       requireStore(actor, storeId); requireGrant(actor, "media:read")

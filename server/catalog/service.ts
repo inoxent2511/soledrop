@@ -1,6 +1,8 @@
 import "server-only"
+import { searchable } from "@/server/search/document"
 
 import type { CatalogOperations } from "@/server/catalog/repository"
+import type { StorefrontSelection } from "./storefront.repository"
 import type {
   Collection,
   Facets,
@@ -15,7 +17,7 @@ import type {
 import type { InventoryOperations } from "@/server/inventory/repository"
 import type { PricingContext, PricingService } from "@/server/pricing/service"
 import { matchesAllRules } from "@/server/rules/engine"
-import { score, terms, type Searchable, type SynonymMap } from "@/server/search/match"
+import { score, terms, type SynonymMap } from "@/server/search/match"
 import { discountPercent } from "@/server/shared/money"
 
 export const DEFAULT_PAGE_SIZE = 9
@@ -26,6 +28,9 @@ type Deps = {
   inventory: InventoryOperations
   /** Merchant synonym groups for search (server/search); none when omitted. */
   synonyms?: (storeId: string) => Promise<SynonymMap>
+  selectPage?: (query: ProductQuery, context: PricingContext) => Promise<StorefrontSelection>
+  indexedVocabulary?: (storeId: string) => Promise<string[]>
+  selectRelated?: (product: ProductView, context: PricingContext, limit: number) => Promise<Product[]>
 }
 
 /** Lowest-priced variant's price is the product's card price. */
@@ -35,16 +40,7 @@ function headlinePrice(prices: VariantPrice[]): ProductView["price"] {
   return { amount: cheapest.amount, compareAt: cheapest.compareAt, currency: cheapest.currency, discountPercent: discountPercent(cheapest.amount, cheapest.compareAt) }
 }
 
-/** The fields search reads: brand + title, then attribute values, kind, description and tags; SKUs and EU sizes. */
-export function searchable(product: Product): Searchable {
-  const attributeText = Object.values(product.attributes).flatMap((value) => (Array.isArray(value) ? value : [value])).map(String)
-  return {
-    title: `${product.brand.name} ${product.title}`,
-    body: [...attributeText, product.kind === "preloved" ? "pre-loved preloved" : "brand new", product.description, ...product.tags].join(" "),
-    skus: product.variants.map((variant) => variant.sku),
-    sizes: product.variants.map((variant) => variant.size.eu),
-  }
-}
+export { searchable } from "@/server/search/document"
 
 function computeFacets(items: ProductView[]): Facets {
   const count = <T extends string>(values: T[]) => {
@@ -71,7 +67,7 @@ function computeFacets(items: ProductView[]): Facets {
   }
 }
 
-export function createCatalogService({ catalog, pricing, inventory, synonyms = async () => new Map() }: Deps) {
+export function createCatalogService({ catalog, pricing, inventory, synonyms = async () => new Map(), selectPage, indexedVocabulary, selectRelated }: Deps) {
   async function enrich(products: Product[], context: PricingContext): Promise<ProductView[]> {
     const variantIds = products.flatMap((product) => product.variants.map((variant) => variant.id))
     const [prices, stock] = await Promise.all([pricing.pricesFor(variantIds, context), inventory.availability(variantIds)])
@@ -112,6 +108,10 @@ export function createCatalogService({ catalog, pricing, inventory, synonyms = a
 
     /** Filter, search, facet, sort and paginate. Facets reflect the collection/search scope before filters. */
     async queryProducts(query: ProductQuery, context: PricingContext): Promise<ProductPage> {
+      if (selectPage) {
+        const { products, ...page } = await selectPage(query, context)
+        return { ...page, items: await enrich(products, context) }
+      }
       const all = await enrich(await catalog.listProducts(context.storeId), context)
       const collection = query.collection ? (await collections(context.storeId)).find((item) => item.slug === query.collection) : undefined
       const exclude = new Set(query.excludeIds ?? [])
@@ -175,6 +175,7 @@ export function createCatalogService({ catalog, pricing, inventory, synonyms = a
      * then the merchant's order (as the design's row follows the New Arrival order); never the product itself.
      */
     async related(product: ProductView, context: PricingContext, limit = 4): Promise<ProductView[]> {
+      if (selectRelated) return enrich(await selectRelated(product, context, limit), context)
       const all = await enrich(await catalog.listProducts(context.storeId), context)
       const candidates = all.filter((item) => item.id !== product.id && item.kind === product.kind)
       const shares = (item: ProductView) => Number(item.collections.some((slug) => product.collections.includes(slug)))
@@ -185,6 +186,7 @@ export function createCatalogService({ catalog, pricing, inventory, synonyms = a
 
     /** Every word shoppers could mean: brand names, product titles and collection titles (for "did you mean"). */
     async vocabulary(storeId: string): Promise<string[]> {
+      if (indexedVocabulary) return indexedVocabulary(storeId)
       const [products, brands, groups] = await Promise.all([catalog.listProducts(storeId), catalog.listBrands(storeId), collections(storeId)])
       return [...new Set([...products.flatMap((product) => terms(`${product.brand.name} ${product.title}`)), ...brands.flatMap((brand) => terms(brand.name)), ...groups.flatMap((group) => terms(group.title))])]
     },

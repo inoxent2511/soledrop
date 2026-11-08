@@ -11,6 +11,7 @@
 # testing
 /coverage
 /.data/
+/.email-outbox/
 /qa/out/e2e/
 /qa/out/e2e-results.json
 /qa/out/a12-*.json

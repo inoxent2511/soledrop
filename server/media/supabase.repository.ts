@@ -73,5 +73,6 @@ export function createSupabaseMediaRepository(): MediaOperations {
       if (download.error || !download.data) return null
       return new Uint8Array(await download.data.arrayBuffer())
     },
+    async readVariant() { return null },
   }
 }

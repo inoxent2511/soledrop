@@ -1,18 +1,20 @@
 import "server-only"
 import { mysqlPolicy } from "@/server/db/policy.repository"
 
-import { and, asc, count, desc, eq, exists, getTableColumns, inArray, like, or } from "drizzle-orm"
+import { and, asc, count, desc, eq, exists, getTableColumns, gt, inArray, like, or } from "drizzle-orm"
 import type { CatalogOperations } from "./repository"
 import type { AttributeDefinition, AttributeValue, Collection, CustomFieldDefinition, Product } from "./types"
-import { type Actor, type ActorScoped, requireGrant, requireStore } from "@/server/db/actor"
+import { type Actor, type ActorScoped, requireGrant, requireStore, requireSystem } from "@/server/db/actor"
 import { database, type Database, withTransaction } from "@/server/db/client"
 import { attributeDefinitions, brands, collectionProducts, collections, customFieldDefinitions, inventoryLevels, orderLines, productAttributeValues, productImages, products, productTags, stores, variantAttributeValues, variants } from "@/server/db/schema"
 import { uuidv7 } from "@/server/db/uuid"
 import { escapeLike, isoDate, jsonValue, sqlDate } from "@/server/db/values"
 import { DomainError } from "@/server/shared/errors"
+import { removeCatalogueSearch, syncCatalogueSearch } from "@/server/search/catalogue-index.repository"
 
-async function hydrate(db: Database, actor: Actor, rows: (typeof products.$inferSelect)[]): Promise<Product[]> {
+export async function hydrateProducts(db: Database, actor: Actor, rows: (typeof products.$inferSelect)[]): Promise<Product[]> {
   if (!rows.length) return []
+  for (const row of rows) requireStore(actor, row.storeId)
   const ids = rows.map((row) => row.id)
   const [brandRows, imageRows, variantRows, tagRows, links] = await Promise.all([
     db.select({ id: brands.id, slug: brands.slug, name: brands.name, position: brands.position }).from(brands).where(and(eq(brands.storeId, actor.storeId), inArray(brands.id, [...new Set(rows.map((row) => row.brandId))]))),
@@ -46,24 +48,36 @@ function attributes(values: Record<string, AttributeValue>) {
   return Object.entries(values).flatMap(([attributeKey, value]) => [...new Set(Array.isArray(value) ? value : [value])].map((item) => ({ attributeKey, valueText: String(item), valueNum: typeof item === "number" && Number.isFinite(item) ? String(item) : null })))
 }
 
+/** Cursor-bounded maintenance rebuild. It never saves products or changes their timestamps. */
+export async function reindexCatalogueSearch(actor: Actor, cursor: string | null = null, limit = 500): Promise<{ count: number; cursor: string | null }> {
+  requireSystem(actor, ["migration"])
+  if (!Number.isInteger(limit) || limit < 1 || limit > 1000) throw new DomainError("validation", "Invalid reindex batch size.")
+  return withTransaction(async (db) => {
+    await db.select({ id: stores.id }).from(stores).where(eq(stores.id, actor.storeId)).for("update")
+    const rows = await db.select().from(products).where(and(eq(products.storeId, actor.storeId), cursor ? gt(products.id, cursor) : undefined)).orderBy(asc(products.id)).limit(limit).for("update")
+    for (const product of await hydrateProducts(db, actor, rows)) await syncCatalogueSearch(db, product)
+    return { count: rows.length, cursor: rows.at(-1)?.id ?? null }
+  })
+}
+
 export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
   return mysqlPolicy<CatalogOperations>({
     async listProducts(actor, storeId) {
       requireStore(actor, storeId)
       const db = await database()
-      return hydrate(db, actor, await db.select().from(products).where(and(eq(products.storeId, actor.storeId), eq(products.status, "active"))).orderBy(asc(products.position)))
+      return hydrateProducts(db, actor, await db.select().from(products).where(and(eq(products.storeId, actor.storeId), eq(products.status, "active"))).orderBy(asc(products.position)))
     },
     async getProductBySlug(actor, storeId, slug) {
       requireStore(actor, storeId)
       const db = await database()
       const rows = await db.select().from(products).where(and(eq(products.storeId, actor.storeId), eq(products.slug, slug), eq(products.status, "active"))).limit(1)
-      return (await hydrate(db, actor, rows))[0] ?? null
+      return (await hydrateProducts(db, actor, rows))[0] ?? null
     },
     async getProductsByVariantIds(actor, variantIds) {
       if (!variantIds.length) return []
       const db = await database()
       const rows = await db.selectDistinct(getTableColumns(products)).from(products).innerJoin(variants, eq(variants.productId, products.id)).where(and(eq(products.storeId, actor.storeId), eq(products.status, "active"), inArray(variants.id, variantIds)))
-      return hydrate(db, actor, rows)
+      return hydrateProducts(db, actor, rows)
     },
     async listCollections(actor, storeId) {
       requireStore(actor, storeId)
@@ -101,7 +115,7 @@ export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
       if (!Number.isSafeInteger(page) || page < 1) throw new DomainError("validation", "Invalid page.")
       const db = await database()
       const rows = await db.select().from(products).where(eq(products.storeId, actor.storeId)).orderBy(asc(products.id)).limit(1000).offset((page - 1) * 1000)
-      return hydrate(db, actor, rows)
+      return hydrateProducts(db, actor, rows)
     },
     async searchProducts(actor, storeId, query) {
       requireStore(actor, storeId); requireGrant(actor, "products:read")
@@ -110,12 +124,12 @@ export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
       const where = and(eq(products.storeId, actor.storeId), query.status?.length ? inArray(products.status, query.status) : undefined, query.kind ? eq(products.kind, query.kind) : undefined, query.brandId ? eq(products.brandId, query.brandId) : undefined,
         term ? or(like(products.title, term), like(products.slug, term), exists(db.select({ id: variants.id }).from(variants).where(and(eq(variants.productId, products.id), like(variants.sku, term)))), exists(db.select({ id: brands.id }).from(brands).where(and(eq(brands.id, products.brandId), eq(brands.storeId, actor.storeId), like(brands.name, term))))) : undefined)
       const [rows, [total]] = await Promise.all([db.select().from(products).where(where).orderBy(desc(products.updatedAt), asc(products.id)).limit(query.pageSize).offset((query.page - 1) * query.pageSize), db.select({ count: count() }).from(products).where(where)])
-      return { products: await hydrate(db, actor, rows), total: total.count }
+      return { products: await hydrateProducts(db, actor, rows), total: total.count }
     },
     async getProductById(actor, storeId, id) {
       requireStore(actor, storeId); requireGrant(actor, "products:read")
       const db = await database()
-      return (await hydrate(db, actor, await db.select().from(products).where(and(eq(products.storeId, actor.storeId), eq(products.id, id))).limit(1)))[0] ?? null
+      return (await hydrateProducts(db, actor, await db.select().from(products).where(and(eq(products.storeId, actor.storeId), eq(products.id, id))).limit(1)))[0] ?? null
     },
     async saveProduct(actor, storeId, product, expectedUpdatedAt) {
       requireStore(actor, storeId); requireStore(actor, product.storeId); requireGrant(actor, "products:write")
@@ -163,7 +177,9 @@ export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
             return { productId: product.id, collectionId: row.id, productPosition, position: previousLinks.find((link) => link.collectionId === row.id)?.position ?? product.position }
           }))
         }
-        return (await hydrate(db, actor, await db.select().from(products).where(where)))[0]
+        const saved = (await hydrateProducts(db, actor, await db.select().from(products).where(where)))[0]
+        await syncCatalogueSearch(db, saved)
+        return saved
       })
     },
     async deleteProduct(actor, storeId, id) {
@@ -174,6 +190,7 @@ export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
         if (!row) throw new DomainError("not_found", "Product not found.")
         const [ordered] = await db.select({ id: orderLines.id }).from(orderLines).where(eq(orderLines.productId, id)).limit(1)
         if (ordered) throw new DomainError("conflict", "This product has been ordered, so it can't be deleted. Archive it instead.")
+        await removeCatalogueSearch(db, actor.storeId, id)
         await db.delete(products).where(and(eq(products.id, id), eq(products.storeId, actor.storeId)))
       })
     },

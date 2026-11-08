@@ -9,6 +9,7 @@ import type { MediaOperations } from "@/server/media/repository"
 import { mediaUrl, type MediaItem } from "@/server/media/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
+import type { ImageFormat } from "./variants"
 
 /**
  * Media library (admin A3). Uploads are checked by their bytes, not their name or declared type
@@ -108,11 +109,12 @@ export function createMediaService(deps: { media: MediaOperations; audit: Audit;
     },
 
     /** Public file read for app/media/[file]: the stored WebP, or null. */
-    async file(id: string) {
+    async file(id: string, variant?: { width: number; format: ImageFormat }) {
       const item = await media.findById(id)
       if (!item) return null
-      const data = await media.read(item.path)
-      return data ? { item, data } : null
+      const prepared = variant ? await media.readVariant(item.path, variant.width, variant.format) : null
+      const data = prepared ?? await media.read(item.path)
+      return data ? { item, data, mime: prepared ? "image/" + variant!.format : item.mime } : null
     },
   }
 }

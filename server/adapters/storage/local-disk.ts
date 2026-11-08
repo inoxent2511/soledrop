@@ -21,10 +21,18 @@ export class LocalDiskStorage implements StorageAdapter {
     return path.join(this.directory, hash.slice(0, 2), hash)
   }
 
+  private async checkDirectory(directory: string) {
+    const stat = await fs.lstat(directory)
+    if (!stat.isDirectory() || stat.isSymbolicLink()) throw new DomainError("unavailable", "Invalid storage directory.")
+  }
+
   async put(key: string, data: Uint8Array) {
     const file = this.file(key), etag = digest(data), temporary = file + "." + randomBytes(8).toString("hex") + ".part"
     try {
-      await fs.mkdir(path.dirname(file), { recursive: true })
+      await fs.mkdir(this.directory, { recursive: true, mode: 0o700 })
+      await this.checkDirectory(this.directory)
+      await fs.mkdir(path.dirname(file), { recursive: true, mode: 0o700 })
+      await this.checkDirectory(path.dirname(file))
       await fs.writeFile(temporary, data, { flag: "wx", mode: 0o600 })
       // Keys are immutable. Concurrent identical uploads can share their content safely.
       try { await fs.link(temporary, file) } catch (error) {
@@ -42,6 +50,8 @@ export class LocalDiskStorage implements StorageAdapter {
   async get(key: string) {
     const file = this.file(key)
     try {
+      await this.checkDirectory(this.directory)
+      await this.checkDirectory(path.dirname(file))
       const stat = await fs.lstat(file)
       if (!stat.isFile() || stat.isSymbolicLink()) throw new DomainError("unavailable", "Invalid storage object.")
       const data = await fs.readFile(file)
@@ -53,11 +63,15 @@ export class LocalDiskStorage implements StorageAdapter {
     }
   }
 
-  async remove(key: string) { await fs.unlink(this.file(key)).catch((error: unknown) => { if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error }) }
+  async remove(key: string) {
+    const file = this.file(key)
+    try { await this.checkDirectory(this.directory); await this.checkDirectory(path.dirname(file)); await fs.unlink(file) }
+    catch (error) { if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error }
+  }
 
   async writable() {
     const probe = path.join(this.directory, ".probe-" + randomBytes(12).toString("hex"))
-    try { await fs.mkdir(this.directory, { recursive: true }); await fs.writeFile(probe, "", { flag: "wx", mode: 0o600 }); return true }
+    try { await fs.mkdir(this.directory, { recursive: true, mode: 0o700 }); await this.checkDirectory(this.directory); await fs.writeFile(probe, "", { flag: "wx", mode: 0o600 }); return true }
     catch { return false }
     finally { await fs.unlink(probe).catch(() => undefined) }
   }

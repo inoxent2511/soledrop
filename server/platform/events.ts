@@ -1,6 +1,6 @@
 import "server-only"
 
-import { createHmac } from "node:crypto"
+import { createHash, createHmac } from "node:crypto"
 
 import { serverEnv } from "@/lib/env.server"
 import { email } from "@/server/adapters/email"
@@ -9,8 +9,23 @@ import { platform } from "@/server/platform"
 import type { EventTopic, OutboxEvent } from "@/server/platform/types"
 import { newId, now } from "@/server/shared/ids"
 import { isPrivateDeliveryKey, sealDeliveryPayload } from "@/server/platform/private-payload"
+import { DeliveryDeferred } from "./deferred"
 
 const MAX_ATTEMPTS = 8
+
+/** External work stays outside transactions; committed receipts survive another channel failing. */
+async function deliverChannel(event: OutboxEvent, channel: string, send: () => Promise<void>) {
+  const claim = await platform().claimDelivery(event.id, channel)
+  if (claim.status === "delivered") return
+  if (claim.status === "busy" || !claim.token) throw new DeliveryDeferred(new Date(Date.now() + 120_000).toISOString())
+  try {
+    await send()
+    if (!await platform().finishDelivery(event.id, channel, claim.token, true)) throw new DeliveryDeferred(new Date(Date.now() + 120_000).toISOString())
+  } catch (error) {
+    await platform().finishDelivery(event.id, channel, claim.token, false)
+    throw error
+  }
+}
 
 /**
  * Transactional outbox: domain code records an event (in the same unit of work as the change
@@ -43,6 +58,7 @@ export function signWebhook(secret: string, timestamp: string, body: string) {
 async function deliverWebhooks(event: OutboxEvent) {
   const data = Object.fromEntries(Object.entries(event.payload).filter(([key]) => !isPrivateDeliveryKey(key)))
   for (const endpoint of endpoints().filter((item) => item.topics.includes("*") || item.topics.includes(event.topic))) {
+    await deliverChannel(event, "webhook:" + createHash("sha256").update(endpoint.url).digest("hex"), async () => {
     const body = JSON.stringify({ id: event.id, topic: event.topic, createdAt: event.createdAt, data })
     const timestamp = String(Math.floor(Date.now() / 1000))
     const response = await fetch(endpoint.url, {
@@ -59,29 +75,41 @@ async function deliverWebhooks(event: OutboxEvent) {
     })
     await platform().recordDelivery({ id: newId(), eventId: event.id, endpoint: endpoint.url, status: response.ok ? "delivered" : "failed", responseStatus: response.status, at: now() })
     if (!response.ok) throw new Error(`Webhook ${endpoint.url} answered ${response.status}`)
+    })
   }
 }
 
 /** Side effects per topic beyond webhooks (customer emails). */
 async function handle(event: OutboxEvent) {
-  await email().sendForEvent(event)
+  await deliverChannel(event, "email", async () => email().sendForEvent(event))
   await deliverWebhooks(event)
 }
 
 /** Delivers due events; returns counts for the job response. */
 export async function drainOutbox(limit = 50) {
-  const events = await platform().claimDue(limit)
+  const events = await platform().claimDue(Math.min(limit, 10)), started = performance.now()
   let delivered = 0
   let failed = 0
+  let deferred = 0
   for (const event of events) {
+    if (performance.now() - started >= 20_000) {
+      await platform().deferEvent(event.id, new Date(Date.now() + 60_000).toISOString())
+      deferred++
+      continue
+    }
     try {
       await handle(event)
       await platform().markDelivered(event.id)
       delivered += 1
     } catch (error) {
+      if (error instanceof DeliveryDeferred) {
+        await platform().deferEvent(event.id, error.retryAt)
+        deferred++
+        continue
+      }
       await platform().markFailed(event.id, error instanceof Error ? error.message : String(error), MAX_ATTEMPTS)
       failed += 1
     }
   }
-  return { claimed: events.length, delivered, failed }
+  return { claimed: events.length, delivered, failed, deferred }
 }

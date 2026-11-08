@@ -29,6 +29,10 @@ const toEvent = (row: OutboxRecord): OutboxEvent => ({
 
 export function createSupabasePlatformRepository(): PlatformOperations {
   return {
+    async claimDelivery() { throw new DomainError("unavailable", "Delivery channels require the migrated database.") },
+    async finishDelivery() { throw new DomainError("unavailable", "Delivery channels require the migrated database.") },
+    async deferEvent() { throw new DomainError("unavailable", "Delivery channels require the migrated database.") },
+    async cleanup() { throw new DomainError("unavailable", "Cleanup requires the migrated database.") },
     async listFlags(storeId) {
       const rows = unwrap(
         await supabase().from("feature_flags").select("key, description, enabled, customer_groups").eq("store_id", storeId),

@@ -1209,3 +1209,73 @@ ALTER TABLE `staff_sessions`
 CREATE INDEX `customer_sessions_owner_expiry` ON `sessions` (`customer_id`, `expires_at`, `created_at`);
 
 INSERT INTO schema_migrations (name, checksum) VALUES ('0007_auth_assurance.sql', 'decf62838faf9e83a0b4be257514a25282b59ba3f25dcacdd4e4511427c75c01') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0008_delivery_channels.sql / SHA256 08ef05851212341cadfe0e8d4ef818b7f2683f620e366134a22a551c6c0cdea8
+-- Independent channel receipts keep a webhook retry from sending an email again.
+CREATE TABLE IF NOT EXISTS outbox_channels (
+  event_id BINARY(16) NOT NULL,
+  channel VARCHAR(190) NOT NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'pending',
+  lease_until DATETIME(3) NULL,
+  delivered_at DATETIME(3) NULL,
+  PRIMARY KEY (event_id, channel),
+  CONSTRAINT outbox_channels_event_fk FOREIGN KEY (event_id) REFERENCES outbox_events(id) ON DELETE CASCADE,
+  CONSTRAINT outbox_channels_status_ck CHECK (status IN ('pending', 'sending', 'delivered')),
+  INDEX outbox_channels_lease_idx (status, lease_until)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0008_delivery_channels.sql', '08ef05851212341cadfe0e8d4ef818b7f2683f620e366134a22a551c6c0cdea8') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0009_delivery_fencing.sql / SHA256 d3251f742df7a944a79ba9f256f922e157e065124e79fe1f10427cd2452017d9
+-- A paused worker cannot complete another worker's newer channel lease.
+ALTER TABLE outbox_channels ADD COLUMN lease_token CHAR(36) NULL AFTER lease_until;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0009_delivery_fencing.sql', 'd3251f742df7a944a79ba9f256f922e157e065124e79fe1f10427cd2452017d9') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0010_search_field_indexes.sql / SHA256 a5b78595d55a3d427680a07b4ae1b2f2551c3010c163f47f50d0a62869a652ce
+CREATE TABLE IF NOT EXISTS search_field_terms (
+  product_id BINARY(16) NOT NULL,
+  field VARCHAR(8) NOT NULL,
+  term VARCHAR(100) NOT NULL,
+  position INT NOT NULL,
+  PRIMARY KEY (product_id, field, term),
+  INDEX search_field_lookup (term, field, product_id),
+  CONSTRAINT search_field_product_fk FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+  CONSTRAINT search_field_kind_ck CHECK (field IN ('title', 'body')),
+  CONSTRAINT search_field_position_ck CHECK (position >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS search_skus (
+  store_id BINARY(16) NOT NULL,
+  compact VARCHAR(190) NOT NULL,
+  product_id BINARY(16) NOT NULL,
+  PRIMARY KEY (store_id, compact, product_id),
+  CONSTRAINT search_sku_product_fk FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+  CONSTRAINT search_sku_store_fk FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0010_search_field_indexes.sql', 'a5b78595d55a3d427680a07b4ae1b2f2551c3010c163f47f50d0a62869a652ce') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0011_search_term_capacity.sql / SHA256 b10084c48017117b7da459ecb04a1dc78dd002c9d0a829510fc4fe738bef7625
+-- Preserve every supported product-title word in the public vocabulary projection.
+ALTER TABLE search_field_terms MODIFY COLUMN term VARCHAR(300) NOT NULL;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0011_search_term_capacity.sql', 'b10084c48017117b7da459ecb04a1dc78dd002c9d0a829510fc4fe738bef7625') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0012_search_binary_matching.sql / SHA256 d7911c3e1d2e6686433b35634601f00ca3712201d52f500ae1411133bd95d30a
+-- Text is already folded with the shared Unicode normalizer. Binary comparisons preserve
+-- JavaScript word semantics (for example, straße and strasse remain distinct).
+ALTER TABLE search_field_terms MODIFY COLUMN term VARCHAR(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL;
+ALTER TABLE search_document_terms MODIFY COLUMN term VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL;
+ALTER TABLE search_terms MODIFY COLUMN term VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL;
+ALTER TABLE search_skus MODIFY COLUMN compact VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL;
+ALTER TABLE search_documents DROP INDEX search_document_fulltext;
+ALTER TABLE search_documents MODIFY COLUMN title TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL, MODIFY COLUMN body TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL;
+CREATE FULLTEXT INDEX search_document_fulltext ON search_documents (title, body);
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0012_search_binary_matching.sql', 'd7911c3e1d2e6686433b35634601f00ca3712201d52f500ae1411133bd95d30a') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
