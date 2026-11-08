@@ -4,6 +4,13 @@ import fs from "node:fs"
 import path from "node:path"
 import { deserialize, serialize } from "node:v8"
 
+// Runtime-only path boundaries prevent the build tracer globbing private temporary snapshots.
+const readSnapshotFile = (file: string) => fs.readFileSync(file)
+const snapshotFileExists = (file: string) => fs.existsSync(file)
+const replaceSnapshotFile = (source: string, target: string) => fs.renameSync(source, target)
+const openSnapshotFile = (file: string) => fs.openSync(file, "wx", 0o600)
+const removeSnapshotFile = (file: string) => fs.unlinkSync(file)
+
 /** Durable, single-process local storage. Hosted deployments use the MySQL driver. */
 export class LocalStore<T> {
   readonly directory: string
@@ -24,8 +31,8 @@ export class LocalStore<T> {
     this.lock = path.join(this.directory, "store.lock")
     this.acquire()
     try {
-      if (fs.existsSync(this.file)) {
-        const saved = deserialize(fs.readFileSync(this.file))
+      if (snapshotFileExists(this.file)) {
+        const saved = deserialize(readSnapshotFile(this.file))
         if (saved.version !== 1 || !(saved.state instanceof Uint8Array) || createHash("sha256").update(saved.state).digest("hex") !== saved.digest) throw new Error("Unsupported or damaged local store. Restore a backup; data was not reset.")
         this.state = deserialize(saved.state) as T
         this.digest = saved.digest
@@ -72,7 +79,7 @@ export class LocalStore<T> {
     if (digest === this.digest) return
     const bytes = serialize({ version: 1, state, digest })
     const temporary = `${this.file}.${randomUUID()}.tmp`
-    const fd = fs.openSync(temporary, "wx", 0o600)
+    const fd = openSnapshotFile(temporary)
     try {
       fs.writeFileSync(fd, bytes)
       fs.fsyncSync(fd)
@@ -80,10 +87,10 @@ export class LocalStore<T> {
       fs.closeSync(fd)
     }
     try {
-      fs.renameSync(temporary, this.file)
+      replaceSnapshotFile(temporary, this.file)
       this.digest = digest
     } finally {
-      if (fs.existsSync(temporary)) fs.unlinkSync(temporary)
+      if (snapshotFileExists(temporary)) removeSnapshotFile(temporary)
     }
   }
 

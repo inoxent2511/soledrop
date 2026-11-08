@@ -1,14 +1,14 @@
 # Hostinger deployment verification checklist
 
-No hosting account, remote database, deployment, domain, DNS, real mail or payment is contacted during this migration. Account-specific answers below remain unverified until the owner checks their plan. The app is built locally/CI; no long-lived worker or second backend is required.
+No hosting account, remote database, deployment, domain, DNS, real mail or payment is contacted during this migration. The owner confirmed Web App / Node.js is available. Other account-specific answers below remain unverified. GitHub import with a host-side build is now authorized; a compatible Linux CI build remains the fallback. No long-lived worker or second backend is required.
 
 Public references checked for planning: [Node app setup](https://www.hostinger.com/support/how-to-deploy-a-nodejs-website-in-hostinger/), [Node limits](https://www.hostinger.com/support/hostinger-node-js-limits-for-web-and-cloud-plans/). These describe available product features, not the owner's account entitlements. The public limits page rules out relying on an always-running worker or an extra service on shared Node hosting; bounded cron requests are therefore the default. No account settings were changed.
 
 | Owner must verify | Why it matters | Where/how to check in hPanel | Implemented fallback / acceptance stage |
 | --- | --- | --- | --- |
-| Exact plan and Node app entitlement | A generic PHP site slot is not a Node process | Websites → add/manage the Node.js app; inspect the plan's Node entitlement | Same standalone artifact runs on Business/Cloud when supported or a VPS (M9) |
-| Available Node version | Current Next/native modules and source maintenance scripts have version floors | Node app dashboard → runtime/build settings | Pin a supported Node 22.18+ or 24 runtime; build and package elsewhere (M9) |
-| RAM/CPU/process/request limits | Large builds, image encoding and batches can exceed shared limits | Plan/resource usage and Node app limits | No host build, pool default 5, upload-time variants, bounded batch jobs (M1/M6/M9) |
+| Exact plan and Node app entitlement | A generic PHP site slot is not a Node process | Owner confirmed Web App / Node.js is available; exact resource allocation remains unverified | Use the existing Node entitlement; VPS remains optional (M9) |
+| Available Node version | Current Next/native modules and source maintenance scripts have version floors | Node app dashboard → runtime/build settings | Node 24.x pinned; official portable Node 24.22.2 build and 1,702 application checks pass locally; verify the account selection (M9) |
+| RAM/CPU/process/request limits | Large builds, image encoding and batches can exceed shared limits | Plan/resource usage and Node app limits | Host Git build authorized; compatible Linux CI build fallback, pool default 5, upload-time variants and bounded jobs (M1/M6/M9) |
 | Database engine and exact version | CHECK behavior and SQL compatibility depend on it | Databases → management/phpMyAdmin → server/version details | Fail startup/readiness unless MySQL ≥8.0.16 or MariaDB ≥10.6; common subset targets 10.11 (M1) |
 | Connection cap per DB user | Shared plans have limited connections | Database user/plan limits; ask support for the exact per-user limit if not shown | DATABASE_POOL_MAX defaults to 5; finite queue/acquire timeout; no per-request pools (M1) |
 | Strict SQL mode, InnoDB, utf8mb4 and UTC sessions | Prevent truncation, invalid quantities and inconsistent timestamps | phpMyAdmin server variables and table status; readiness diagnostics | Set/check strict connection settings and schema declarations; fail rather than weaken integrity (M1) |
@@ -29,7 +29,16 @@ Public references checked for planning: [Node app setup](https://www.hostinger.c
 
 ## Local environment observed
 
-At orientation, Docker, mysql/mariadb clients and mysqld/mariadbd are absent from PATH; no matching server installation was found under Program Files. Portable official Windows packages will be attempted inside ignored local tooling directories. They bind only to loopback and use new task-owned databases. An unavailable engine is recorded with the exact failure; PostgreSQL/PGlite is never presented as MySQL acceptance evidence.
+Docker and system database servers were absent at orientation. Official portable MySQL 8.0.46 and
+MariaDB 10.11.15 now run on loopback ports 3307/3308 in ignored task-owned directories. The verified
+merchant transfer restores all 79 tables to fresh databases on both engines with equal row content;
+the original 3,758 preservation checks pass per engine. All 44 originals and 528 prepared image
+variants verify by checksum. Node 24.22.2 was downloaded from nodejs.org and matched the official
+SHA-256 manifest before use. Linux/actual hPanel checks are separate from this Windows evidence.
+
+Follow [the deployment runbook](../DEPLOYMENT-RUNBOOK.md) for the code/private-data handoff,
+exact commands, all environment values, backup/restore, cron and rollback. Importing the GitHub
+repository alone does not copy ignored merchant SQL, uploaded images or the preserved encryption key.
 
 ## Decisions that preserve the current application
 

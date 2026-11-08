@@ -1,0 +1,41 @@
+# Optional VPS profile. Supply private runtime env and initialized users/schema before startup.
+services:
+  app:
+    build:
+      context: ..
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?Set the canonical HTTPS origin}
+        NEXT_PUBLIC_DEFAULT_CURRENCY: ${NEXT_PUBLIC_DEFAULT_CURRENCY:-PKR}
+    env_file: ${APP_ENV_FILE:?Set an absolute private runtime env file}
+    environment:
+      NODE_ENV: production
+      STORAGE_DIR: /var/soledrop/uploads
+      EMAIL_OUTBOX_DIR: /var/soledrop/email-outbox
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ${UPLOADS_DIRECTORY:?Set an absolute persistent upload directory}:/var/soledrop/uploads
+      - ${MAIL_DIRECTORY:?Set an absolute private mail sink directory}:/var/soledrop/email-outbox
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 40s
+  mariadb:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD:?Set a private database administrator password}
+      MARIADB_DATABASE: ${DATABASE_NAME:-soledrop}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--default-time-zone=+00:00", "--sql-mode=STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"]
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+volumes:
+  database:

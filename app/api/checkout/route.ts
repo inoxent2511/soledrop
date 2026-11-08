@@ -1,5 +1,5 @@
 import { checkoutSchema } from "@/features/checkout/schemas/checkout"
-import { siteConfig } from "@/lib/site"
+import { serverSiteUrl } from "@/lib/site-server"
 import { customerService } from "@/server/customers"
 import { loadCart } from "@/server/http/cart"
 import { clearCartCookie, clientKey, currentCustomer, parseBody, rememberCheckoutCart, route } from "@/server/http/route"
@@ -30,7 +30,7 @@ export const POST = route(async (request) => {
     idempotencyKey: `${shopper.storeId}:${idempotencyKey}`,
     customFields: input.customFields,
     note: input.note,
-    orderUrl: (number) => `${siteConfig.url}/orders/${number}`,
+    orderUrl: (number) => `${serverSiteUrl()}/orders/${number}`,
   })
 
   if (!result.replayed) {

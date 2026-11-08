@@ -2,8 +2,8 @@
 # Build:  docker build -t soledrop --build-arg NEXT_PUBLIC_SITE_URL=https://example.com .
 # Run:    docker run -p 3000:3000 --env-file .env.production soledrop
 
-FROM node:22-alpine AS base
-RUN corepack enable
+FROM node:24-alpine AS base
+RUN corepack enable && corepack prepare pnpm@12.16.1 --activate
 WORKDIR /app
 
 FROM base AS deps
@@ -23,7 +23,7 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \

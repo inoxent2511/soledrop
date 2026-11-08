@@ -3,9 +3,11 @@
   "version": "0.0.1",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@12.16.1",
+  "engines": { "node": "24.x" },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/package-standalone.mjs",
     "start": "node scripts/serve.mjs",
     "admin:migrate-catalogue": "node --conditions=react-server --import ./scripts/register.mjs scripts/migrate-catalogue.ts",
     "lint": "eslint . --max-warnings 0",

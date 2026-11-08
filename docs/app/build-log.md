@@ -322,3 +322,43 @@ m8-clean-build.json and both m8 preservation reports).
 
 M9 deployment packaging/private handoff and M10 complete production/performance acceptance remain.
 No hosting account, remote database, deployment, real mail or payment was contacted.
+
+## 2026-11-09 — M9 Hostinger packaging and private transfer
+
+Pinned Node 24.x and pnpm 12.16.1, including pnpm's required package-manager lock metadata.
+`pnpm build` now assembles standalone public/static assets and verifies artifact privacy. Startup
+uses the host's one supervised process, PORT/HOSTNAME, and does not copy/delete assets. Runtime
+order/payment return and OpenAPI links use SITE_URL. Docker uses Node 24; an optional private-env
+VPS Compose profile and a manual-only Linux verification workflow are provided. Neither has been
+executed remotely or on Docker during this Windows acceptance run.
+
+An artifact scan found instrumentation tracing private QA snapshot temporaries despite route-only
+excludes. Runtime filesystem boundaries now prevent that globbing, and the generated instrumentation
+trace contains zero private paths. Packaging fails on private runtime directories, embedded actual
+environment secrets or links outside the artifact. All 3,702 scanned artifact text files pass. Two
+guard regressions cover secret redaction, private snapshots and external dependency junctions.
+
+Added consistent streamed SQL backup/empty-database restore and referenced-upload backup tools.
+Fresh-engine regressions cover binary UUIDs, non-ASCII/quoted text, dates, JSON, safe large integers,
+generated guards, migration timestamps, checksum corruption, overwrite refusal and rollback. The
+private handoff restores all **79 tables with equal row content** into fresh MySQL and MariaDB.
+Both restored stores pass **3,758 original preservation checks with zero differences**. All
+**44 originals and 528 prepared variants** verify. The private environment template retains the
+existing Owner encryption/session key; no Owner reset, demo seed or merchant overwrite occurred.
+
+Validation on official checksum-verified Node **24.22.2**: **1,704/1,704** application tests and
+**1,436/1,436** native database tests, zero pending. Typecheck/lint and production build pass. An
+independent temporary checkout installs **596 packages from the frozen lock**, builds without
+local environment files/database credentials and produces a privacy-checked standalone release.
+A relocated unpack (26 internal Windows dependency junctions rebased within the unpack, none to
+source) boots on Node 24: readiness, homepage, **24 packaged script/style assets** and runtime
+OpenAPI origin pass. Private evidence: m9-unit-final.json, m9-db-final.json, m9-isolated-build.json,
+m9-unpacked-start.json, m9-unpacked-location.json and handoff restore-evidence.json.
+
+The deployment runbook now covers owner Git import, private merchant transfer, all environment
+keys, three migration paths, two-user grants and the weaker shared-account fallback, persistent
+storage, SMTP, bounded cron/external scheduling, tested backups/restore, rollback and launch checks.
+Hostinger account paths/privileges, Linux native runtime, deliverability and real devices remain
+owner/manual checks. M10 full production regression and large-data/performance acceptance remain
+before the authorized ready-release push. No hosting account/deployment/remote DB/real mail/payment
+action occurred; the GitHub release has not been pushed yet.

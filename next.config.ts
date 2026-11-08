@@ -51,7 +51,7 @@ const nextConfig: NextConfig = {
     loader: "custom",
     loaderFile: "./lib/image-loader.ts",
     formats: ["image/avif", "image/webp"],
-    // Product photos are served from /public/images; a CDN host is added here when photos move (phase-2.md).
+    // Merchant photos use prepared /media variants; no arbitrary remote image sources.
     remotePatterns: [],
   },
   async headers() {

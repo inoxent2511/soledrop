@@ -1,5 +1,6 @@
 .git
 .data
+.email-outbox
 .next
 node_modules
 .qa-tmp

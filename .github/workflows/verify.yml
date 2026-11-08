@@ -1,0 +1,30 @@
+name: Verify release on Linux
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  application:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_SITE_URL: https://build.example.test
+      DATA_DRIVER: mysql
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@v6
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm db:lint
+      - run: pnpm db:bundle
+      - run: git diff --exit-code -- db/dist server/db/migration-manifest.ts
+      - run: pnpm build
+      # Explicit manual workflow: no deployment, credentials, production database or hosted jobs.

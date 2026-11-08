@@ -2,7 +2,7 @@
 
 Committed forward-only SQL is authoritative. Engines: MySQL >=8.0.16 (8.0.15 ignores CHECK constraints) and MariaDB >=10.6, target 10.11. Tables use InnoDB, utf8mb4_unicode_ci, strict sessions, UTC and DATETIME(3). No trigger permission is required. New application keys use UUIDv7; imported UUIDv4 bytes remain unchanged. Money/counters reject unsafe JavaScript integers.
 
-`pnpm db:up` starts both services in `compose.yml` after setting a private `LOCAL_DB_ROOT_PASSWORD`. Ports bind to loopback only: 3307 MySQL, 3308 MariaDB. `db:down` stops without deleting volumes.
+`pnpm db:up` starts both services in `db/compose.yml` after setting a private `LOCAL_DB_ROOT_PASSWORD`. Ports bind to loopback only: 3307 MySQL, 3308 MariaDB. `db:down` stops without deleting volumes.
 
 If Docker is absent on Windows, use official portable ZIPs, initialize new data directories and configure ignored `.data/local-engines/instances.json`. Each entry contains `engine`, `host` (`127.0.0.1`), `port`, `binary`, `data`, `rootPassword`. Binary/data paths must be inside `.data/local-engines`. `db:up` then starts hidden portable processes; `db:down` issues authenticated SHUTDOWN. Never reuse another project's data directory. Initialization uses `mysqld --initialize-insecure` or `mariadb-install-db.exe`; immediately assign a random root password before use. Do not install a Windows service or expose a listening address other than loopback.
 
@@ -50,3 +50,9 @@ For an imported queue with older plaintext bearer links, run the loopback-only
 It verifies opened link equivalence, preserves delivery metadata, audits changed batches and is
 safe to repeat. Preserve `SESSION_SECRET`; changing it invalidates imported sealed MFA/links.
 `AUTH_SECRET` is an optional alias and must match when both are configured.
+
+`node scripts/database-backup.mjs backup <absolute-private-sql-file>` creates a streamed consistent
+data snapshot and adjacent checksum manifest. Use `restore` with the same file only after creating
+an empty schema from the matching forward bundle; existing merchant rows and corrupt snapshots
+are refused. Run with private DATABASE_URL configuration, never command-line credentials. The
+upload backup command and complete tested restore procedure are in the deployment runbook.

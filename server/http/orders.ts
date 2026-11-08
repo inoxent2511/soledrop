@@ -1,6 +1,6 @@
 import "server-only"
 
-import { siteConfig } from "@/lib/site"
+import { serverSiteUrl } from "@/lib/site-server"
 import { currentStoreId } from "@/server/db/driver"
 import { toOrderDto } from "@/server/http/dto"
 import { currentCustomer } from "@/server/http/route"
@@ -15,6 +15,6 @@ export async function orderPageData(number: string, token: string | null) {
   const service = orderService()
   const order = await service.findForViewer(currentStoreId(), number.toUpperCase(), { customerId: customer?.id ?? null, token })
   if (!order) return null
-  const next = token ? await service.nextStepFor(order, token, (value) => `${siteConfig.url}/orders/${value}`) : { type: "none" as const }
+  const next = token ? await service.nextStepFor(order, token, (value) => `${serverSiteUrl()}/orders/${value}`) : { type: "none" as const }
   return { order: toOrderDto(order, await service.listReturns(order.id)), next }
 }

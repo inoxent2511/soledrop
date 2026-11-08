@@ -39,7 +39,11 @@ Browser reports and screenshots are generated locally under `qa/out/a12-*` and a
 
 Reports: local `qa/out/a12-full-pass1.json` and `qa/out/a12-full-pass2.json`. Together they contain 5,736 passing executions and 96 existing skipped executions, with zero unexpected results.
 
-## Coverage and limits
+## Historical A12 coverage and limits
+
+The following records the original pre-migration A12 checkpoint. Current native database,
+authorization and audit evidence supersedes its backend-specific limits; see the migration update
+at the end of this document. Unresolved design/performance/manual limits remain explicit.
 
 - The permission-matrix suite checks all ten preset roles against 24 read APIs and 17 module pages. Architecture tests require a declared access check on every admin handler/page; integration tests cover selected write permissions, refund ceilings, PII masking and sensitive actions. This is not an exhaustive every-mutation × every-role test matrix.
 - The admin permission matrix, accessibility sweeps and several module suites run in Chromium only and skip duplicate executions in the other projects, because they share TOTP-limited demo accounts. Core auth/CSP checks also run in Firefox and WebKit. The existing skips have not been removed or expanded to make a failing test pass.
@@ -67,3 +71,18 @@ All four exceed the brief's 250 KiB budget (PERF-03). The 10,000-row interaction
 The core modules and recorded decisions A-001…A-020 are implemented. The original brief also requested capabilities beyond this core: advanced table controls/bulk workflows, automatic draft recovery and a shortcuts sheet, among others. The implemented shared components and UX gaps are described in `admin-design.md`; code-managed policies/integrations and absent storefront features are described in `admin-decisions.md`.
 
 The original A12 requirement of two full passes with zero open findings has not been met while these performance, design and verification gaps remain. Passing automated regressions must be reported separately from that final sign-off.
+
+## Native database migration update (2026-11-09)
+
+Production now uses actor-scoped MySQL/MariaDB repositories; the retired emulator and backend SDKs
+are removed. M3 exercised 1,000 real multi-connection races, M5 verified repository permissions and
+least-privilege accounts, and M7 proved mandatory staff audit rollback and durable provider refund
+recovery. The M8 full native suite passes 1,434 checks with zero pending. Twelve original banner
+browser journeys pass on isolated MariaDB across Chromium, Firefox and WebKit with private
+per-test staff identities, without enabling demo staff or changing the merchant Owner.
+
+The M9 Node 24.22.2 production build and all 1,702 application tests pass. The private transfer
+restores all 79 tables with equal content on fresh MySQL and MariaDB; 3,758 original preservation
+checks pass per engine. All 44 original images and 528 prepared variants verify. Native backup
+tests reject corruption/overwriting and roll back failed data imports. These checks do not stand
+in for the remaining M10 complete production passes, large-data performance or hosted/manual QA.

@@ -1,6 +1,7 @@
 import "server-only"
 
 import { siteConfig } from "@/lib/site"
+import { serverSiteUrl } from "@/lib/site-server"
 import { ORDER_STATUSES } from "@/server/orders/types"
 
 const error = { $ref: "#/components/responses/Error" }
@@ -16,7 +17,7 @@ export function openApiDocument() {
       version: "1.0.0",
       description: "Catalogue, order operations and product import/export. Authenticate with `Authorization: Bearer <key>`; keys carry `read` and/or `write` scopes. Amounts are integer minor units (paisa).",
     },
-    servers: [{ url: `${siteConfig.url}/api/v1` }],
+    servers: [{ url: `${serverSiteUrl()}/api/v1` }],
     security: [{ apiKey: [] }],
     components: {
       securitySchemes: { apiKey: { type: "http", scheme: "bearer" } },
