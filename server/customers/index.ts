@@ -54,7 +54,7 @@ export const staffCustomers = () => {
     orders: { listForCustomer: orders.listForCustomer, anonymiseCustomer: orders.anonymiseCustomer },
     audit: (staff, meta, entry) => admin.recordAudit(staff, meta, entry),
     assertSteppedUp: admin.assertSteppedUp,
-  })))
+  }), ["update", "signOut", "exportData", "erase"]))
 }
 
 export { SESSION_DAYS, toProfile } from "@/server/customers/service"

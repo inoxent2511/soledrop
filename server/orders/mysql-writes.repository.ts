@@ -7,7 +7,9 @@ import { canTransition, customerCanCancel, customerCanRequestReturn, restocksOnT
 import { allocateNumber, auditOrder, enqueueOrderEvent, hydrateOrders, lockedOrder, orderOwnerScope, orderProjection, orderUpdatedAt, payment, quantities, refund, restockOrderLines, returnRequest } from "./mysql-helpers.repository"
 import { type Actor, type ActorScoped, requireCustomerOwner, requireFreshGrant, requireGrant, requireStore } from "@/server/db/actor"
 import { withTransaction } from "@/server/db/client"
-import { cartLines, carts, orderContacts, orderLines, orderNotes, orderPromotionCodes, orders, payments, promotionRedemptions, promotions, refunds, returns } from "@/server/db/schema"
+import { cartLines, carts, orderContacts, orderLines, orderNotes, orderPromotionCodes, orders, payments, promotionRedemptions, promotions, refundIntents, refunds, returns } from "@/server/db/schema"
+import { assertRefundCapacity, assertRefundReplay } from "./refund-intent"
+import { refundIntent } from "./refund-intents.mysql.repository"
 import { isoDate, jsonValue, sqlDate } from "@/server/db/values"
 import { uuidv7 } from "@/server/db/uuid"
 import { lockCart, lockLevels, lockStore, releaseCartReservations, releaseExpiredReservations } from "@/server/inventory/mysql.repository"
@@ -149,6 +151,13 @@ export function createMysqlOrderWrites(): Writes {
         const [replay] = await db.select().from(refunds).where(and(eq(refunds.orderId, order.id), eq(refunds.idempotencyKey, input.idempotencyKey))).limit(1).for("update")
         if (replay) return refund(replay)
         const paidRows = await db.select().from(payments).where(eq(payments.orderId, order.id)).orderBy(asc(payments.id)).for("update")
+        const intents = (await db.select().from(refundIntents).where(and(eq(refundIntents.storeId, actor.storeId), eq(refundIntents.orderId, order.id))).orderBy(refundIntents.id).for("update")).map(refundIntent)
+        const intent = intents.find((row) => row.idempotencyKey === input.idempotencyKey)
+        if (intent) {
+          assertRefundReplay(intent.request, input)
+          if (intent.status !== "provider_confirmed" || intent.paymentId !== input.paymentId) throw new DomainError("conflict", "The provider refund must be confirmed before committing its ledger.")
+        }
+        assertRefundCapacity(order, paidRows.map(payment), intents, input)
         const paid = paidRows.filter((row) => ["captured", "partially_refunded", "refunded"].includes(row.status)).reduce((sum, row) => sum + row.amount, 0)
         if (!Number.isSafeInteger(input.amount) || input.amount <= 0 || order.refundedTotal + input.amount > Math.min(paid, order.total)) throw new DomainError("validation", "Refund exceeds the amount paid.")
         const targetPayment = input.paymentId ? paidRows.find((row) => row.id === input.paymentId) : null
@@ -170,6 +179,7 @@ export function createMysqlOrderWrites(): Writes {
         if (targetPayment) await db.update(payments).set({ refundedAmount: targetPayment.refundedAmount + input.amount, status: targetPayment.refundedAmount + input.amount >= targetPayment.amount ? "refunded" : "partially_refunded" }).where(and(eq(payments.id, targetPayment.id), eq(payments.orderId, order.id)))
         const row = { ...input, lines: items, restock: input.restock ? 1 : 0, id: uuidv7(), createdAt: sqlDate(new Date().toISOString()) }
         await db.insert(refunds).values(row)
+        if (intent) await db.update(refundIntents).set({ status: "completed" }).where(and(eq(refundIntents.storeId, actor.storeId), eq(refundIntents.id, intent.id)))
         await enqueueOrderEvent(db, actor, order.id, "refund.created", { number: order.number, amount: input.amount })
         return refund(row)
       }, { retries: 3, idempotencyKey: input.idempotencyKey })

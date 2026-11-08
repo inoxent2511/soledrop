@@ -23,6 +23,15 @@ function localFile(key: string) {
 
 export function createFixturesMediaRepository(): MediaRepository {
   const operations: MediaOperations = {
+    async usage(storeId, url) {
+      const tables = db(), used = new Set<string>()
+      for (const product of tables.products) if (product.storeId === storeId && product.images.some((image) => image.url === url)) used.add("Product: " + product.slug)
+      for (const collection of tables.collections) if (collection.storeId === storeId && collection.image?.url === url) used.add("Collection: " + collection.slug)
+      const home = tables.home?.content
+      if (home && [...home.slides, ...home.instagram.images, ...home.categories.map((category) => category.image)].some((image) => image.src === url)) used.add("Homepage")
+      if (tables.orders.some((order) => order.storeId === storeId && order.lines.some((line) => line.imageUrl === url))) used.add("Order history")
+      return [...used]
+    },
     async hasOrderUsage(storeId, url) {
       return db().orders.some((order) => order.storeId === storeId && order.lines.some((line) => line.imageUrl === url))
     },
@@ -41,6 +50,10 @@ export function createFixturesMediaRepository(): MediaRepository {
       return structuredClone(db().media.find((item) => item.id === id) ?? null)
     },
     async create(item, data) {
+      const saved = await operations.stage(item, data)
+      return operations.commitPrepared(saved)
+    },
+    async stage(item, data) {
       await writeImageVariants(item.path, data, async (key, bytes) => {
         if (serverEnv.DATA_DRIVER === "local") writeLocalMedia(localStore().directory, key, bytes)
         else files.set(key, bytes)
@@ -48,6 +61,9 @@ export function createFixturesMediaRepository(): MediaRepository {
       if (serverEnv.DATA_DRIVER === "local") {
         writeLocalMedia(localStore().directory, item.path, data)
       } else files.set(item.path, data)
+      return structuredClone(item)
+    },
+    async commitPrepared(item) {
       db().media.push(structuredClone(item))
       return structuredClone(item)
     },

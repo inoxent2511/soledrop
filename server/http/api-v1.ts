@@ -3,7 +3,7 @@ import "server-only"
 import { createHash, timingSafeEqual } from "node:crypto"
 
 import { secureCookies, serverEnv } from "@/lib/env.server"
-import { publicEnv } from "@/lib/env"
+import { serverSiteUrl } from "@/lib/site-server"
 import type { Permission } from "@/server/admin/permissions"
 import { systemActor } from "@/server/db/actor"
 import { withActor } from "@/server/db/context"
@@ -43,7 +43,7 @@ export function apiV1<Context = unknown>(scope: ApiScope, handler: (request: Req
   return async (request: Request, context: Context) => {
     try {
       const client = authenticate(request, scope)
-      assertRequestOrigin(request, { siteUrl: publicEnv.NEXT_PUBLIC_SITE_URL, allowLoopbackHttp: !secureCookies(serverEnv) })
+      assertRequestOrigin(request, { siteUrl: serverSiteUrl(), allowLoopbackHttp: !secureCookies(serverEnv) })
       const actor = { ...systemActor(serverEnv.STORE_ID, "integration", [...readPermissions, ...(scope === "write" ? writePermissions : [])]), id: "api-key:" + client.identity }
       return await withActor(actor, async () => {
         await enforceRateLimit("api", `client:${client.identity}`)

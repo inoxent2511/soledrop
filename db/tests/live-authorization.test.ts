@@ -120,6 +120,7 @@ for (const [engine, config] of engines) describe(engine + " live repository auth
   })
 
   const reads: { permission: Permission; label: string; run: (actor: Actor) => Promise<unknown> }[] = [
+    { permission: "media:read", label: "media usage", run: (a) => media.usage(a, storeId, "/media/unknown.webp") },
     { permission: "products:read", label: "catalogue", run: (a) => catalog.searchProducts(a, storeId, { page: 1, pageSize: 10 }) },
     { permission: "reports:read", label: "report catalogue", run: (a) => catalog.reportProducts(a, storeId, 1) },
     { permission: "collections:read", label: "collection contents", run: (a) => catalog.collectionProductIds(a, storeId, uuidv7()) },

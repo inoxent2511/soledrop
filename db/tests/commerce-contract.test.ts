@@ -39,6 +39,14 @@ import type { Order } from "@/server/orders/types"
 import type { Customer } from "@/server/customers/types"
 import type { CartRow } from "@/server/cart/types"
 import { connect, engines } from "./connections"
+import { createFixturesRefundIntentsRepository } from "@/server/orders/refund-intents.fixtures.repository"
+import { createMysqlRefundIntentsRepository } from "@/server/orders/refund-intents.mysql.repository"
+import type { RefundIntentOperations } from "@/server/orders/refund-intents.repository"
+import { createOrderService } from "@/server/orders/service"
+import { withTransaction } from "@/server/db/client"
+import { fixtureAtomic } from "@/server/fixtures/atomic"
+import { cartService } from "@/server/cart"
+import { catalog as catalogueService } from "@/server/catalog"
 
 const hash = (value: string) => createHash("sha256").update(value).digest("hex")
 for (const [engine, configuration] of [["fixtures", null] as const, ...engines] as const) describe(engine + " identity/commerce/jobs contract", () => {
@@ -66,6 +74,7 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
       const cleanup = await connect(configuration!.migratorUrl)
       try {
         await cleanup.execute("DELETE r FROM refunds r INNER JOIN orders o ON o.id = r.order_id WHERE o.store_id = ?", [Buffer.from(storeId.replaceAll("-", ""), "hex")])
+        await cleanup.execute("DELETE FROM refund_intents WHERE store_id = ?", [Buffer.from(storeId.replaceAll("-", ""), "hex")])
         const db = await database()
         await db.delete(orderRows).where(eq(orderRows.storeId, storeId))
         await db.delete(products).where(eq(products.storeId, storeId))
@@ -191,6 +200,56 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     expect((await orders.listByCustomer(storeId, customerId)).length).toBe(1)
     expect((await orders.listRefunds(order.id)).length).toBe(1)
     expect((await orders.ledger(storeId, { kind: "payments", page: 1, pageSize: 10 })).rows[0].amount).toBe(10000)
+  })
+
+  it("recovers an uncertain provider refund and a failed ledger audit without double money or restock", async () => {
+    const refundIntents = bindActor<RefundIntentOperations>(fixture ? createFixturesRefundIntentsRepository() : createMysqlRefundIntentsRepository(), resolve)
+    const nextCart = await carts.create({ ...cart, id: uuidv7(), customerId: null, tokenHash: hash(uuidv7()), status: "active", lines: cart.lines.map((line) => ({ ...line, id: uuidv7() })), promotionCodes: [] })
+    await inventory.reserve(nextCart.id, [{ variantId, quantity: 1 }], 15)
+    const nextDraft = { ...draft, customerId: null, email: "refund-recovery@example.test", idempotencyKey: uuidv7(), lines: draft.lines.map((line) => ({ ...line, id: uuidv7() })) }
+    const nextOrder = (await orders.placeOrder({ draft: nextDraft, cartId: nextCart.id, promotionIds: [], event: { topic: "order.placed", payload: {} } })).order
+    const paid = await orders.recordPayment({ orderId: nextOrder.id, provider: "fake_psp", status: "captured", amount: nextOrder.total, currency: nextOrder.currency, providerRef: "fake-charge-" + nextOrder.id, idempotencyKey: uuidv7() })
+    const accepted = new Map<string, string>()
+    let calls = 0, loseReply = true
+    const provider = { code: "fake_psp", label: "Local test provider", description: "No network", isAvailable: async () => true,
+      createPayment: async () => { throw new Error("Not used") },
+      refund: async (_reference: string, amount: number, key: string) => {
+        calls++; expect(amount).toBe(nextOrder.total); expect(key).toMatch(/^[a-f0-9]{64}$/)
+        if (!accepted.has(key)) accepted.set(key, "fake-refund-" + uuidv7())
+        if (loseReply) { loseReply = false; throw new Error("Simulated lost provider success") }
+        return { providerRef: accepted.get(key)! }
+      } }
+    const service = () => createOrderService({ orders, carts: cartService(), catalog: catalogueService(), refunds: refundIntents,
+      atomic: fixture ? fixtureAtomic : (work) => withTransaction(work), payments: { get: () => provider, available: async () => [provider] }, secret: "local-refund-test-secret" })
+    const input = { orderId: nextOrder.id, amount: nextOrder.total, reason: "Recovery test", lines: [{ orderLineId: nextOrder.lines[0].id, quantity: 1 }], restock: true, idempotencyKey: uuidv7() }
+    const before = (await inventory.onHand([variantId])).get(variantId)
+    await expect(service().refund(input)).rejects.toThrow("Simulated lost provider success")
+    const pending = await refundIntents.pending(100)
+    expect(pending.find((row) => row.orderId === nextOrder.id)?.status).toBe("prepared")
+    expect((await refundIntents.find(pending.find((row) => row.orderId === nextOrder.id)!.id))?.request).toEqual(input)
+    await expect(refundIntents.pending(101)).rejects.toMatchObject({ code: "validation" })
+    expect(await orders.listRefunds(nextOrder.id)).toEqual([])
+    expect((await orders.findById(nextOrder.id))?.refundedTotal).toBe(0)
+    await expect(service().refund({ ...input, idempotencyKey: uuidv7() })).rejects.toMatchObject({ code: "validation" })
+    await expect(service().refund({ ...input, amount: input.amount - 1 })).rejects.toMatchObject({ code: "conflict" })
+    expect(calls).toBe(1)
+    await expect(service().refund(input, async () => { throw new Error("Simulated mandatory audit failure") })).rejects.toThrow("Simulated mandatory audit failure")
+    expect(await orders.listRefunds(nextOrder.id)).toEqual([])
+    expect((await inventory.onHand([variantId])).get(variantId)).toBe(before)
+    expect((await refundIntents.prepare(input)).intent?.status).toBe("provider_confirmed")
+    expect(calls).toBe(2)
+    const [first, second] = await Promise.all([service().refund(input), service().refund(input)])
+    expect(second).toEqual(first)
+    expect(first.paymentId).toBe(paid.id)
+    expect((await orders.listRefunds(nextOrder.id)).length).toBe(1)
+    expect((await orders.findById(nextOrder.id))?.refundedTotal).toBe(nextOrder.total)
+    expect((await inventory.onHand([variantId])).get(variantId)).toBe(before! + 1)
+    expect(calls).toBe(2)
+    expect(accepted.size).toBe(1)
+    expect((await refundIntents.pending(100)).some((row) => row.orderId === nextOrder.id)).toBe(false)
+    const foreign = fixture ? createFixturesRefundIntentsRepository() : createMysqlRefundIntentsRepository()
+    await expect(foreign.prepare(anonymousActor(storeId), input)).rejects.toMatchObject({ code: "forbidden" })
+    await expect(foreign.prepare(systemActor(uuidv7(), "migration", ALL_PERMISSIONS), input)).rejects.toMatchObject({ code: "not_found" })
   })
 
   it("claims durable events once, retries failures and shares analytics contracts", async () => {

@@ -38,11 +38,7 @@ export async function withIdempotency<T>(scope: string, key: string | null, work
   return result
 }
 
-/** Writes an audit entry; failures here must never break the action being audited. */
+/** Mandatory audit failures propagate so the enclosing mutation can roll back. */
 export async function audit(actor: string, action: string, entity: string, entityId: string, before: unknown, after: unknown) {
-  try {
-    await platform().audit({ actor, action, entity, entityId, before, after })
-  } catch (error) {
-    console.error("audit write failed", error)
-  }
+  await platform().audit({ actor, action, entity, entityId, before, after })
 }

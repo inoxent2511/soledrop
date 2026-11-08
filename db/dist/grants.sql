@@ -35,6 +35,7 @@ GRANT SELECT, INSERT ON `soledrop`.`order_notes` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`order_number_sequences` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`order_promotion_codes` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`orders` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`outbox_channels` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`outbox_events` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`pages` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`password_resets` TO 'soledrop_app'@'localhost';
@@ -49,6 +50,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`products` TO 'soledrop_app'@
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`promotion_redemptions` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`promotions` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`rate_limits` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`refund_intents` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`refunds` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`returns` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`role_permissions` TO 'soledrop_app'@'localhost';
@@ -56,7 +58,9 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`roles` TO 'soledrop_app'@'lo
 GRANT SELECT ON `soledrop`.`schema_migrations` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_document_terms` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_documents` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_field_terms` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_queries` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_skus` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_synonym_values` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_synonyms` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_terms` TO 'soledrop_app'@'localhost';

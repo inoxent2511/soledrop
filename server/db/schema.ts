@@ -606,6 +606,21 @@ export const prices = mysqlTable("prices", {
   compareAt: safeBigint("compare_at"),
 })
 
+export const refundIntents = mysqlTable("refund_intents", {
+  id: uuid("id").notNull(),
+  storeId: uuid("store_id").notNull(),
+  orderId: uuid("order_id").notNull(),
+  paymentId: uuid("payment_id"),
+  idempotencyKey: varchar("idempotency_key", { length: 190 }).notNull(),
+  providerKey: varchar("provider_key", { length: 64 }).notNull(),
+  provider: varchar("provider", { length: 190 }),
+  providerRef: varchar("provider_ref", { length: 300 }),
+  providerRefundRef: varchar("provider_refund_ref", { length: 300 }),
+  status: varchar("status", { length: 24 }).notNull(),
+  request: portableJson("request").notNull(),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+})
+
 export const refunds = mysqlTable("refunds", {
   id: uuid("id").notNull(),
   orderId: uuid("order_id").notNull(),

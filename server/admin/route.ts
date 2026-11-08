@@ -1,6 +1,6 @@
 import "server-only"
 
-import { publicEnv } from "@/lib/env"
+import { serverSiteUrl } from "@/lib/site-server"
 import { secureCookies, serverEnv } from "@/lib/env.server"
 import { adminService } from "@/server/admin"
 import { currentStaff, requestMeta, requirePermission, requireStaff } from "@/server/admin/dal"
@@ -34,7 +34,7 @@ const WRITES_PER_MINUTE = 120
 type Handler<Context, Staff> = (input: { request: Request; context: Context; staff: Staff; meta: RequestMeta }) => Promise<Response>
 
 async function assertOwnOrigin(request: Request) {
-  assertRequestOrigin(request, { siteUrl: publicEnv.NEXT_PUBLIC_SITE_URL, allowLoopbackHttp: !secureCookies(serverEnv), requireOrigin: true })
+  assertRequestOrigin(request, { siteUrl: serverSiteUrl(), allowLoopbackHttp: !secureCookies(serverEnv), requireOrigin: true })
 }
 
 async function authorise(access: AdminAccess): Promise<StaffContext | null> {

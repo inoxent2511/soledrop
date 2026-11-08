@@ -6,7 +6,11 @@ import { serverEnv } from "@/lib/env.server"
 import { availablePaymentProviders, paymentProvider } from "@/server/adapters/payments"
 import { cartService } from "@/server/cart"
 import { catalog } from "@/server/catalog"
-import { selectRepository } from "@/server/db/driver"
+import { dataDriver, localService, selectRepository, unitOfWork } from "@/server/db/driver"
+import { bindActor } from "@/server/db/bind"
+import { createMysqlRefundIntentsRepository } from "./refund-intents.mysql.repository"
+import { createFixturesRefundIntentsRepository } from "./refund-intents.fixtures.repository"
+import type { RefundIntentOperations } from "./refund-intents.repository"
 import { createFixturesOrderRepository } from "@/server/orders/fixtures.repository"
 import { createOrderService } from "@/server/orders/service"
 import { createStaffOrders } from "@/server/orders/staff"
@@ -25,6 +29,8 @@ export const orderService = () => {
     catalog: catalog(),
     payments: { get: paymentProvider, available: availablePaymentProviders },
     secret: serverEnv.SESSION_SECRET,
+    refunds: dataDriver() === "mysql" ? bindActor<RefundIntentOperations>(createMysqlRefundIntentsRepository(), currentActor) : localService(bindActor<RefundIntentOperations>(createFixturesRefundIntentsRepository(), currentActor)),
+    atomic: unitOfWork,
     trustedPayment: (operation) => withActor(systemActor(currentActor().storeId, "integration", ["orders:read", "orders:mark_paid"]), operation),
   })
   return {
@@ -44,5 +50,5 @@ export type * from "@/server/orders/types"
 /** Staff (admin) order operations: permission checks, PII masking and audit on top of orderService. */
 export const staffOrders = () => {
   const admin = adminService()
-  return staffService(createStaffOrders({ orders: orderService(), audit: (staff, meta, entry) => admin.recordAudit(staff, meta, entry), assertSteppedUp: admin.assertSteppedUp }))
+  return staffService(localService(createStaffOrders({ orders: orderService(), audit: (staff, meta, entry) => admin.recordAudit(staff, meta, entry), assertSteppedUp: admin.assertSteppedUp }), ["transition", "markPaid", "decideReturn", "addNote", "reconcile", "exportCsv"]))
 }

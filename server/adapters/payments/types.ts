@@ -35,4 +35,6 @@ export interface PaymentProvider {
   /** Verifies a vendor webhook signature and maps it to a payment result. */
   parseWebhook?(rawBody: string, headers: Headers): Promise<WebhookResult>
   refund?(providerRef: string, amount: number, idempotencyKey: string): Promise<{ providerRef: string }>
+  /** Read-only recovery for an accepted call whose response was lost. */
+  lookupRefund?(providerRef: string, idempotencyKey: string): Promise<{ providerRef: string; amount: number; status: string } | null>
 }

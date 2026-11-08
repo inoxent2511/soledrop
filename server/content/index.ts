@@ -39,6 +39,6 @@ export const staffContent = () =>
     audit: (staff, meta, entry) =>
       adminService().recordAudit(staff, meta, entry),
     revalidate: () => refreshStorefront(),
-  })))
+  }), ["saveHome", "savePage", "setPublished", "deletePage", "saveFaq", "deleteFaq", "reorderFaqs"]))
 
 export type * from "@/server/content/types"

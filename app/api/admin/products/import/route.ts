@@ -3,6 +3,7 @@ import { adminService } from "@/server/admin"
 import { adminRoute } from "@/server/admin/route"
 import { productTransfer } from "@/server/import-export"
 import { DomainError } from "@/server/shared/errors"
+import { unitOfWork } from "@/server/db/driver"
 
 const MAX_BYTES = 5 * 1024 * 1024
 
@@ -19,6 +20,7 @@ export const POST = adminRoute(
     if (csv.length > MAX_BYTES)
       throw new DomainError("validation", "Files are limited to 5 MB.")
     const dryRun = new URL(request.url).searchParams.get("dryRun") === "1"
+    return unitOfWork(async () => {
     const report = await productTransfer().importCsv(
       staff.member.storeId,
       csv,
@@ -35,5 +37,6 @@ export const POST = adminRoute(
       refreshStorefront()
     }
     return Response.json(report, { status: report.errors.length ? 422 : 200 })
+    })
   }
 )

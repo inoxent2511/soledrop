@@ -12,6 +12,7 @@ const optionalSecret = z.string().min(1).optional()
 const serverSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    SITE_URL: z.url().refine((value) => { const url = new URL(value); return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password && url.pathname === "/" && !url.search && !url.hash }, "SITE_URL must be the canonical HTTP(S) origin").optional(),
     DATA_DRIVER: z.enum(["local", "fixtures", "mysql", "supabase"]).default("local"),
     DATABASE_URL: optionalSecret,
     DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(50).default(5),

@@ -10,6 +10,7 @@ import { mediaUrl, type MediaItem } from "@/server/media/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
 import type { ImageFormat } from "./variants"
+import { direct, type Atomic } from "@/server/shared/atomic"
 
 /**
  * Media library (admin A3). Uploads are checked by their bytes, not their name or declared type
@@ -59,7 +60,7 @@ const need = (staff: StaffContext, permission: Permission) => {
 export type MediaView = MediaItem & { url: string }
 const view = (item: MediaItem): MediaView => ({ ...item, url: mediaUrl(item) })
 
-export function createMediaService(deps: { media: MediaOperations; audit: Audit; usage: (storeId: string, url: string) => Promise<string[]> }) {
+export function createMediaService(deps: { media: MediaOperations; audit: Audit; usage: (storeId: string, url: string) => Promise<string[]>; atomic?: Atomic }) {
   const { media } = deps
   return {
     async list(staff: StaffContext, query: { q?: string; page: number; pageSize: number }) {
@@ -73,12 +74,15 @@ export function createMediaService(deps: { media: MediaOperations; audit: Audit;
       const image = await processImage(file.bytes)
       const id = newId()
       const filename = file.name.replace(/[^\w.\- ]+/g, "_").slice(0, 120) || "image"
-      const item = await media.create(
+      const staged = await media.stage(
         { id, storeId: staff.member.storeId, path: `${staff.member.storeId}/${id}.webp`, filename, mime: "image/webp", bytes: image.data.length, width: image.width, height: image.height, alt: alt.trim().slice(0, 300), createdBy: staff.member.userId, createdAt: now() },
         image.data,
       )
-      await deps.audit(staff, meta, { action: "media.uploaded", entity: "media", entityId: id, after: { filename, bytes: item.bytes, width: item.width, height: item.height }, storeId: staff.member.storeId })
-      return view(item)
+      return (deps.atomic ?? direct)(async () => {
+        const item = await media.commitPrepared(staged)
+        await deps.audit(staff, meta, { action: "media.uploaded", entity: "media", entityId: id, after: { filename, bytes: item.bytes, width: item.width, height: item.height }, storeId: staff.member.storeId })
+        return view(item)
+      })
     },
 
     async setAlt(staff: StaffContext, meta: RequestMeta, id: string, alt: string) {

@@ -8,6 +8,7 @@ import { currentActor } from "@/server/db/context"
 import { withTransaction } from "@/server/db/client"
 import { fixtureAtomic } from "@/server/fixtures/atomic"
 import { withFixtureStore } from "@/server/fixtures/store"
+import { withCommitEffects } from "@/server/shared/commit-effects"
 
 export type DataDriver = "local" | "fixtures" | "mysql" | "supabase"
 
@@ -21,13 +22,19 @@ export function currentStoreId(): string {
   return serverEnv.STORE_ID
 }
 
+/** A mutation and its mandatory audit share a commit on every retained driver. */
+export function unitOfWork<T>(operation: () => Promise<T>): Promise<T> {
+  return withCommitEffects(() => dataDriver() === "mysql" ? withTransaction(operation) : dataDriver() === "local" ? localStore().run(operation) : withFixtureStore(currentActor(), () => fixtureAtomic(operation)))
+}
+
 /** Keep multi-repository staff writes and media reference checks in one local transaction. */
-export function localService<T extends object>(service: T): T {
+export function localService<T extends object>(service: T, writes?: readonly (keyof T)[]): T {
   if (dataDriver() === "supabase") return service
   return new Proxy(service, {
     get(target, key, receiver) {
       const value = Reflect.get(target, key, receiver)
-      return typeof value === "function" ? (...args: unknown[]) => dataDriver() === "mysql" ? withTransaction(async () => value.apply(receiver, args)) : dataDriver() === "local" ? localStore().run(() => value.apply(receiver, args)) : withFixtureStore(currentActor(), () => fixtureAtomic(async () => value.apply(receiver, args))) : value
+      if (typeof value !== "function" || writes && !writes.includes(key as keyof T)) return value
+      return (...args: unknown[]) => unitOfWork(async () => value.apply(receiver, args))
     },
   })
 }

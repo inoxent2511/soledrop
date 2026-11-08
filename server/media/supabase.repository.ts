@@ -26,6 +26,9 @@ const toItem = (row: MediaRecord): MediaItem => ({
 
 export function createSupabaseMediaRepository(): MediaOperations {
   return {
+    async stage() { throw new DomainError("unavailable", "Prepared media requires the migrated driver.") },
+    async commitPrepared() { throw new DomainError("unavailable", "Prepared media requires the migrated driver.") },
+    async usage() { throw new DomainError("unavailable", "Media reference inspection requires the migrated driver.") },
     async hasOrderUsage(storeId, url) {
       return unwrap(await supabase().rpc("media_has_order_usage", { p_store_id: storeId, p_url: url })) as boolean
     },

@@ -36,7 +36,7 @@ export async function currentStaffActor(db: Database, actor: Extract<Actor, { ki
 }
 
 /** All public factory methods retain a required actor and validate staff authority from live rows. */
-export function mysqlPolicy<T extends object>(repository: ActorScoped<T>): ActorScoped<T> {
+export function mysqlPolicy<T extends object>(repository: ActorScoped<T>, options: { external?: readonly (keyof T)[] } = {}): ActorScoped<T> {
   return new Proxy(repository, {
     get(target, property) {
       if (property === ACTOR_SCOPED) return true
@@ -45,6 +45,10 @@ export function mysqlPolicy<T extends object>(repository: ActorScoped<T>): Actor
       return async (actor: Actor, ...args: unknown[]) => {
         assertActor(actor)
         if (actor.kind !== "staff") return Reflect.apply(operation, target, [actor, ...args])
+        if (options.external?.includes(property as keyof T)) {
+          const effective = await withTransaction((db) => currentStaffActor(db, actor))
+          return Reflect.apply(operation, target, [effective, ...args])
+        }
         return withTransaction(async (db) => Reflect.apply(operation, target, [await currentStaffActor(db, actor), ...args]))
       }
     },

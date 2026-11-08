@@ -4,7 +4,7 @@ import { staffService } from "@/server/db/staff-service"
 
 import { refreshStorefront } from "@/server/shared/revalidate"
 import { adminService } from "@/server/admin"
-import { selectRepository } from "@/server/db/driver"
+import { localService, selectRepository } from "@/server/db/driver"
 import { createFixturesShippingRepository } from "@/server/shipping/fixtures.repository"
 import { createStaffShipping } from "@/server/shipping/staff"
 import { createSupabaseShippingRepository } from "@/server/shipping/supabase.repository"
@@ -28,9 +28,9 @@ export type {
 
 /** Staff (admin) shipping and tax operations. */
 export const staffShipping = () =>
-  staffService(createStaffShipping({
+  staffService(localService(createStaffShipping({
     shipping: shippingRepository(),
     audit: (staff, meta, entry) =>
       adminService().recordAudit(staff, meta, entry),
     revalidate: () => refreshStorefront(),
-  }))
+  }), ["saveZone", "deleteZone", "saveTaxRates"]))

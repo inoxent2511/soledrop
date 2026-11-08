@@ -102,6 +102,7 @@ export function createStaffPlatform(deps: Deps) {
     /** Runs a background job now (they also run on their schedule, docs/DEPLOYMENT-RUNBOOK.md). */
     async runJob(staff: StaffContext, meta: RequestMeta, name: JobName) {
       need(staff, "jobs:run")
+      await deps.audit(staff, meta, { action: "job.started", entity: "job", entityId: name, storeId: staff.member.storeId })
       const result = await deps.jobs[name]()
       await deps.audit(staff, meta, { action: "job.run", entity: "job", entityId: name, after: result, storeId: staff.member.storeId })
       return result

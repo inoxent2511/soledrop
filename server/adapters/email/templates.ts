@@ -1,7 +1,7 @@
 import "server-only"
 
 import tokens from "@/docs/app/design-tokens.json"
-import { publicEnv } from "@/lib/env"
+import { serverSiteUrl } from "@/lib/site-server"
 import { serverEnv } from "@/lib/env.server"
 import { openDeliveryPayload } from "@/server/platform/private-payload"
 import { siteConfig } from "@/lib/site"
@@ -39,7 +39,7 @@ function message(to: string, subject: string, paragraphs: string[], action?: { l
 /** Customer-facing email for an event, or null when the event has no email. */
 export function renderEventEmail(event: OutboxEvent): EmailMessage | null {
   const data = openDeliveryPayload(event.payload, serverEnv.SESSION_SECRET) as Record<string, string | number | null | undefined>
-  const site = publicEnv.NEXT_PUBLIC_SITE_URL
+  const site = serverSiteUrl()
   switch (event.topic) {
     case "order.placed":
       return message(

@@ -1,5 +1,6 @@
 import "server-only"
 import { staffService } from "@/server/db/staff-service"
+import { localService } from "@/server/db/driver"
 
 import { refreshStorefront } from "@/server/shared/revalidate"
 import { adminService } from "@/server/admin"
@@ -55,14 +56,14 @@ export const staffMarketing = () =>
   }))
 
 export const staffSearch = () =>
-  staffService(createStaffSearch({
+  staffService(localService(createStaffSearch({
     search: searchRepository(),
     audit: (staff, meta, entry) => audit(staff, meta, entry),
     revalidate: () => refreshStorefront(),
-  }))
+  }), ["saveSynonym", "deleteSynonym"]))
 
 export const staffPlatform = () =>
-  staffService(createStaffPlatform({
+  staffService(localService(createStaffPlatform({
     platform: platform(),
     audit: (staff, meta, entry) => audit(staff, meta, entry),
     jobs: {
@@ -73,6 +74,6 @@ export const staffPlatform = () =>
     overrides: envOverrides,
     paymentProviders: () => orderService().providers(),
     revalidate: () => refreshStorefront(),
-  }))
+  }), ["setFlag", "retryEvent"]))
 
 export const insights = () => staffService(createInsights({ orders: staffOrders(), catalog: staffCatalog(), customers: staffCustomers(), platform: platform() }))

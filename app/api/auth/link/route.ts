@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import { publicEnv } from "@/lib/env"
+import { serverSiteUrl } from "@/lib/site-server"
 import { customerService } from "@/server/customers"
 import { MAGIC_BROWSER_COOKIE, clearAuthBrowserCookie } from "@/server/http/auth-browser"
 import { completeSignIn } from "@/server/http/auth"
@@ -17,7 +17,7 @@ export const GET = route(async (request) => {
     await completeSignIn(result.customer.id, result.session)
     await clearAuthBrowserCookie(MAGIC_BROWSER_COOKIE)
   }
-  const response = Response.redirect(new URL(result.session ? "/account" : "/account/login", publicEnv.NEXT_PUBLIC_SITE_URL), 303)
+  const response = Response.redirect(new URL(result.session ? "/account" : "/account/login", serverSiteUrl()), 303)
   response.headers.set("referrer-policy", "no-referrer")
   return response
 })

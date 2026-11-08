@@ -72,6 +72,9 @@ export const mediaGuards: FixtureGuards<MediaOperations> = {
   updateAlt: storeGrant("media:write"), remove: storeGrant("media:write"),
   read: publicRead, readVariant: publicRead,
   hasOrderUsage: storeGrant("media:read"),
+  usage: storeGrant("media:read"),
+  stage(actor, item, data) { mediaGuards.create(actor, item, data) },
+  commitPrepared(actor, item) { mediaGuards.create(actor, item, new Uint8Array()) },
 }
 export const inventoryGuards: FixtureGuards<InventoryOperations> = {
   availability(actor, _ids, cartId) { if (cartId) fixtureCartOwner(actor, cartId) },

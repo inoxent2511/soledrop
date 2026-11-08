@@ -9,7 +9,10 @@ import type { CatalogService } from "@/server/catalog/service"
 import { validateCustomFields } from "@/server/custom-fields/validate"
 import type { OrderDraft, OrderOperations } from "@/server/orders/repository"
 import { customerCanCancel, customerCanRequestReturn } from "@/server/orders/state-machine"
-import type { Address, Order, OrderLine, OrderStatus } from "@/server/orders/types"
+import type { Address, Order, OrderLine, OrderStatus, Refund } from "@/server/orders/types"
+import type { RefundIntentOperations } from "./refund-intents.repository"
+import type { RefundInput } from "./refund-intent"
+import { settleRefundProvider } from "./provider-refund"
 import { DomainError } from "@/server/shared/errors"
 import { allocate } from "@/server/shared/money"
 import { newId } from "@/server/shared/ids"
@@ -42,6 +45,8 @@ type Deps = {
   payments: { get: (code: string) => PaymentProvider | undefined; available: () => Promise<PaymentProvider[]> }
   secret: string
   trustedPayment?: Atomic
+  refunds: RefundIntentOperations
+  atomic: Atomic
 }
 
 const hash = (value: string) => createHash("sha256").update(value).digest("hex")
@@ -283,13 +288,23 @@ export function createOrderService(deps: Deps) {
       return ["cod", "bank_transfer", "stripe"].map((code) => ({ code, label: deps.payments.get(code)?.label ?? code, available: available.has(code) }))
     },
 
-    async refund(input: { orderId: string; amount: number; reason: string; lines: { orderLineId: string; quantity: number }[]; restock: boolean; idempotencyKey: string }) {
-      const payments = await orders.listPayments(input.orderId)
-      const payment = payments.find((item) => item.status === "captured" || item.status === "partially_refunded") ?? null
-      const provider = payment ? deps.payments.get(payment.provider) : undefined
-      // Money goes back through the provider first; the ledger is written only once it succeeded.
-      if (payment?.providerRef && provider?.refund) await provider.refund(payment.providerRef, input.amount, `refund:${input.idempotencyKey}`)
-      return orders.createRefund({ ...input, paymentId: payment?.id ?? null })
+    async refund(input: RefundInput, onCommit?: (refund: Refund) => Promise<void>, options: { readOnlyProvider?: boolean } = {}) {
+      const { intent, refund } = await deps.refunds.prepare(input)
+      if (refund) return deps.atomic(async () => { await onCommit?.(refund); return refund })
+      if (!intent) throw new DomainError("unavailable", "Refund preparation failed.")
+      if (intent.status === "prepared") {
+        const provider = intent.provider ? deps.payments.get(intent.provider) : undefined
+        // The same durable key recovers uncertain calls; never release an intent on a timeout.
+        await deps.refunds.confirm(intent.id, await settleRefundProvider(intent, provider, options.readOnlyProvider))
+      }
+      return deps.atomic(async () => {
+        // Serialize/recheck after an external call: another identical request may have finished.
+        const current = await deps.refunds.prepare(input)
+        if (current.refund) { await onCommit?.(current.refund); return current.refund }
+        const saved = await orders.createRefund({ ...intent.request, paymentId: intent.paymentId })
+        await onCommit?.(saved)
+        return saved
+      })
     },
 
     anonymiseCustomer: orders.anonymiseCustomer,

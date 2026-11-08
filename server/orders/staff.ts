@@ -161,9 +161,9 @@ export function createStaffOrders(deps: Deps) {
         throw new DomainError("forbidden", "This refund is above your limit. Ask someone with a higher limit.", { refundLimit: staff.refundLimit })
       }
       const order = await load(staff, number)
-      const refund = await orders.refund({ ...input, orderId: order.id, idempotencyKey: `admin:${input.idempotencyKey}` })
-      await deps.audit(staff, meta, { action: "order.refunded", entity: "order", entityId: order.number, after: { amount: input.amount, lines: input.lines, restock: input.restock }, reason: input.reason, storeId: staff.member.storeId })
-      return refund
+      return orders.refund({ ...input, orderId: order.id, idempotencyKey: `admin:${input.idempotencyKey}` }, async () => {
+        await deps.audit(staff, meta, { action: "order.refunded", entity: "order", entityId: order.number, after: { amount: input.amount, lines: input.lines, restock: input.restock }, reason: input.reason, storeId: staff.member.storeId })
+      })
     },
 
     async decideReturn(staff: StaffContext, meta: RequestMeta, number: string, returnId: string, decision: "approved" | "rejected" | "received", reason: string | null) {

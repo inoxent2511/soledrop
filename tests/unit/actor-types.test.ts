@@ -25,6 +25,9 @@ import type { createMysqlAdminRepository } from "@/server/admin/mysql.repository
 import { describe, expectTypeOf, it } from "vitest"
 import type { createMysqlStorefrontRepository } from "@/server/catalog/storefront.mysql.repository"
 import type { StorefrontRepository } from "@/server/catalog/storefront.repository"
+import type { RefundIntentRepository } from "@/server/orders/refund-intents.repository"
+import type { createFixturesRefundIntentsRepository } from "@/server/orders/refund-intents.fixtures.repository"
+import type { createMysqlRefundIntentsRepository } from "@/server/orders/refund-intents.mysql.repository"
 import type { CustomerAuthRepository } from "@/server/customers/auth"
 import type { Actor } from "@/server/db/actor"
 import type { AdminRepository } from "@/server/admin/repository"
@@ -51,6 +54,9 @@ describe("required raw actor types", () => {
   it("requires the actor on every operation in all thirteen repository interfaces", () => {
     expectTypeOf<EveryRepository<Repositories>>().toEqualTypeOf<true>()
     expectTypeOf<RequiredActors<StorefrontRepository>>().toEqualTypeOf<true>()
+    expectTypeOf<RequiredActors<RefundIntentRepository>>().toEqualTypeOf<true>()
+    expectTypeOf<ReturnType<typeof createFixturesRefundIntentsRepository>>().toEqualTypeOf<RefundIntentRepository>()
+    expectTypeOf<ReturnType<typeof createMysqlRefundIntentsRepository>>().toEqualTypeOf<RefundIntentRepository>()
     expectTypeOf<RequiredActors<CustomerAuthRepository>>().toEqualTypeOf<true>()
     expectTypeOf<ReturnType<typeof createMysqlStorefrontRepository>>().toEqualTypeOf<StorefrontRepository>()
   })

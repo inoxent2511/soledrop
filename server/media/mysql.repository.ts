@@ -20,7 +20,21 @@ import { variantKey, writeImageVariants } from "./variants"
 function item(row: typeof media.$inferSelect): MediaItem { return { ...row, mime: row.mime as MediaItem["mime"], createdAt: isoDate(row.createdAt) } }
 
 export function createMysqlMediaRepository(): ActorScoped<MediaOperations> {
-  return mysqlPolicy<MediaOperations>({
+  const repository: ActorScoped<MediaOperations> = mysqlPolicy<MediaOperations>({
+    async usage(actor, storeId, url) {
+      requireStore(actor, storeId); requireGrant(actor, "media:read")
+      const db = await database(), used = new Set<string>()
+      const productRows = await db.selectDistinct({ slug: products.slug, id: products.id, position: products.position }).from(productImages).innerJoin(products, eq(products.id, productImages.productId)).where(and(eq(products.storeId, actor.storeId), eq(productImages.url, url))).orderBy(products.position, products.id)
+      for (const row of productRows) used.add("Product: " + row.slug)
+      const banners = await db.select({ slug: collections.slug, image: collections.image }).from(collections).where(eq(collections.storeId, actor.storeId)).orderBy(collections.position, collections.id)
+      for (const row of banners) if (jsonValue<Collection["image"]>(row.image)?.url === url) used.add("Collection: " + row.slug)
+      const [homeRow] = await db.select({ content: storefrontContent.content }).from(storefrontContent).where(eq(storefrontContent.storeId, actor.storeId))
+      const home = homeRow ? jsonValue<HomeContent>(homeRow.content) : null
+      if (home && [...home.slides, ...home.instagram.images, ...home.categories.map((category) => category.image)].some((image) => image.src === url)) used.add("Homepage")
+      const [order] = await db.select({ id: orderLines.id }).from(orderLines).innerJoin(orders, eq(orders.id, orderLines.orderId)).where(and(eq(orders.storeId, actor.storeId), eq(orderLines.imageUrl, url))).limit(1)
+      if (order) used.add("Order history")
+      return [...used]
+    },
     async list(actor, storeId, query) {
       requireStore(actor, storeId); requireGrant(actor, "media:read")
       const db = await database()
@@ -41,11 +55,20 @@ export function createMysqlMediaRepository(): ActorScoped<MediaOperations> {
       return row ? item(row) : null
     },
     async create(actor, input, data) {
+      return repository.commitPrepared(actor, await repository.stage(actor, input, data))
+    },
+    async stage(actor, input, data) {
       requireStore(actor, input.storeId); requireGrant(actor, "media:write")
       if (actor.kind === "staff" && input.createdBy !== actor.id) throw new DomainError("forbidden", "Upload identity does not match the actor.")
       const saved = { ...input, path: input.storeId + "/" + input.id + "/" + digest(data) + ".webp" }
       await storage().put(saved.path, data)
       await writeImageVariants(saved.path, data, (key, bytes) => storage().put(key, bytes))
+      return saved
+    },
+    async commitPrepared(actor, saved) {
+      requireStore(actor, saved.storeId); requireGrant(actor, "media:write")
+      if (actor.kind === "staff" && saved.createdBy !== actor.id) throw new DomainError("forbidden", "Upload identity does not match the actor.")
+      if (!saved.path.startsWith(actor.storeId + "/" + saved.id + "/") || /[\\\x00-\x1f]/.test(saved.path) || saved.path.split("/").some((part) => !part || part === "." || part === "..")) throw new DomainError("validation", "Invalid media key.")
       const db = await database()
       await db.insert(media).values({ ...saved, createdAt: sqlDate(saved.createdAt) })
       return saved
@@ -95,5 +118,6 @@ export function createMysqlMediaRepository(): ActorScoped<MediaOperations> {
       const [row] = await db.select({ id: orderLines.id }).from(orderLines).innerJoin(orders, eq(orders.id, orderLines.orderId)).where(and(eq(orders.storeId, actor.storeId), eq(orderLines.imageUrl, url))).limit(1)
       return Boolean(row)
     },
-  })
+  }, { external: ["stage", "create"] })
+  return repository
 }

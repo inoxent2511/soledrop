@@ -5,7 +5,7 @@ import { serverEnv } from "@/lib/env.server"
 import { createFixturesAdminRepository } from "@/server/admin/fixtures.repository"
 import { createAdminService, type AdminService } from "@/server/admin/service"
 import { createSupabaseAdminRepository } from "@/server/admin/supabase.repository"
-import { dataDriver, selectRepository } from "@/server/db/driver"
+import { dataDriver, localService, selectRepository } from "@/server/db/driver"
 import { platform } from "@/server/platform"
 import { publish } from "@/server/platform/events"
 import { fixtureAtomic } from "@/server/fixtures/atomic"
@@ -35,12 +35,12 @@ export const adminService = (): AdminService => {
     notifySecurity: (email, action) => publish("auth.security_changed", { email, action }).then(() => undefined),
   })
   const auth = () => systemActor(serverEnv.STORE_ID, "auth:staff")
-  service = staffService(realmService(base, {
+  service = staffService(localService(realmService(base, {
     ensureRegistry: auth, login: auth, resolve: auth, logout: auth, beginEnrolment: auth, confirmEnrolment: auth, verifyMfa: auth,
     stepUp: auth, changePassword: auth, acceptInvite: auth, peekInvite: auth,
     listSessions: auth, revokeSession: auth, signOutEverywhere: auth,
     recordAudit: (args) => args[0] === null ? auth() : null,
-  }))
+  }), ["regenerateRecoveryCodes", "revokeSession", "signOutEverywhere", "invite", "revokeInvite", "setStaffRoles", "setStaffStatus", "resetMfa", "saveRole", "deleteRole"]))
   return service
 }
 

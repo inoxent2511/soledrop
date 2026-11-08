@@ -3,7 +3,7 @@ import "server-only"
 import { cookies, headers } from "next/headers"
 import { z } from "zod"
 
-import { publicEnv } from "@/lib/env"
+import { serverSiteUrl } from "@/lib/site-server"
 import { secureCookies, serverEnv } from "@/lib/env.server"
 import { customerService } from "@/server/customers"
 import type { Customer } from "@/server/customers/types"
@@ -36,7 +36,7 @@ export function errorResponse(error: unknown): Response {
  * of SameSite=Lax). Bearer-only integrations may omit Origin; browser auth/cart writes may not.
  */
 async function assertSameOrigin(request: Request) {
-  assertRequestOrigin(request, { siteUrl: publicEnv.NEXT_PUBLIC_SITE_URL, allowLoopbackHttp: !secureCookies(serverEnv) })
+  assertRequestOrigin(request, { siteUrl: serverSiteUrl(), allowLoopbackHttp: !secureCookies(serverEnv) })
 }
 
 /** Wraps a route handler: origin check, error mapping, no caching of personal responses. */

@@ -3,12 +3,24 @@ import "server-only"
 import { createHmac, timingSafeEqual } from "node:crypto"
 
 import type { PaymentProvider } from "@/server/adapters/payments/types"
+import { DomainError } from "@/server/shared/errors"
 
 /**
  * Stripe reference adapter (Checkout Sessions over the REST API, no SDK). Off unless
  * STRIPE_SECRET_KEY is set and the `stripe-payments` flag is on. Never runs in the browser.
  */
 export function createStripeProvider(options: { secretKey?: string; webhookSecret?: string; enabled: () => Promise<boolean> }): PaymentProvider {
+  const get = async (resource: string, signal: AbortSignal) => {
+    if (!options.secretKey) throw new DomainError("unavailable", "Payment provider credentials are unavailable.")
+    const response = await fetch("https://api.stripe.com/v1/" + resource, { headers: { authorization: "Bearer " + options.secretKey }, signal, redirect: "error" })
+    if (!response.ok) throw new DomainError("unavailable", "The payment provider could not verify this refund. Try again later.")
+    return await response.json() as Record<string, unknown>
+  }
+  const paymentIntent = async (reference: string, signal: AbortSignal) => {
+    const session = await get("checkout/sessions/" + encodeURIComponent(reference), signal)
+    if (typeof session.payment_intent !== "string" || !/^pi_[a-zA-Z0-9]+$/.test(session.payment_intent)) throw new DomainError("unavailable", "The original payment could not be verified.")
+    return session.payment_intent
+  }
   const call = async (path: string, form: Record<string, string>, idempotencyKey: string) => {
     const response = await fetch(`https://api.stripe.com/v1/${path}`, {
       method: "POST",
@@ -68,10 +80,30 @@ export function createStripeProvider(options: { secretKey?: string; webhookSecre
       return null
     },
     async refund(providerRef, amount, idempotencyKey) {
-      const session = await fetch(`https://api.stripe.com/v1/checkout/sessions/${providerRef}`, { headers: { authorization: `Bearer ${options.secretKey}` } })
-      const body = (await session.json()) as { payment_intent: string }
-      const refund = await call("refunds", { payment_intent: body.payment_intent, amount: String(amount) }, idempotencyKey)
+      const intent = await paymentIntent(providerRef, AbortSignal.timeout(15_000))
+      const refund = await call("refunds", { payment_intent: intent, amount: String(amount), "metadata[soledrop_refund_key]": idempotencyKey }, idempotencyKey)
+      if (refund.status !== "succeeded" || refund.amount !== amount || typeof refund.id !== "string") throw new DomainError("unavailable", "The provider refund is pending or needs reconciliation. No additional refund was sent.")
       return { providerRef: String(refund.id) }
+    },
+    async lookupRefund(providerRef, key) {
+      const signal = AbortSignal.timeout(15_000), intent = await paymentIntent(providerRef, signal)
+      let cursor: string | undefined
+      for (let page = 0; page < 10; page++) {
+        const query = new URLSearchParams({ payment_intent: intent, limit: "100", ...(cursor ? { starting_after: cursor } : {}) })
+        const result = await get("refunds?" + query.toString(), signal)
+        if (!Array.isArray(result.data)) throw new DomainError("unavailable", "The provider refund list could not be verified.")
+        for (const row of result.data as Record<string, unknown>[]) {
+          const metadata = row.metadata as Record<string, unknown> | null
+          if (metadata?.soledrop_refund_key === key) {
+            if (typeof row.id !== "string" || typeof row.amount !== "number" || !Number.isSafeInteger(row.amount) || typeof row.status !== "string") throw new DomainError("unavailable", "The provider refund response could not be verified.")
+            return { providerRef: row.id, amount: row.amount, status: row.status }
+          }
+        }
+        if (result.has_more === false) return null
+        cursor = (result.data.at(-1) as Record<string, unknown> | undefined)?.id as string | undefined
+        if (!cursor) throw new DomainError("unavailable", "The provider refund list could not be verified.")
+      }
+      throw new DomainError("unavailable", "This refund requires manual provider reconciliation.")
     },
   }
 }

@@ -13,6 +13,7 @@ import type { Order, OrderQuery, Payment } from "@/server/orders/types"
 import type { EventTopic } from "@/server/platform/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
+import { assertRefundCapacity, assertRefundReplay } from "./refund-intent"
 
 function nextNumberIn(tables: FixtureTables): string {
   const number = `${tables.orderSequence.prefix}${tables.orderSequence.next}`
@@ -213,6 +214,13 @@ export function createFixturesOrderRepository(): OrderRepository {
         if (replay) return structuredClone(replay)
         const order = tables.orders.find((row) => row.id === input.orderId)
         if (!order) throw new DomainError("not_found", "Order not found.")
+        const intents = (tables.refundIntents ?? []).filter((row) => row.orderId === order.id)
+        const intent = intents.find((row) => row.idempotencyKey === input.idempotencyKey)
+        if (intent) {
+          assertRefundReplay(intent.request, input)
+          if (intent.status !== "provider_confirmed" || intent.paymentId !== input.paymentId) throw new DomainError("conflict", "The provider refund must be confirmed before committing its ledger.")
+        }
+        assertRefundCapacity(order, tables.payments.filter((row) => row.orderId === order.id), intents, input)
         const paid = tables.payments.filter((row) => row.orderId === order.id && ["captured", "partially_refunded", "refunded"].includes(row.status)).reduce((total, row) => total + row.amount, 0)
         if (input.amount <= 0 || order.refundedTotal + input.amount > Math.min(paid, order.total)) throw new DomainError("validation", "Refund exceeds the amount paid.")
         const targetPayment = input.paymentId ? tables.payments.find((row) => row.id === input.paymentId && row.orderId === order.id) : null
@@ -236,6 +244,7 @@ export function createFixturesOrderRepository(): OrderRepository {
         }
         const refund = { ...input, id: newId(), createdAt: now() }
         tables.refunds.push(refund)
+        if (intent) intent.status = "completed"
         order.updatedAt = new Date(Math.max(Date.now(), Date.parse(order.updatedAt) + 1)).toISOString()
         enqueueIn(tables, "refund.created", { orderId: order.id, number: order.number, email: order.email, amount: input.amount })
         return structuredClone(refund)
