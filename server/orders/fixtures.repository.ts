@@ -58,7 +58,7 @@ const statusEvent = (order: Order, from: string, trackingNumber?: string) => ({
   trackingNumber: trackingNumber ?? order.trackingNumber,
 })
 
-/** Staff search over the fixture orders, mirroring the Postgres query in the supabase repository. */
+/** Staff search over fixture orders, matching the relational repository's DTOs. */
 function matches(order: Order, query: OrderQuery): boolean {
   const q = query.q?.trim().toLowerCase()
   if (q) {

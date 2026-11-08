@@ -1,10 +1,11 @@
 import "server-only"
+
+import type { AdminOperations as DomainOperations } from "@/server/admin/repository"
 import { createMysqlAdminRepository, rehashStaffPassword } from "@/server/admin/mysql.repository"
 
 import { serverEnv } from "@/lib/env.server"
 import { createFixturesAdminRepository } from "@/server/admin/fixtures.repository"
 import { createAdminService, type AdminService } from "@/server/admin/service"
-import { createSupabaseAdminRepository } from "@/server/admin/supabase.repository"
 import { dataDriver, localService, selectRepository } from "@/server/db/driver"
 import { platform } from "@/server/platform"
 import { publish } from "@/server/platform/events"
@@ -17,7 +18,7 @@ import { authTransaction } from "@/server/db/auth.repository"
 import { realmService } from "@/server/db/realm-service"
 import { staffService } from "@/server/db/staff-service"
 
-const repository = selectRepository({ mysql: createMysqlAdminRepository,  fixtures: createFixturesAdminRepository, supabase: createSupabaseAdminRepository })
+const repository = selectRepository<DomainOperations>({ mysql: createMysqlAdminRepository,  fixtures: createFixturesAdminRepository, })
 
 let service: AdminService | undefined
 

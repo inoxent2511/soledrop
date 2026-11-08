@@ -1,4 +1,6 @@
 import "server-only"
+
+import type { PromotionOperations as DomainOperations } from "@/server/promotions/repository"
 import { createMysqlPromotionRepository } from "@/server/promotions/mysql.repository"
 import { staffService } from "@/server/db/staff-service"
 
@@ -8,11 +10,9 @@ import { localService, selectRepository } from "@/server/db/driver"
 import { orderService } from "@/server/orders"
 import { createFixturesPromotionRepository } from "@/server/promotions/fixtures.repository"
 import { createStaffPromotions } from "@/server/promotions/staff"
-import { createSupabasePromotionRepository } from "@/server/promotions/supabase.repository"
 
-export const promotionsRepository = selectRepository({ mysql: createMysqlPromotionRepository,
+export const promotionsRepository = selectRepository<DomainOperations>({ mysql: createMysqlPromotionRepository,
   fixtures: createFixturesPromotionRepository,
-  supabase: createSupabasePromotionRepository,
 })
 export { evaluatePromotions, ineligibility } from "@/server/promotions/evaluate"
 export type {

@@ -14,7 +14,7 @@ fs.cpSync("public", publicDirectory, { recursive: true })
 fs.cpSync(".next/static", path.join(standalone, ".next/static"), { recursive: true })
 const server = spawn(process.execPath, ["server.js"], {
   cwd: standalone, stdio: "inherit",
-  env: { ...process.env, NODE_ENV: "production", PORT: process.argv[2] ?? process.env.PORT ?? "3200", HOSTNAME: process.env.DATA_DRIVER === "supabase" ? process.env.HOSTNAME ?? "0.0.0.0" : "127.0.0.1", LOCAL_DATA_DIR: path.resolve(process.env.LOCAL_DATA_DIR ?? ".data/store") },
+  env: { ...process.env, NODE_ENV: "production", PORT: process.argv[2] ?? process.env.PORT ?? "3000", HOSTNAME: process.env.HOSTNAME ?? "0.0.0.0", LOCAL_DATA_DIR: path.resolve(process.env.LOCAL_DATA_DIR ?? ".data/store") },
 })
 server.on("exit", (code) => process.exit(code ?? 0))
 for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => server.kill(signal))

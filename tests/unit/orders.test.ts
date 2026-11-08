@@ -1,5 +1,4 @@
-import fs from "node:fs"
-import path from "node:path"
+import transitionContract from "@/tests/fixtures/order-transition-contract.json"
 
 import { describe, expect, it } from "vitest"
 
@@ -10,12 +9,9 @@ import { matchesAllRules } from "@/server/rules/engine"
 import type { Product } from "@/server/catalog/types"
 
 describe("order state machine", () => {
-  it("matches the transition table in transition_order (supabase/migrations)", () => {
-    const sql = fs.readFileSync(path.resolve(import.meta.dirname, "../../supabase/migrations/20261104090200_functions.sql"), "utf8")
-    const body = sql.slice(sql.indexOf("create function public.can_transition"), sql.indexOf("create function public.status_event"))
-    const pairs = [...body.matchAll(/\('(\w+)'(?:::public\.order_status)?, '(\w+)'(?:::public\.order_status)?\)/g)].map((match) => `${match[1]}>${match[2]}`).sort()
+  it("retains every canonical transition from the pre-migration contract", () => {
     const expected = Object.entries(ORDER_TRANSITIONS).flatMap(([from, targets]) => targets.map((to) => `${from}>${to}`)).sort()
-    expect(pairs).toEqual(expected)
+    expect(transitionContract.pairs).toEqual(expected)
   })
 
   it("has no exits from final states and never goes backwards to pending", () => {

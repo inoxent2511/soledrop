@@ -1,8 +1,8 @@
 import type { OrderStatus } from "@/server/orders/types"
 
 /**
- * Legal order transitions. The same table is enforced in Postgres by `transition_order`
- * (supabase/migrations) so no client — storefront, API or future admin — can skip a step.
+ * Legal order transitions shared by service and transactional repositories, so no client
+ * can skip a step. The pre-migration transition contract remains an independent test fixture.
  */
 export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending_payment: ["confirmed", "cancelled"],

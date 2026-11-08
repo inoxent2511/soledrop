@@ -1,0 +1,15 @@
+{
+  "sourceCommit": "3683ecd",
+  "sourceHash": "467bc09de2eed1a490dc725c7140f26103efcf69e4a7bb212eaaa7b2bfe0b49c",
+  "pairs": [
+    "confirmed>cancelled",
+    "confirmed>processing",
+    "delivered>returned",
+    "pending_payment>cancelled",
+    "pending_payment>confirmed",
+    "processing>cancelled",
+    "processing>shipped",
+    "shipped>delivered",
+    "shipped>returned"
+  ]
+}

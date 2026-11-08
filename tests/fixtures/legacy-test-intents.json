@@ -1,0 +1,629 @@
+[
+  {
+    "id": "L01",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/admin.test.ts",
+    "sourceHash": "523a8c6fff31e8b994b5be087ce0eac23fb9f4a2a9a22c0c8cc55454a661f808",
+    "title": "syncs the registry idempotently and keeps custom roles",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L02",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/admin.test.ts",
+    "sourceHash": "523a8c6fff31e8b994b5be087ce0eac23fb9f4a2a9a22c0c8cc55454a661f808",
+    "title": "resolves permissions through roles, and only for active members",
+    "replacements": [
+      "db/tests/live-authorization.test.ts"
+    ]
+  },
+  {
+    "id": "L03",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/admin.test.ts",
+    "sourceHash": "523a8c6fff31e8b994b5be087ce0eac23fb9f4a2a9a22c0c8cc55454a661f808",
+    "title": "lets staff:read see roles and keeps sessions server-only",
+    "replacements": [
+      "db/tests/live-authorization.test.ts",
+      "db/tests/auth-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L04",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/admin.test.ts",
+    "sourceHash": "523a8c6fff31e8b994b5be087ce0eac23fb9f4a2a9a22c0c8cc55454a661f808",
+    "title": "denies the admin RPCs to anon and authenticated",
+    "replacements": [
+      "db/tests/live-authorization.test.ts",
+      "tests/unit/actor-types.test.ts"
+    ]
+  },
+  {
+    "id": "L05",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/admin.test.ts",
+    "sourceHash": "523a8c6fff31e8b994b5be087ce0eac23fb9f4a2a9a22c0c8cc55454a661f808",
+    "title": "refuses to leave the store without an active Owner",
+    "replacements": [
+      "db/tests/concurrency.test.ts",
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L06",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/admin.test.ts",
+    "sourceHash": "523a8c6fff31e8b994b5be087ce0eac23fb9f4a2a9a22c0c8cc55454a661f808",
+    "title": "guards roles: unknown keys, Owner edits, system deletes, roles in use, stale writes",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L07",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/admin.test.ts",
+    "sourceHash": "523a8c6fff31e8b994b5be087ce0eac23fb9f4a2a9a22c0c8cc55454a661f808",
+    "title": "moves updated_at on every staff change",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L08",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/admin.test.ts",
+    "sourceHash": "523a8c6fff31e8b994b5be087ce0eac23fb9f4a2a9a22c0c8cc55454a661f808",
+    "title": "shows the audit log to audit:read holders of the same store",
+    "replacements": [
+      "db/tests/live-authorization.test.ts"
+    ]
+  },
+  {
+    "id": "L09",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/admin.test.ts",
+    "sourceHash": "523a8c6fff31e8b994b5be087ce0eac23fb9f4a2a9a22c0c8cc55454a661f808",
+    "title": "shows staff notes and orders to orders:read holders only",
+    "replacements": [
+      "db/tests/commerce-contract.test.ts",
+      "db/tests/live-authorization.test.ts"
+    ]
+  },
+  {
+    "id": "L10",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/admin.test.ts",
+    "sourceHash": "523a8c6fff31e8b994b5be087ce0eac23fb9f4a2a9a22c0c8cc55454a661f808",
+    "title": "saves products atomically: stale saves, taken slugs and removing ordered sizes are refused",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts",
+      "db/tests/catalogue-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L11",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/admin.test.ts",
+    "sourceHash": "523a8c6fff31e8b994b5be087ce0eac23fb9f4a2a9a22c0c8cc55454a661f808",
+    "title": "gives the anon role nothing from any admin table, and staff nothing from sessions",
+    "replacements": [
+      "db/tests/live-authorization.test.ts",
+      "tests/unit/actor-types.test.ts",
+      "db/tests/auth-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L12",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/home-content.test.ts",
+    "sourceHash": "c3d7d985851721f674282201fa3cf2009b9ac0978a063a91329a3f5a1c3d0e3d",
+    "title": "bootstraps no sample products or promotions, with a usable base price list",
+    "replacements": [
+      "db/tests/seed.test.ts"
+    ]
+  },
+  {
+    "id": "L13",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/home-content.test.ts",
+    "sourceHash": "c3d7d985851721f674282201fa3cf2009b9ac0978a063a91329a3f5a1c3d0e3d",
+    "title": "saves through service_role and rejects stale or simultaneous first saves",
+    "replacements": [
+      "db/tests/catalogue-contract.test.ts",
+      "db/tests/admin-atomic.test.ts"
+    ]
+  },
+  {
+    "id": "L14",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/home-content.test.ts",
+    "sourceHash": "c3d7d985851721f674282201fa3cf2009b9ac0978a063a91329a3f5a1c3d0e3d",
+    "title": "blocks anonymous direct reads and writes",
+    "replacements": [
+      "db/tests/live-authorization.test.ts",
+      "tests/unit/actor-types.test.ts"
+    ]
+  },
+  {
+    "id": "L15",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/home-content.test.ts",
+    "sourceHash": "c3d7d985851721f674282201fa3cf2009b9ac0978a063a91329a3f5a1c3d0e3d",
+    "title": "finds purchased image usage only within the owning store",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L16",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rls.test.ts",
+    "sourceHash": "d0262f687a270207c2f12eeb3f0d811cfe6c3a33db9f8d351fcb14198ed14287",
+    "title": "is enabled on every table in public",
+    "replacements": [
+      "tests/unit/actor-types.test.ts",
+      "db/tests/live-authorization.test.ts"
+    ]
+  },
+  {
+    "id": "L17",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rls.test.ts",
+    "sourceHash": "d0262f687a270207c2f12eeb3f0d811cfe6c3a33db9f8d351fcb14198ed14287",
+    "title": "lets shoppers read only the published catalogue and content",
+    "replacements": [
+      "db/tests/catalogue-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L18",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rls.test.ts",
+    "sourceHash": "d0262f687a270207c2f12eeb3f0d811cfe6c3a33db9f8d351fcb14198ed14287",
+    "title": "denies anonymous access to everything private",
+    "replacements": [
+      "db/tests/live-authorization.test.ts",
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L19",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rls.test.ts",
+    "sourceHash": "d0262f687a270207c2f12eeb3f0d811cfe6c3a33db9f8d351fcb14198ed14287",
+    "title": "denies the RPCs to anon and authenticated",
+    "replacements": [
+      "tests/unit/actor-types.test.ts",
+      "db/tests/live-authorization.test.ts",
+      "db/tests/foundation.test.ts"
+    ]
+  },
+  {
+    "id": "L20",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rls.test.ts",
+    "sourceHash": "d0262f687a270207c2f12eeb3f0d811cfe6c3a33db9f8d351fcb14198ed14287",
+    "title": "gives a signed-in user with no staff role nothing beyond the storefront",
+    "replacements": [
+      "db/tests/live-authorization.test.ts",
+      "tests/unit/actor-types.test.ts"
+    ]
+  },
+  {
+    "id": "L21",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rls.test.ts",
+    "sourceHash": "d0262f687a270207c2f12eeb3f0d811cfe6c3a33db9f8d351fcb14198ed14287",
+    "title": "scopes staff by role",
+    "replacements": [
+      "db/tests/live-authorization.test.ts"
+    ]
+  },
+  {
+    "id": "L22",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rls.test.ts",
+    "sourceHash": "d0262f687a270207c2f12eeb3f0d811cfe6c3a33db9f8d351fcb14198ed14287",
+    "title": "keeps the audit log append-only, even for the service role",
+    "replacements": [
+      "db/tests/foundation.test.ts"
+    ]
+  },
+  {
+    "id": "L23",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rls.test.ts",
+    "sourceHash": "d0262f687a270207c2f12eeb3f0d811cfe6c3a33db9f8d351fcb14198ed14287",
+    "title": "pins search_path on every function and keeps SECURITY DEFINER to the role and permission lookups",
+    "replacements": [
+      "db/tests/foundation.test.ts",
+      "tests/unit/mysql-boundary.test.ts"
+    ]
+  },
+  {
+    "id": "L24",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "hands out gap-free unique numbers under contention",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L25",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "rejects an unknown store",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L26",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "releases one cart's holds idempotently with an empty replacement, preserving another cart's stock",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L27",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "never holds more than is on hand when carts race for the last units",
+    "replacements": [
+      "db/tests/concurrency.test.ts",
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L28",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "replaces a cart's own holds instead of stacking them",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L29",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "is all or nothing across lines",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L30",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "reports availability with the cart's own holds counted as free for that cart",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L31",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "returns expired holds exactly once when run concurrently",
+    "replacements": [
+      "db/tests/concurrency.test.ts",
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L32",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "sells the last pair exactly once when many shoppers check out at once",
+    "replacements": [
+      "db/tests/concurrency.test.ts"
+    ]
+  },
+  {
+    "id": "L33",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "replays a repeated idempotency key instead of charging twice",
+    "replacements": [
+      "db/tests/concurrency.test.ts",
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L34",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "converts the cart, uses the cart's own holds, numbers the order and queues the event",
+    "replacements": [
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L35",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "does not sell stock another cart is holding",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts",
+      "db/tests/concurrency.test.ts"
+    ]
+  },
+  {
+    "id": "L36",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "rolls everything back when a promotion fails",
+    "replacements": [
+      "db/tests/concurrency.test.ts",
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L37",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "never exceeds a usage limit under contention",
+    "replacements": [
+      "db/tests/concurrency.test.ts"
+    ]
+  },
+  {
+    "id": "L38",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "enforces once per shopper by email, case-insensitively",
+    "replacements": [
+      "db/tests/concurrency.test.ts"
+    ]
+  },
+  {
+    "id": "L39",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "merges a guest bag once, capped by stock and 10 per line",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L40",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "lets exactly one of two racing transitions win and restocks a cancellation once",
+    "replacements": [
+      "db/tests/concurrency.test.ts",
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L41",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "walks the happy path and refuses to skip a step",
+    "replacements": [
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L42",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "records a replayed webhook once and confirms a pending order when paid in full",
+    "replacements": [
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L43",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "never refunds more than was paid, even with concurrent requests",
+    "replacements": [
+      "db/tests/concurrency.test.ts",
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L44",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "restocks a received return exactly once",
+    "replacements": [
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L45",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "never lets on-hand go negative or below what is held",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts",
+      "db/tests/foundation.test.ts"
+    ]
+  },
+  {
+    "id": "L46",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "claims each outbox event for one worker only",
+    "replacements": [
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L47",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "counts rate-limit hits in a fixed window",
+    "replacements": [
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L48",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "subscribes an address once",
+    "replacements": [
+      "db/tests/catalogue-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L49",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "keeps exactly one default address",
+    "replacements": [
+      "db/tests/commerce-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L50",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/rpc.test.ts",
+    "sourceHash": "34ccad283835bdb1ac6fcce980820bd54e9c6299997cb03fcc55b4f09d67b4d9",
+    "title": "upserts by slug and is idempotent",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L51",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/search.test.ts",
+    "sourceHash": "06266b9d9e685f342ec3aa44f41bebf332c4e344bf116363f6d8c9a77efb8be4",
+    "title": "let shoppers read synonyms but never change them",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts",
+      "db/tests/live-authorization.test.ts"
+    ]
+  },
+  {
+    "id": "L52",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/search.test.ts",
+    "sourceHash": "06266b9d9e685f342ec3aa44f41bebf332c4e344bf116363f6d8c9a77efb8be4",
+    "title": "let owners manage synonyms and keep support staff read-only",
+    "replacements": [
+      "db/tests/live-authorization.test.ts"
+    ]
+  },
+  {
+    "id": "L53",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/search.test.ts",
+    "sourceHash": "06266b9d9e685f342ec3aa44f41bebf332c4e344bf116363f6d8c9a77efb8be4",
+    "title": "hide the search log from shoppers and support staff, and show it to owners",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts",
+      "db/tests/live-authorization.test.ts"
+    ]
+  },
+  {
+    "id": "L54",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/search.test.ts",
+    "sourceHash": "06266b9d9e685f342ec3aa44f41bebf332c4e344bf116363f6d8c9a77efb8be4",
+    "title": "reject a log row that is both a search and a click, or neither",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L55",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/search.test.ts",
+    "sourceHash": "06266b9d9e685f342ec3aa44f41bebf332c4e344bf116363f6d8c9a77efb8be4",
+    "title": "counts recent searches that found something, not clicks, zero-result or old searches",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L56",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/search.test.ts",
+    "sourceHash": "06266b9d9e685f342ec3aa44f41bebf332c4e344bf116363f6d8c9a77efb8be4",
+    "title": "clamps the limit and window",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L57",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/search.test.ts",
+    "sourceHash": "06266b9d9e685f342ec3aa44f41bebf332c4e344bf116363f6d8c9a77efb8be4",
+    "title": "is callable by the service role only",
+    "replacements": [
+      "db/tests/foundation.test.ts",
+      "tests/unit/actor-types.test.ts",
+      "db/tests/live-authorization.test.ts"
+    ]
+  },
+  {
+    "id": "L58",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/search.test.ts",
+    "sourceHash": "06266b9d9e685f342ec3aa44f41bebf332c4e344bf116363f6d8c9a77efb8be4",
+    "title": "can use the trigram index for fuzzy merchant reports",
+    "replacements": [
+      "db/tests/legacy-contract.test.ts"
+    ]
+  },
+  {
+    "id": "L59",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/seed.test.ts",
+    "sourceHash": "d0775dd72df38809cec79f998b8d3e9af6d68506ff11dc61ccf3c60efc661e3f",
+    "title": "is generated from the fixtures and up to date",
+    "replacements": [
+      "db/tests/seed.test.ts"
+    ]
+  },
+  {
+    "id": "L60",
+    "sourceCommit": "3683ecd",
+    "sourceFile": "tests/db/seed.test.ts",
+    "sourceHash": "d0775dd72df38809cec79f998b8d3e9af6d68506ff11dc61ccf3c60efc661e3f",
+    "title": "loads into the migrated schema with every row the fixtures driver serves",
+    "replacements": [
+      "db/tests/seed.test.ts"
+    ]
+  }
+]

@@ -17,8 +17,8 @@ Four surfaces, one error shape. The machine-readable contract for the headless A
 | `unauthorized` / `forbidden` | 401 / 403 | | `unavailable` | 503 |
 | `not_found` | 404 | | `internal` | 500 (no detail leaked; logged with a digest) |
 
-Messages are written for shoppers. Database functions raise `code: message`, and
-`server/db/supabase.ts` maps them to the same codes.
+Messages are written for shoppers. Actor-aware repositories raise domain errors;
+`server/db/client.ts` normalizes engine errors without exposing SQL or bound values.
 
 ## 1. Storefront API (`/api/*`): cookies, same origin
 
@@ -51,7 +51,7 @@ Sign-in is also limited per email address.
 `Authorization: Bearer <key>` (or `X-API-Key`). Clients are configured in `API_KEYS`
 (`name:key:read+write`). Keys are compared as SHA-256 digests in constant time, and each client is
 limited to 600 requests/min. Responses carry `x-api-version: 1`. Every write is attributed to
-`api:<name>` in the audit log and order history.
+a distinct SHA-256-derived API-client identity in the audit log and order history.
 
 | Method · path | Scope | Body / query |
 | --- | --- | --- |
@@ -73,8 +73,8 @@ Amounts are integers in the minor unit (paisa): `1499900` = Rs. 14,999.
 | Path | Auth | Purpose |
 | --- | --- | --- |
 | `GET /api/health` | none | Process liveness |
-| `GET /api/ready` | none | Database reachable (503 otherwise) |
-| `POST /api/jobs/{outbox,release-reservations,purge-carts}` | `Bearer JOBS_SECRET` | Scheduled work (DEPLOYMENT-RUNBOOK §5) |
+| `GET /api/ready` | none | Engine, migration checksums, physical schema, store, storage and configured mail checks (503 on failure); no credentials or private paths |
+| `POST /api/jobs/{outbox,release-reservations,purge-carts}` | `Bearer CRON_SECRET` (legacy `JOBS_SECRET` fallback) | Bounded scheduled work; see the deployment runbook |
 | `POST /api/webhooks/{provider}` | provider signature | Payment provider callbacks (Stripe); idempotent |
 
 Outbound webhooks are documented in `events.md`.
@@ -105,3 +105,10 @@ selected write permissions. Coverage limits are in [admin/verification.md](./adm
 | Staff | `GET staff`, `POST staff/invites` (step-up), `DELETE staff/invites/{id}`, `GET staff/{userId}`, `PATCH staff/{userId}` (step-up), `DELETE staff/{userId}/sessions` (step-up), `GET roles`, `POST roles` (step-up), `PUT/DELETE roles/{key}` (step-up), `GET audit`, `GET notifications`, `GET command` |
 
 Public file route: `GET /media/{id}.webp` (media library images; `nosniff`, sandboxed, cached a year).
+The shared loader requests one of six prepared widths (320/640/960/1280/1920/2400); the route
+negotiates WebP/AVIF and supports ETag/304 without encoding images during requests. Private
+attachments require a fresh, authorized capability with a maximum five-minute lifetime.
+
+Refund requests use durable intents and stable provider keys. Uncertain provider outcomes remain
+reserved for reconciliation; a retry cannot create an independent refund for the same intent.
+Use the loopback reconciliation command in [admin migration](admin-migration.md) for investigation.

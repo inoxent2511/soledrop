@@ -2,7 +2,6 @@ import "server-only"
 
 import { serverEnv } from "@/lib/env.server"
 import { createConsoleEmailProvider } from "@/server/adapters/email/console"
-import { createResendEmailProvider } from "@/server/adapters/email/resend"
 import { createFileEmailProvider } from "./file"
 import { createSmtpEmailProvider } from "./smtp"
 import { platform } from "@/server/platform"
@@ -23,7 +22,6 @@ const providers: Record<string, () => EmailProvider> = {
   console: createConsoleEmailProvider,
   file: () => createFileEmailProvider(serverEnv.EMAIL_OUTBOX_DIR, serverEnv.EMAIL_FROM),
   smtp: () => createSmtpEmailProvider({ host: serverEnv.SMTP_HOST!, port: serverEnv.SMTP_PORT, secure: serverEnv.SMTP_SECURE === "true", user: serverEnv.SMTP_USER, password: serverEnv.SMTP_PASS, from: serverEnv.EMAIL_FROM }),
-  resend: () => createResendEmailProvider(serverEnv.RESEND_API_KEY ?? "", serverEnv.EMAIL_FROM),
 }
 
 let active: EmailProvider | undefined

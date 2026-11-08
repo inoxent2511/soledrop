@@ -2,7 +2,7 @@ import "server-only"
 
 import { and, eq, inArray } from "drizzle-orm"
 import { ACTOR_SCOPED, assertActor, attenuateStaffActor, type Actor, type ActorScoped } from "./actor"
-import { type Database, withTransaction } from "./client"
+import { type Database, databaseError, withTransaction } from "./client"
 import { isPermission } from "@/server/admin/permissions"
 import { rolePermissions, roles, staffMembers, staffRoles, staffSessions, stores } from "./schema"
 import { isoDate } from "./values"
@@ -43,13 +43,15 @@ export function mysqlPolicy<T extends object>(repository: ActorScoped<T>, option
       const operation: unknown = Reflect.get(target, property)
       if (typeof operation !== "function") return operation
       return async (actor: Actor, ...args: unknown[]) => {
+        try {
         assertActor(actor)
-        if (actor.kind !== "staff") return Reflect.apply(operation, target, [actor, ...args])
+        if (actor.kind !== "staff") return await Reflect.apply(operation, target, [actor, ...args])
         if (options.external?.includes(property as keyof T)) {
           const effective = await withTransaction((db) => currentStaffActor(db, actor))
-          return Reflect.apply(operation, target, [effective, ...args])
+          return await Reflect.apply(operation, target, [effective, ...args])
         }
-        return withTransaction(async (db) => Reflect.apply(operation, target, [await currentStaffActor(db, actor), ...args]))
+        return await withTransaction(async (db) => Reflect.apply(operation, target, [await currentStaffActor(db, actor), ...args]))
+        } catch (error) { throw databaseError(error) }
       }
     },
   })

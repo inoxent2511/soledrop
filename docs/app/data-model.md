@@ -1,103 +1,75 @@
 # Data model
 
-Source of truth: `supabase/migrations/` (schema → RLS → functions, forward only), mirrored by the
-TypeScript domain types in `server/<domain>/types.ts`. Tests run the migrations in PGlite
-(`tests/db`). 53 tables, all in `public`, all with RLS enabled and denied by default. The saved local driver mirrors domain rows in a versioned file snapshot; see [catalogue and banners](admin/catalogue-and-banners.md).
+The authoritative schema is the forward-only SQL in `db/migrations/`. Drizzle mappings live in
+`server/db/schema.ts`; domain DTOs live in `server/<domain>/types.ts`. The production driver is
+`mysql`, supporting MySQL 8.0.16+ and MariaDB 10.6+ (10.11 acceptance target). Real-engine tests
+run through `pnpm db:test`. Fixtures and the saved local driver remain explicit development tools.
 
 ## Conventions
 
-- **Money:** `bigint` minor units (paisa); `Rs. 14,999` = `1499900`. Computed only on the server.
-- **Ids:** `uuid` (`gen_random_uuid()`), except `stores.id` (text: one store per deployment, `STORE_ID`).
-- **Time:** `timestamptz`.
-- **Tenancy:** every top-level row has `store_id` (multi-store ready).
-- **Flexible data:** `jsonb` for attributes, custom fields, rules, blocks, SEO.
-- **Errors:** functions raise `code: shopper message`, which the app maps to HTTP (`api.md`).
+- Money uses integer minor units in BIGINT columns, with safe-JavaScript-integer checks at the boundary.
+  `1499900` means Rs. 14,999. Pricing and totals are computed on the server.
+- New identifiers are UUIDv7 stored as BINARY(16). Imported UUIDv4 identifiers retain their bytes.
+- Dates use UTC DATETIME(3); connections enforce UTC, strict SQL mode and REPEATABLE READ.
+- Top-level merchant records carry `store_id`. Actor-aware repositories scope reads and writes.
+- Filterable lists use indexed child tables with explicit ordering. JSON holds display structures,
+  block content, rules and snapshots; it does not replace relational ownership or stock constraints.
+- Foreign keys, CHECK constraints and unique indexes enforce portable structural invariants.
+  Transactions enforce cross-row invariants. No privileged routines or triggers are required.
 
 ## Domains
 
-| Domain | Tables | Notes |
+| Domain | Principal records | Guarantees |
 | --- | --- | --- |
-| Store & staff | `stores`, `staff_members` | Legacy `staff_role` enum: owner, manager, fulfilment, support; phase 2 staff use their own password/MFA sessions and RBAC roles (A-001, A-007). Supabase-Auth identities can use `auth.uid()` policies. `stores.next_order_number` feeds `SD10001…`. |
-| Catalogue | `brands`, `collections`, `collection_products`, `products`, `product_images`, `variants`, `attribute_definitions`, `custom_field_definitions` | `products.kind` new\|preloved; `check ((kind='preloved') = (condition_grade is not null))`. Grades: like-new, premium, excellent, very-good, minor-issue (D-069). Image `role` card\|gallery (D-016). Collections are manual or rule-based (`rules` jsonb, `server/rules/engine.ts`). |
-| Inventory | `inventory_levels`, `inventory_reservations`, `inventory_movements` | `on_hand ≥ 0`, `reserved ≥ 0`, `reserved ≤ on_hand` (checks), so stock can never go negative. Every change writes a movement (ledger). |
-| Pricing | `price_lists`, `prices`, `exchange_rates`, `tax_rates` | Price lists by currency, customer group, priority and date window (B2B wholesale list behind `b2b-pricing`). GST 18 % inclusive (basis points). |
-| Shipping | `shipping_zones`, `shipping_rates` | Zones by country/city; rates with `free_over` and a COD allowance. |
-| Promotions | `promotions`, `promotion_redemptions` | Conditions/actions as jsonb. `times_used ≤ usage_limit` (check); per-customer limit enforced in `redeem_promotion`. |
-| Customers | `customers`, `addresses`, `sessions`, `password_resets` | Shopper accounts are separate from staff auth: scrypt hashes, hashed session tokens. One default address (partial unique index). |
-| Cart | `carts`, `cart_lines` | Quantity 1–10, one line per variant. Merged into the customer's cart on sign-in (`merge_carts`). |
-| Orders | `orders`, `order_lines`, `payments`, `refunds`, `returns` | Unique `(store_id, number)` and `(store_id, idempotency_key)`. Lines snapshot title/price. Refunds stay within the paid amount and line quantity (checks). One open return per order. |
-| Content | `pages`, `faqs`, `newsletter_subscribers`, `contact_messages` | Pages are block lists rendered by the block registry. |
-| Storefront merchandising | `storefront_content` | One published homepage configuration per store: announcement, title/buttons, hero slides, category cards and Instagram images. `save_home` serializes first saves and checks the previous version. |
-| Platform | `feature_flags`, `outbox_events`, `webhook_deliveries`, `audit_log`, `rate_limits`, `idempotency_keys` | `audit_log` is append-only (trigger). |
+| Store and staff | `stores`, `staff_members`, `permissions`, `roles`, `role_permissions`, `staff_roles`, `staff_invites`, `staff_sessions`, `staff_recovery_codes` | Password hashes, opaque hashed session/invite tokens, sealed MFA secrets, live membership/permission checks, immutable system roles and at least one active Owner. |
+| Catalogue | `brands`, `collections`, `collection_products`, `products`, `product_images`, `variants`, attribute/custom-field definitions and projections | Optimistic versions, unique slugs/SKUs, ordered images and memberships, ordered sizes protected from deletion. Manual and rule-based collections share the existing rule engine. |
+| Inventory | `inventory_levels`, `inventory_reservations`, `inventory_movements` | Nonnegative stock, reserved stock bounded by on-hand stock, movement ledger, expiring checkout holds. |
+| Pricing and delivery | `price_lists`, `prices`, `exchange_rates`, `tax_rates`, `shipping_zones`, `shipping_rates` and zone child tables | Currency/group/date-window eligibility, deterministic price selection, inclusive tax and existing shipping/COD rules. |
+| Promotions | `promotions`, `promotion_redemptions` | Atomic global/customer usage limits and preserved rule semantics. |
+| Customers | `customers`, `addresses`, `sessions`, `password_resets`, `customer_security`, `auth_tokens`, `oauth_accounts` | Separate customer/staff realms, credential compare-and-set, one-use proofs, transactional credential/session changes. Optional magic links, verification and OIDC remain disabled unless configured. |
+| Cart | `carts`, `cart_lines`, `cart_promotion_codes` | One line per variant, quantities 1–10, ownership checks and stock-aware account merge. Editing lines releases prior checkout holds atomically. |
+| Orders | `orders`, `order_lines`, `order_contacts`, `order_promotion_codes`, `order_number_sequences`, `payments`, `refunds`, `refund_intents`, `returns`, `order_notes` | Unique merchant order numbers/idempotency keys, immutable purchased snapshots, bounded payment/refund quantities, authorized notes and durable provider recovery. |
+| Content and media | `pages`, `faqs`, `storefront_content`, `media`, `newsletter_subscribers`, `contact_messages` | Optimistic publication, admin-managed homepage/collection imagery, reference-aware deletion. Media metadata is relational; original bytes and prepared variants live in private persistent storage. |
+| Search | `search_documents`, field/term/SKU projections, `search_queries`, `search_synonyms`, `search_synonym_values` | Transactional catalogue projections, preserved shared scoring/facets/pricing, private analytics with bounded report/history access. |
+| Platform | `feature_flags`, `outbox_events`, `outbox_channels`, `webhook_deliveries`, `audit_log`, `rate_limits`, `idempotency_keys`, `data_imports`, `store_metadata` | Atomic business events, fenced per-channel delivery receipts, scoped rate limits and replay, checksummed one-time imports. |
 
-## Order state machine
+## Transactions and recovery
 
-```
-pending_payment → confirmed → processing → shipped → delivered
-       ↓              ↓            ↓            ↓          ↓
-   cancelled      cancelled    cancelled     returned   returned        refunds: any paid state
-```
+Repositories take an explicit verified actor. Request context never substitutes an unverified cookie,
+customer identifier or API key for proof. Staff permissions are rechecked at the raw repository boundary;
+private customer/order/cart access requires ownership or a narrowly scoped capability. System actors
+have named operational purposes. Permission projections preserve masking and each preset role's scope.
 
-The SQL `can_transition()` and `server/orders/state-machine.ts` are the same table (checked by
-`tests/unit/orders.test.ts`). Cancelling restocks; delivered orders can request a return inside the
-window; `restock_return` puts pairs back.
+Stock, checkout, order-number allocation, promotion redemption, last-Owner checks and authentication
+changes acquire consistent store-first locks. Current locking reads avoid stale REPEATABLE READ
+snapshots. Deadlock/lock-timeout retries are bounded and restricted to replay-safe units. Mandatory
+audit belongs to the same transaction as staff mutations; cache invalidation runs after commit.
 
-## Database functions (RPC)
+`server/orders/state-machine.ts` defines the nine canonical pre-migration order transitions, checked
+against the independent transition fixture. Cancellation, return receipt and refund restock share
+cumulative physical receipt accounting, so a pair cannot be restocked twice.
 
-All are `set search_path = ''`, executable by `service_role` only, and each has a contention test in
-`tests/db/rpc.test.ts`.
+A provider refund first reserves the money/units in `refund_intents`. The external call happens outside
+the transaction with a stable scoped provider key. Provider confirmation persists before final
+ledger/event/restock/audit completion. Uncertain old intents use read-only lookup and remain reserved
+until reconciled; see [admin migration](admin-migration.md).
 
-| Function | Guarantees |
-| --- | --- |
-| `place_order` | One transaction: advisory lock on (store, idempotency key), replay if the key exists, lock inventory rows in `variant_id` order, re-check stock, redeem promotions (`redeem_promotion`), `next_order_number`, insert order + lines + movements + outbox event. |
-| `reserve_stock` / `release_expired_reservations` | Checkout holds expire after `RESERVATION_TTL_MINUTES`. |
-| `merge_carts` | Guest bag into account bag, quantities capped by the line limit. |
-| `transition_order` | Validates the transition, restocks on cancel, writes history and an event. |
-| `record_payment` / `create_refund` / `restock_return` | Idempotent by key; amounts bounded by checks. |
-| `import_products` | Upsert by slug, used by both the seed and the import API. |
-| `claim_outbox_events` / `fail_outbox_event` | `SKIP LOCKED` claims; exponential back-off. |
-| `rate_limit_hit` | Fixed-window counter. |
-| `anonymise_customer_orders`, `scrub_customer` | Right to erasure (amounts kept for tax). |
+Outbox work has bounded batches, expiring fenced leases and separate channel receipts. A successful
+channel is not resent when another channel fails. SMTP acceptance before receipt commit remains an
+at-least-once boundary; stable Message-IDs assist downstream deduplication. Queued bearer links are
+sealed with the existing session key and opened only by the email renderer.
 
-### Admin functions (phase 2)
+## Accounts, migrations and tests
 
-| Function | Guarantees |
-| --- | --- |
-| `has_permission(store, permission)` | SECURITY DEFINER: does the signed-in user hold the permission through an active membership's roles. Used by the admin RLS policies. |
-| `sync_admin_registry`, `save_role`, `delete_role`, `set_staff_roles`, `active_owner_count` | The permission registry and roles; Owner role immutable, system roles undeletable, stale role saves refused; a deferred trigger keeps at least one active Owner. |
-| `save_product`, `save_collection` | One product (images, sizes, stock rows, collection links) or collection per transaction; stale saves, taken slugs/SKUs and removing ordered sizes refused. |
-| `save_shipping_zone`, `replace_tax_rates` | A zone with all its rates; the whole tax table. |
-| `save_page`, `reorder_faqs` | Content pages (rename + stale-save check), FAQ order. |
-| `search_report` | Search analytics for the admin. |
+The runtime account has table-specific DML grants. `audit_log`, `inventory_movements`, `order_notes`,
+`webhook_deliveries` and `data_imports` allow SELECT/INSERT only; `schema_migrations` allows SELECT only.
+The separate migrator has schema-scoped DDL rights. Shared hosting that exposes only one DDL-capable
+account loses database-enforced append-only protection; document that limitation explicitly.
 
-Admin tables: `permissions`, `roles`, `role_permissions`, `staff_roles`, `staff_invites`, `staff_sessions`, `order_notes`, `media`; `staff_members` gained the identity columns and `audit_log` the context columns (store, roles, IP, user agent, request id, reason). Migrations `20261107…`–`20261112…`.
+Startup and `/api/ready` validate the live engine, every migration checksum, physical tables/columns,
+store, storage and configured mail transport. Pool admission, queries and transactions have deadlines;
+shutdown rejects new admissions and drains active work. See [database tools](../../db/README.md).
 
-Cart line/quantity edits release the previous checkout holds after saving. The Supabase release path
-uses `reserve_stock` with an empty item list so hold removal and reserved-count restoration happen
-in one transaction; deleting reservation rows directly would leave stock incorrectly reserved.
-
-## Row-level security
-
-- **anon/authenticated:** read published catalogue, prices, shipping, tax, pages and FAQs only.
-  Nothing private, and no RPCs.
-- **Staff** (`has_staff_role`, SECURITY DEFINER): owner/manager manage the catalogue and
-  configuration; fulfilment/support read orders, inventory and customers per role. Orders and stock
-  change only through the functions above.
-- **RBAC staff** (phase 2, `has_permission`): `rbac_read` policies let a member read what their
-  permissions cover (orders and notes with `orders:read`, drafts with `products:read` / `content:read`,
-  stock with `inventory:read`, media, promotions, search log, newsletter, the audit log with
-  `audit:read`, roles and invites with `staff:read` / `staff:manage`). Staff sessions have no policy at
-  all; the server alone reads them. Every write still goes through the server and its functions.
-- **service_role** (the server) bypasses RLS. The key never leaves the server.
-
-| Table | anon | authenticated customer | RBAC staff | server |
-| --- | --- | --- | --- | --- |
-| catalogue, prices, shipping, tax, published pages, FAQs | read (published) | read (published) | read all with the module's `:read` | all |
-| orders, lines, payments, refunds, returns, order_notes | — | — | `orders:read` (payments: `payments:read`) | all |
-| customers, addresses, newsletter | — | — | phase 1 roles / `marketing:read` | all |
-| roles, role_permissions, staff_roles, staff_invites | — | — | `staff:read` / `staff:manage` | all |
-| staff_sessions, idempotency, rate limits | — | — | — | all |
-| audit_log | — | — | `audit:read` | insert only (append-only trigger) |
-| storefront_content | — | — | read with `content:read` | all; `save_home` service-only |
-
-Verified by `tests/db/rls.test.ts`.
+The [legacy test ledger](legacy-test-port.md) maps all 60 retired SQL test intents to native contracts.
+The shared fixture/MySQL/MariaDB matrix, real contention tests and failure drills cover authorization,
+constraints, atomicity, replay, rollback and recovery. They supplement production browser acceptance.

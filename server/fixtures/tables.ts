@@ -17,7 +17,7 @@ export type InventoryRow = { variantId: string; onHand: number; reserved: number
 export type MovementRow = { id: string; variantId: string; delta: number; reason: string; actor: string; at: string }
 export type ReservationRow = { id: string; cartId: string; variantId: string; quantity: number; expiresAt: string }
 
-/** Shape of the fixtures database — one property per Postgres table (docs/app/data-model.md). */
+/** Reference database shape for the domain repositories (docs/app/data-model.md). */
 export type FixtureTables = {
   orderCarts?: Map<string, string>
   refundIntents?: import("@/server/orders/refund-intent").RefundIntent[]

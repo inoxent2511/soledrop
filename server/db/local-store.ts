@@ -4,7 +4,7 @@ import fs from "node:fs"
 import path from "node:path"
 import { deserialize, serialize } from "node:v8"
 
-/** Durable, single-process local storage. Hosted deployments use the Supabase driver. */
+/** Durable, single-process local storage. Hosted deployments use the MySQL driver. */
 export class LocalStore<T> {
   readonly directory: string
   private file: string

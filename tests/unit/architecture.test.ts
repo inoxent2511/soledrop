@@ -30,11 +30,11 @@ describe("data seam", () => {
     }
   })
 
-  it("gives every repository a supabase and a fixtures implementation behind one index", () => {
+  it("gives every repository mysql and fixtures implementations behind one index", () => {
     const domains = fs.readdirSync(path.join(ROOT, "server")).filter((name) => fs.existsSync(path.join(ROOT, "server", name, "repository.ts")))
     expect(domains.length).toBeGreaterThan(8)
     for (const domain of domains) {
-      for (const file of ["supabase.repository.ts", "fixtures.repository.ts", "index.ts"]) {
+      for (const file of ["mysql.repository.ts", "fixtures.repository.ts", "index.ts"]) {
         expect(fs.existsSync(path.join(ROOT, "server", domain, file)), `server/${domain}/${file}`).toBe(true)
       }
     }
@@ -54,9 +54,9 @@ describe("data seam", () => {
     for (const key of declared.filter((name) => name !== "NODE_ENV")) expect(example.has(key), key).toBe(true)
   })
 
-  it("reads the service-role key only on the server", () => {
-    const readers = source.filter((file) => read(file).includes("SUPABASE_SERVICE_ROLE_KEY"))
-    expect(readers.sort()).toEqual([path.join("lib", "env.server.ts"), path.join("server", "db", "supabase.ts")].sort())
+  it("reads database credentials only in server configuration and pool infrastructure", () => {
+    const readers = source.filter((file) => read(file).includes("DATABASE_URL"))
+    expect(readers.sort()).toEqual([path.join("lib", "env.server.ts"), path.join("server", "db", "client.ts")].sort())
     expect(read("lib/env.server.ts")).toMatch(/^import "server-only"/)
   })
 })
@@ -93,20 +93,24 @@ describe("styling", () => {
 
 describe("hygiene", () => {
   it("leaves no TODO or FIXME markers", () => {
-    for (const file of [...source, ...files("supabase", /\.sql$/), ...files("tests", /\.ts$/)].filter((name) => !name.endsWith("architecture.test.ts"))) {
+    for (const file of [...source, ...files("db/migrations", /\.sql$/), ...files("tests", /\.ts$/)].filter((name) => !name.endsWith("architecture.test.ts"))) {
       expect(read(file), file).not.toMatch(/\b(TODO|FIXME)\b/)
     }
   })
 
-  it("never disables row level security in a migration", () => {
-    for (const file of files("supabase/migrations", /\.sql$/)) {
-      expect(read(file).toLowerCase(), file).not.toMatch(/disable row level security|no force row level security/)
+  it("keeps query authorization explicit and uses no privileged SQL routines or triggers", () => {
+    for (const file of files("db/migrations", /\.sql$/)) {
+      expect(read(file), file).not.toMatch(/CREATE\s+(?:DEFINER\s*=\s*\S+\s+)?(?:TRIGGER|FUNCTION|PROCEDURE)|SECURITY\s+DEFINER/i)
     }
+    expect(read("server/db/policy.repository.ts")).toMatch(/assertActor\(actor\)/)
+    expect(read("server/db/fixtures-policy.repository.ts")).toMatch(/assertActor\(actor\)/)
   })
 
-  it("names migrations in timestamp order", () => {
-    const names = files("supabase/migrations", /\.sql$/).map((file) => path.basename(file))
-    for (const name of names) expect(name).toMatch(/^\d{14}_[a-z0-9_]+\.sql$/)
+  it("names forward migrations in unique sequence order", () => {
+    const names = files("db/migrations", /\.sql$/).map((file) => path.basename(file))
+    expect(names.length).toBeGreaterThan(0)
+    for (const name of names) expect(name).toMatch(/^\d{4}_[a-z0-9_]+\.sql$/)
+    expect(new Set(names.map((name) => name.slice(0, 4))).size).toBe(names.length)
     expect([...names].sort()).toEqual(names)
   })
 })

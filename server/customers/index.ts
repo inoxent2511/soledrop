@@ -1,11 +1,12 @@
 import "server-only"
+
+import type { CustomerOperations as DomainOperations } from "@/server/customers/repository"
 import { createMysqlCustomerRepository, rehashCustomerPassword } from "@/server/customers/mysql.repository"
 
 import { createFixturesCustomerRepository } from "@/server/customers/fixtures.repository"
 import { adminService } from "@/server/admin"
 import { createCustomerService } from "@/server/customers/service"
 import { createStaffCustomers } from "@/server/customers/staff"
-import { createSupabaseCustomerRepository } from "@/server/customers/supabase.repository"
 import { dataDriver, localService, selectRepository } from "@/server/db/driver"
 import { orderService } from "@/server/orders"
 import { publish } from "@/server/platform/events"
@@ -21,7 +22,7 @@ import { staffService } from "@/server/db/staff-service"
 import { createMysqlCustomerAuthRepository } from "@/server/customers/auth.mysql.repository"
 import { authTransaction } from "@/server/db/auth.repository"
 
-const repository = selectRepository({ mysql: createMysqlCustomerRepository,  fixtures: createFixturesCustomerRepository, supabase: createSupabaseCustomerRepository })
+const repository = selectRepository<DomainOperations>({ mysql: createMysqlCustomerRepository,  fixtures: createFixturesCustomerRepository, })
 
 /** The raw customer repository (admin lookups). */
 export const customerRepository = repository
@@ -33,7 +34,7 @@ export const customerService = () => {
     customers: repository(), publish, orders: { listForCustomer: orders.listForCustomer, anonymiseCustomer: orders.anonymiseCustomer },
     atomic: dataDriver() === "mysql" ? (operation) => authTransaction(systemActor(currentActor().storeId, "auth:customer"), operation) : dataDriver() === "local" ? (operation) => localStore().run(operation) : (operation) => withFixtureStore(currentActor(), () => fixtureAtomic(operation)),
     rehashPassword: dataDriver() === "mysql" ? (customer, next) => rehashCustomerPassword(systemActor(customer.storeId, "auth:customer"), customer.id, customer.passwordHash, next) : undefined,
-    auth: dataDriver() === "supabase" ? undefined : { repository: customerAuthRepository(), actor: currentActor, magicLinkEnabled: serverEnv.AUTH_MAGIC_LINK === "on", verificationEnabled: serverEnv.AUTH_EMAIL_VERIFICATION === "on" },
+    auth: { repository: customerAuthRepository(), actor: currentActor, magicLinkEnabled: serverEnv.AUTH_MAGIC_LINK === "on", verificationEnabled: serverEnv.AUTH_EMAIL_VERIFICATION === "on" },
     securityEvent: (customer, action) => platform().audit({ actor: customer.id, storeId: customer.storeId, action, entity: "customer", entityId: customer.id, before: null, after: null }),
   })
   const auth = () => systemActor(serverEnv.STORE_ID, "auth:customer")

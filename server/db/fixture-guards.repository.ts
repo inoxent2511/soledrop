@@ -55,7 +55,7 @@ export const contentGuards: FixtureGuards<ContentOperations> = {
   saveContactMessage: store, staffPages: storeGrant("content:read"), staffPage: storeGrant("content:read"),
   savePage: storeGrant("content:write"), deletePage: storeGrant("content:write"), saveFaq: storeGrant("content:write"), deleteFaq: storeGrant("content:write"), reorderFaqs: storeGrant("content:write"), listSubscribers: storeGrant("marketing:read"),
 }
-export const searchGuards: FixtureGuards<SearchOperations> = { listSynonyms: store, logEvent: store, trending: store, report: storeGrant("search:read"), saveSynonym: storeGrant("search:write"), deleteSynonym: storeGrant("search:write") }
+export const searchGuards: FixtureGuards<SearchOperations> = { listSynonyms: store, logEvent: store, trending: store, report: storeGrant("search:read"), similarQueries: storeGrant("search:read"), saveSynonym: storeGrant("search:write"), deleteSynonym: storeGrant("search:write") }
 export const shippingGuards: FixtureGuards<ShippingOperations> = { listZones: store, listTaxRates: store, saveZone: storeGrant("shipping:write"), deleteZone: storeGrant("shipping:write"), replaceTaxRates: storeGrant("shipping:write") }
 export const pricingGuards: FixtureGuards<PricingOperations> = {
   listPriceLists: store, listPrices: publicRead, getExchangeRates: store,

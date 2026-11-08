@@ -1,4 +1,6 @@
 import "server-only"
+
+import type { ContentOperations as DomainOperations } from "@/server/content/repository"
 import { createMysqlContentRepository } from "@/server/content/mysql.repository"
 import { staffService } from "@/server/db/staff-service"
 
@@ -8,16 +10,14 @@ import { adminService } from "@/server/admin"
 import { createStaffContent } from "@/server/content/staff"
 import { createFixturesContentRepository } from "@/server/content/fixtures.repository"
 import { createContentService } from "@/server/content/service"
-import { createSupabaseContentRepository } from "@/server/content/supabase.repository"
 import { localService, selectRepository } from "@/server/db/driver"
 import { assertMediaReferences } from "@/server/media/validate"
 import { publish } from "@/server/platform/events"
 import { systemActor } from "@/server/db/actor"
 import { currentActor, withActor } from "@/server/db/context"
 
-const repository = selectRepository({ mysql: createMysqlContentRepository,
+const repository = selectRepository<DomainOperations>({ mysql: createMysqlContentRepository,
   fixtures: createFixturesContentRepository,
-  supabase: createSupabaseContentRepository,
 })
 
 /** The raw content repository (admin newsletter list). */

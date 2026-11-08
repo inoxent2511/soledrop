@@ -8,9 +8,15 @@ import { database, withTransaction } from "@/server/db/client"
 import { searchQueries, searchSynonyms, searchSynonymValues, stores } from "@/server/db/schema"
 import { sqlDate } from "@/server/db/values"
 import { DomainError } from "@/server/shared/errors"
+import { assertSearchEvent, searchWindow } from "./validation"
+import { similarHistoryQueries } from "./history"
 
 export function createMysqlSearchRepository(): ActorScoped<SearchOperations> {
-  return mysqlPolicy<SearchOperations>({
+  const repository: ActorScoped<SearchOperations> = mysqlPolicy<SearchOperations>({
+    async similarQueries(actor, storeId, query, days, limit) {
+      requireStore(actor, storeId); requireGrant(actor, "search:read")
+      return similarHistoryQueries(await repository.report(actor, storeId, days, 1000), query, limit)
+    },
     async listSynonyms(actor, storeId) {
       requireStore(actor, storeId)
       const db = await database()
@@ -21,16 +27,19 @@ export function createMysqlSearchRepository(): ActorScoped<SearchOperations> {
     },
     async logEvent(actor, storeId, event) {
       requireStore(actor, storeId)
+      assertSearchEvent(event)
       const db = await database()
       await db.insert(searchQueries).values({ ...event, storeId, createdAt: sqlDate(event.createdAt) })
     },
     async trending(actor, storeId, days, limit) {
       requireStore(actor, storeId)
+      const bounded = searchWindow(days, limit); days = bounded.days; limit = bounded.limit
       const db = await database()
       return db.select({ query: searchQueries.normalized, count: count() }).from(searchQueries).where(and(eq(searchQueries.storeId, actor.storeId), gte(searchQueries.createdAt, sqlDate(new Date(Date.now() - days * 86_400_000).toISOString())), isNull(searchQueries.clickedSlug), gt(searchQueries.resultCount, 0))).groupBy(searchQueries.normalized).orderBy(desc(count()), asc(searchQueries.normalized)).limit(Math.min(1000, limit))
     },
     async report(actor, storeId, days, limit) {
       requireStore(actor, storeId); requireGrant(actor, "search:read")
+      const bounded = searchWindow(days, limit, 1000); days = bounded.days; limit = bounded.limit
       const db = await database()
       const scope = and(eq(searchQueries.storeId, actor.storeId), gte(searchQueries.createdAt, sqlDate(new Date(Date.now() - days * 86_400_000).toISOString())))
       const totals = await Promise.all([
@@ -64,4 +73,5 @@ export function createMysqlSearchRepository(): ActorScoped<SearchOperations> {
       if (!result.affectedRows) throw new DomainError("not_found", "Synonym not found.")
     },
   })
+  return repository
 }

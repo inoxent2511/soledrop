@@ -11,6 +11,8 @@ import * as s from "./schema"
 import { isoDate, jsonValue, nullableSqlDate, sqlDate } from "./values"
 import { uuidv7 } from "./uuid"
 import { DomainError } from "@/server/shared/errors"
+import { serverEnv } from "@/lib/env.server"
+import { sealDeliveryPayload } from "@/server/platform/private-payload"
 
 export type ImportCounts = Record<string, number>
 
@@ -18,15 +20,19 @@ export type ImportCounts = Record<string, number>
 export async function importSnapshot(actor: Actor, source: FixtureTables, digest: string): Promise<ImportCounts> {
   requireSystem(actor, ["migration"])
   if (source.stores.length !== 1) throw new DomainError("validation", "Import one deployment store at a time.")
+  if (!/^[a-f0-9]{64}$/.test(digest)) throw new DomainError("validation", "Invalid source digest.")
   requireStore(actor, source.stores[0].id)
   const counts: ImportCounts = Object.fromEntries(Object.entries(source).filter((entry) => Array.isArray(entry[1])).map(([key, value]) => [key, (value as unknown[]).length]))
   counts.home = source.home ? 1 : 0
   counts.rateLimits = source.rateLimits.size
   counts.idempotency = source.idempotency.size
   return withTransaction(async (db) => {
-    const [applied] = await db.select().from(s.dataImports).where(eq(s.dataImports.name, "local-store-v1")).for("update")
-    if (applied) {
-      if (applied.digest !== digest) throw new DomainError("conflict", "A different snapshot was already imported. Merchant data will not be overwritten.")
+    // The unique INSERT serializes importers without requesting UPDATE privileges on the
+    // immutable ledger. A duplicate waits for the first transaction before our first snapshot.
+    const [claim] = await db.insert(s.dataImports).ignore().values({ name: "local-store-v1", digest, counts })
+    if (!claim.affectedRows) {
+      const [applied] = await db.select().from(s.dataImports).where(eq(s.dataImports.name, "local-store-v1"))
+      if (!applied || applied.digest !== digest) throw new DomainError("conflict", "A different snapshot was already imported. Merchant data will not be overwritten.")
       return jsonValue<ImportCounts>(applied.counts)
     }
     for (const table of [s.products, s.orders, s.customers, s.staffMembers]) {
@@ -109,6 +115,10 @@ export async function importSnapshot(actor: Actor, source: FixtureTables, digest
     for (const row of source.promotionRedemptions) await db.insert(s.promotionRedemptions).values({ ...row, id: uuidv7(), at: sqlDate(row.at) })
     for (const row of source.payments) await db.insert(s.payments).values({ ...row, createdAt: sqlDate(row.createdAt) })
     for (const row of source.refunds) await db.insert(s.refunds).values({ ...row, restock: row.restock ? 1 : 0, createdAt: sqlDate(row.createdAt) })
+    for (const row of source.refundIntents ?? []) {
+      requireStore(actor, row.storeId)
+      await db.insert(s.refundIntents).values({ ...row, createdAt: sqlDate(row.createdAt) })
+    }
     for (const row of source.returns) await db.insert(s.returns).values({ ...row, createdAt: sqlDate(row.createdAt) })
     for (const row of source.orderNotes) await db.insert(s.orderNotes).values({ ...row, createdAt: sqlDate(row.createdAt) })
     for (const row of source.media) await db.insert(s.media).values({ ...row, createdAt: sqlDate(row.createdAt) })
@@ -130,7 +140,12 @@ export async function importSnapshot(actor: Actor, source: FixtureTables, digest
       if (row.customerGroups?.length) await db.insert(s.featureFlagCustomerGroups).values(row.customerGroups.map((value, position) => ({ storeId: store.id, key: row.key, value, position })))
     }
     await db.insert(s.exchangeRates).values({ ...source.exchangeRates, storeId: store.id, updatedAt: sqlDate(source.exchangeRates.updatedAt) }).onDuplicateKeyUpdate({ set: { ...source.exchangeRates, updatedAt: sqlDate(source.exchangeRates.updatedAt) } })
-    for (const row of source.outbox) await db.insert(s.outboxEvents).values({ ...row, storeId: store.id, availableAt: sqlDate(row.availableAt), createdAt: sqlDate(row.createdAt) })
+    for (const row of source.outbox) await db.insert(s.outboxEvents).values({ ...row, payload: sealDeliveryPayload(row.payload, serverEnv.SESSION_SECRET), storeId: store.id, availableAt: sqlDate(row.availableAt), createdAt: sqlDate(row.createdAt) })
+    for (const [key, row] of source.deliveryChannels ?? []) {
+      const separator = key.indexOf(":"), eventId = key.slice(0, separator), channel = key.slice(separator + 1)
+      if (separator !== 36 || !source.outbox.some((event) => event.id === eventId)) throw new DomainError("validation", "Delivery receipt does not belong to a preserved event.")
+      await db.insert(s.outboxChannels).values({ eventId, channel, status: row.status, leaseToken: row.status === "sending" ? row.token : null, leaseUntil: row.leaseUntil ? sqlDate(new Date(row.leaseUntil).toISOString()) : null, deliveredAt: null })
+    }
     for (const row of source.webhookDeliveries) await db.insert(s.webhookDeliveries).values({ ...row, at: sqlDate(row.at) })
     for (const row of source.audit) await db.insert(s.auditLog).values({ ...row, storeId: row.storeId ?? store.id, at: sqlDate(row.at) })
     for (const [key, row] of source.rateLimits) {
@@ -139,7 +154,6 @@ export async function importSnapshot(actor: Actor, source: FixtureTables, digest
       await db.insert(s.rateLimits).values({ key: createHash("sha256").update(store.id + ":" + key).digest("hex"), count: row.count, windowStart })
     }
     for (const [key, row] of source.idempotency) await db.insert(s.idempotencyKeys).values({ key: createHash("sha256").update(store.id + ":legacy:" + key).digest("hex"), status: row.status, body: row.body, createdAt: sqlDate(new Date(row.at).toISOString()), expiresAt: sqlDate(new Date(row.at + 86_400_000).toISOString()) })
-    await db.insert(s.dataImports).values({ name: "local-store-v1", digest, counts })
     return counts
   })
 }

@@ -1,4 +1,6 @@
 import "server-only"
+
+import type { CatalogOperations as DomainOperations } from "@/server/catalog/repository"
 import { createMysqlCatalogRepository } from "@/server/catalog/mysql.repository"
 import { staffService } from "@/server/db/staff-service"
 
@@ -7,7 +9,6 @@ import { adminService } from "@/server/admin"
 import { createFixturesCatalogRepository } from "@/server/catalog/fixtures.repository"
 import { createStaffCatalog } from "@/server/catalog/staff"
 import { createCatalogService } from "@/server/catalog/service"
-import { createSupabaseCatalogRepository } from "@/server/catalog/supabase.repository"
 import { dataDriver, localService, selectRepository } from "@/server/db/driver"
 import { assertMediaReferences } from "@/server/media/validate"
 import { inventory } from "@/server/inventory"
@@ -19,9 +20,8 @@ import { currentActor } from "@/server/db/context"
 import { applicablePriceLists } from "@/server/pricing/service"
 import type { StorefrontQueries } from "./storefront.repository"
 
-const repository = selectRepository({ mysql: createMysqlCatalogRepository,
+const repository = selectRepository<DomainOperations>({ mysql: createMysqlCatalogRepository,
   fixtures: createFixturesCatalogRepository,
-  supabase: createSupabaseCatalogRepository,
 })
 
 export const catalog = () =>

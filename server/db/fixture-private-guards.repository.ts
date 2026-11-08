@@ -37,7 +37,7 @@ export const adminGuards: FixtureGuards<AdminOperations> = {
   listRoles: memberRead, findRole: memberRead,
   createRole(actor, role) { store(actor, role.storeId); manage(actor, "roles:manage"); canGrant(actor, role.permissions, [role.key]); if (role.isSystem) throw new DomainError("forbidden", "System roles are managed by the registry.") },
   updateRole(actor, storeId, key, changes) { store(actor, storeId); manage(actor, "roles:manage"); canGrant(actor, changes.permissions ?? []); if (key === "owner") throw new DomainError("forbidden", "The Owner role cannot be edited.") },
-  deleteRole(actor, storeId) { store(actor, storeId); manage(actor, "roles:manage") },
+  deleteRole(actor, storeId, key) { store(actor, storeId); manage(actor, "roles:manage"); if (db().adminRoles.find((row) => row.storeId === storeId && row.key === key)?.isSystem) throw new DomainError("forbidden", "System roles cannot be deleted.") },
   rolesOf: memberRead,
   setRoles(actor, storeId, userId, keys) { store(actor, storeId); manage(actor); const selected = db().adminRoles.filter((role) => keys.includes(role.key)); canGrant(actor, selected.flatMap((role) => role.permissions), keys); if (targetOwner(userId) && !keys.includes("owner")) canGrant(actor, [], ["owner"]) },
   countActiveOwners: memberRead,

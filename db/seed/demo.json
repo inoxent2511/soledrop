@@ -1,0 +1,3852 @@
+{
+  "kind": "isolated-qa-demo",
+  "version": 1,
+  "tables": {
+    "home": {
+      "content": {
+        "announcement": "🔥 NEW DROP IS LIVE — LIMITED PAIRS",
+        "heading": [
+          "Find",
+          "Your.",
+          "Perfect",
+          "Pair."
+        ],
+        "description": "Discover new and pre-loved footwear from the brands you love — at prices that make sense.",
+        "buttons": [
+          {
+            "label": "New shoes",
+            "href": "/collections/brand-new"
+          },
+          {
+            "label": "Pre-loved",
+            "href": "/pre-loved"
+          }
+        ],
+        "slides": [
+          {
+            "src": "/images/site/hero-1.jpg",
+            "alt": "Volt green Nike trainer on a lime background"
+          },
+          {
+            "src": "/images/site/hero-2.jpg",
+            "alt": "Runner wearing neon Reebok running shoes on a concrete floor"
+          },
+          {
+            "src": "/images/site/collection-banner.jpg",
+            "alt": "Neon adidas running shoe lit in green and violet"
+          }
+        ],
+        "categories": [
+          {
+            "title": [
+              "Brand",
+              "New"
+            ],
+            "href": "/collections/brand-new",
+            "image": {
+              "src": "/images/site/category-brand-new.png",
+              "alt": ""
+            }
+          },
+          {
+            "title": [
+              "Pre-",
+              "Loved"
+            ],
+            "href": "/pre-loved",
+            "image": {
+              "src": "/images/site/category-pre-loved.png",
+              "alt": ""
+            }
+          }
+        ],
+        "instagram": {
+          "href": "https://www.instagram.com/soledropofficial",
+          "handle": "@Soledropoffical",
+          "images": [
+            {
+              "src": "/images/site/instagram-1.jpg",
+              "alt": ""
+            },
+            {
+              "src": "/images/site/instagram-2.jpg",
+              "alt": ""
+            },
+            {
+              "src": "/images/site/instagram-3.jpg",
+              "alt": ""
+            },
+            {
+              "src": "/images/site/instagram-4.jpg",
+              "alt": ""
+            }
+          ]
+        }
+      },
+      "updatedAt": "2026-11-07T00:00:00.000Z"
+    },
+    "stores": [
+      {
+        "id": "00000000-0000-4000-8000-000000000001",
+        "slug": "soledrop",
+        "name": "Sole Drop",
+        "defaultCurrency": "PKR",
+        "defaultLocale": "en"
+      }
+    ],
+    "brands": [
+      {
+        "id": "10000000-0000-4000-8000-000000000001",
+        "slug": "nike",
+        "name": "Nike",
+        "position": 0
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000002",
+        "slug": "adidas",
+        "name": "Adidas",
+        "position": 1
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000003",
+        "slug": "jordan",
+        "name": "Jordan",
+        "position": 2
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000004",
+        "slug": "puma",
+        "name": "Puma",
+        "position": 3
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000005",
+        "slug": "new-balance",
+        "name": "New Balance",
+        "position": 4
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000006",
+        "slug": "skechers",
+        "name": "Sketchers",
+        "position": 5
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000007",
+        "slug": "reebok",
+        "name": "Reebok",
+        "position": 6
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000008",
+        "slug": "asics",
+        "name": "Asics",
+        "position": 7
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000009",
+        "slug": "hoka",
+        "name": "Hoka",
+        "position": 8
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000010",
+        "slug": "brooks",
+        "name": "Brooks",
+        "position": 9
+      }
+    ],
+    "products": [
+      {
+        "id": "20000000-0000-4000-8000-000000000001",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "asics-gel-kayano-30",
+        "title": "ASICS Gel-Kayano 30",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000008",
+          "slug": "asics",
+          "name": "Asics",
+          "position": 7
+        },
+        "kind": "new",
+        "gender": "men",
+        "status": "active",
+        "description": "ASICS Gel-Kayano 30 — a stability running shoe with 4D Guidance System and FF Blast+ cushioning for long, steady miles. Brand new in the original box, sourced from authorised distributors.",
+        "condition": null,
+        "conditionNotes": null,
+        "images": [
+          {
+            "url": "/images/products/asics-gel-kayano-30-card.png",
+            "alt": "ASICS Gel-Kayano 30 side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8001-000000000001",
+            "sku": "SD-ASICS-GEL-KAYANO-30-41",
+            "size": {
+              "eu": "41",
+              "uk": "7",
+              "us": "8",
+              "cm": "26"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          },
+          {
+            "id": "30000000-0000-4000-8001-000000000002",
+            "sku": "SD-ASICS-GEL-KAYANO-30-42",
+            "size": {
+              "eu": "42",
+              "uk": "7.5",
+              "us": "8.5",
+              "cm": "26.5"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 1
+          },
+          {
+            "id": "30000000-0000-4000-8001-000000000003",
+            "sku": "SD-ASICS-GEL-KAYANO-30-43",
+            "size": {
+              "eu": "43",
+              "uk": "8.5",
+              "us": "9",
+              "cm": "27"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 2
+          },
+          {
+            "id": "30000000-0000-4000-8001-000000000004",
+            "sku": "SD-ASICS-GEL-KAYANO-30-44",
+            "size": {
+              "eu": "44",
+              "uk": "9",
+              "us": "10",
+              "cm": "28"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 3
+          }
+        ],
+        "attributes": {
+          "colour": "Black / Lime",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "new-arrivals",
+          "men",
+          "brand-new",
+          "sale"
+        ],
+        "tags": [],
+        "position": 0,
+        "publishedAt": "2026-10-01T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000002",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "nike-air-max",
+        "title": "NIKE Air Max",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "slug": "nike",
+          "name": "Nike",
+          "position": 0
+        },
+        "kind": "new",
+        "gender": "unisex",
+        "status": "active",
+        "description": "Nike Air Max — visible Air cushioning and a breathable mesh upper in a bright, colour-blocked finish. Brand new in the original box, sourced from authorised distributors.",
+        "condition": null,
+        "conditionNotes": null,
+        "images": [
+          {
+            "url": "/images/products/nike-air-max-card.png",
+            "alt": "NIKE Air Max side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8002-000000000001",
+            "sku": "SD-NIKE-AIR-MAX-41",
+            "size": {
+              "eu": "41",
+              "uk": "7",
+              "us": "8",
+              "cm": "26"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          },
+          {
+            "id": "30000000-0000-4000-8002-000000000002",
+            "sku": "SD-NIKE-AIR-MAX-42",
+            "size": {
+              "eu": "42",
+              "uk": "7.5",
+              "us": "8.5",
+              "cm": "26.5"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 1
+          },
+          {
+            "id": "30000000-0000-4000-8002-000000000003",
+            "sku": "SD-NIKE-AIR-MAX-43",
+            "size": {
+              "eu": "43",
+              "uk": "8.5",
+              "us": "9",
+              "cm": "27"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 2
+          },
+          {
+            "id": "30000000-0000-4000-8002-000000000004",
+            "sku": "SD-NIKE-AIR-MAX-44",
+            "size": {
+              "eu": "44",
+              "uk": "9",
+              "us": "10",
+              "cm": "28"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 3
+          }
+        ],
+        "attributes": {
+          "colour": "White / Orange / Lilac",
+          "activity": "Lifestyle",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "new-arrivals",
+          "women",
+          "brand-new",
+          "sale"
+        ],
+        "tags": [],
+        "position": 1,
+        "publishedAt": "2026-10-02T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000003",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "brooks-glycerin-20",
+        "title": "BROOKS Glycerin 20",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000010",
+          "slug": "brooks",
+          "name": "Brooks",
+          "position": 9
+        },
+        "kind": "new",
+        "gender": "men",
+        "status": "active",
+        "description": "Brooks Glycerin 20 — max-cushion neutral trainer with DNA LOFT v3 foam for soft, smooth daily runs. Brand new in the original box, sourced from authorised distributors.",
+        "condition": null,
+        "conditionNotes": null,
+        "images": [
+          {
+            "url": "/images/products/brooks-glycerin-20-card.png",
+            "alt": "BROOKS Glycerin 20 side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8003-000000000001",
+            "sku": "SD-BROOKS-GLYCERIN-20-41",
+            "size": {
+              "eu": "41",
+              "uk": "7",
+              "us": "8",
+              "cm": "26"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          },
+          {
+            "id": "30000000-0000-4000-8003-000000000002",
+            "sku": "SD-BROOKS-GLYCERIN-20-42",
+            "size": {
+              "eu": "42",
+              "uk": "7.5",
+              "us": "8.5",
+              "cm": "26.5"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 1
+          },
+          {
+            "id": "30000000-0000-4000-8003-000000000003",
+            "sku": "SD-BROOKS-GLYCERIN-20-43",
+            "size": {
+              "eu": "43",
+              "uk": "8.5",
+              "us": "9",
+              "cm": "27"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 2
+          },
+          {
+            "id": "30000000-0000-4000-8003-000000000004",
+            "sku": "SD-BROOKS-GLYCERIN-20-44",
+            "size": {
+              "eu": "44",
+              "uk": "9",
+              "us": "10",
+              "cm": "28"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 3
+          }
+        ],
+        "attributes": {
+          "colour": "Black / Orange / Yellow",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "new-arrivals",
+          "men",
+          "brand-new",
+          "sale"
+        ],
+        "tags": [],
+        "position": 2,
+        "publishedAt": "2026-10-03T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000004",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "adidas-duramo-sl",
+        "title": "ADIDAS Duramo SL",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000002",
+          "slug": "adidas",
+          "name": "Adidas",
+          "position": 1
+        },
+        "kind": "new",
+        "gender": "unisex",
+        "status": "active",
+        "description": "adidas Duramo SL — a light, everyday runner with Lightmotion cushioning and a supportive mesh upper. Brand new in the original box, sourced from authorised distributors.",
+        "condition": null,
+        "conditionNotes": null,
+        "images": [
+          {
+            "url": "/images/products/adidas-duramo-sl-card.png",
+            "alt": "ADIDAS Duramo SL side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8004-000000000001",
+            "sku": "SD-ADIDAS-DURAMO-SL-41",
+            "size": {
+              "eu": "41",
+              "uk": "7",
+              "us": "8",
+              "cm": "26"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          },
+          {
+            "id": "30000000-0000-4000-8004-000000000002",
+            "sku": "SD-ADIDAS-DURAMO-SL-42",
+            "size": {
+              "eu": "42",
+              "uk": "7.5",
+              "us": "8.5",
+              "cm": "26.5"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 1
+          },
+          {
+            "id": "30000000-0000-4000-8004-000000000003",
+            "sku": "SD-ADIDAS-DURAMO-SL-43",
+            "size": {
+              "eu": "43",
+              "uk": "8.5",
+              "us": "9",
+              "cm": "27"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 2
+          },
+          {
+            "id": "30000000-0000-4000-8004-000000000004",
+            "sku": "SD-ADIDAS-DURAMO-SL-44",
+            "size": {
+              "eu": "44",
+              "uk": "9",
+              "us": "10",
+              "cm": "28"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 3
+          }
+        ],
+        "attributes": {
+          "colour": "Royal Blue / White",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "new-arrivals",
+          "men",
+          "brand-new",
+          "sale"
+        ],
+        "tags": [],
+        "position": 3,
+        "publishedAt": "2026-10-04T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000005",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "asics-gel-kayano-30-black-silver",
+        "title": "ASICS Gel-Kayano 30",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000008",
+          "slug": "asics",
+          "name": "Asics",
+          "position": 7
+        },
+        "kind": "new",
+        "gender": "men",
+        "status": "active",
+        "description": "ASICS Gel-Kayano 30 — this black and silver colourway pairs the 4D Guidance System with PureGEL in the heel for a softer landing. Brand new in the original box, sourced from authorised distributors.",
+        "condition": null,
+        "conditionNotes": null,
+        "images": [
+          {
+            "url": "/images/products/asics-gel-kayano-30-card.png",
+            "alt": "ASICS Gel-Kayano 30 side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          },
+          {
+            "url": "/images/products/asics-gel-kayano-30-1.png",
+            "alt": "ASICS Gel-Kayano 30 in black and silver — view 1",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          },
+          {
+            "url": "/images/products/asics-gel-kayano-30-2.png",
+            "alt": "ASICS Gel-Kayano 30 in black and silver — view 2",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          },
+          {
+            "url": "/images/products/asics-gel-kayano-30-3.png",
+            "alt": "ASICS Gel-Kayano 30 in black and silver — view 3",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          },
+          {
+            "url": "/images/products/asics-gel-kayano-30-4.png",
+            "alt": "ASICS Gel-Kayano 30 in black and silver — view 4",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          },
+          {
+            "url": "/images/products/asics-gel-kayano-30-5.png",
+            "alt": "ASICS Gel-Kayano 30 in black and silver — view 5",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          },
+          {
+            "url": "/images/products/asics-gel-kayano-30-6.png",
+            "alt": "ASICS Gel-Kayano 30 in black and silver — view 6",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8005-000000000001",
+            "sku": "SD-ASICS-GEL-KAYANO-30-BLACK-SILVER-41",
+            "size": {
+              "eu": "41",
+              "uk": "7",
+              "us": "8",
+              "cm": "26"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          },
+          {
+            "id": "30000000-0000-4000-8005-000000000002",
+            "sku": "SD-ASICS-GEL-KAYANO-30-BLACK-SILVER-42",
+            "size": {
+              "eu": "42",
+              "uk": "7.5",
+              "us": "8.5",
+              "cm": "26.5"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 1
+          },
+          {
+            "id": "30000000-0000-4000-8005-000000000003",
+            "sku": "SD-ASICS-GEL-KAYANO-30-BLACK-SILVER-43",
+            "size": {
+              "eu": "43",
+              "uk": "8.5",
+              "us": "9",
+              "cm": "27"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 2
+          },
+          {
+            "id": "30000000-0000-4000-8005-000000000004",
+            "sku": "SD-ASICS-GEL-KAYANO-30-BLACK-SILVER-44",
+            "size": {
+              "eu": "44",
+              "uk": "9",
+              "us": "10",
+              "cm": "28"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 3
+          }
+        ],
+        "attributes": {
+          "colour": "Black / Silver",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "new-arrivals",
+          "men",
+          "brand-new",
+          "sale"
+        ],
+        "tags": [],
+        "position": 4,
+        "publishedAt": "2026-10-05T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000006",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "nike-air-max-summit-white",
+        "title": "NIKE Air Max",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "slug": "nike",
+          "name": "Nike",
+          "position": 0
+        },
+        "kind": "new",
+        "gender": "unisex",
+        "status": "active",
+        "description": "Nike Air Max — Summit White colourway with a padded collar and durable rubber outsole. Brand new in the original box, sourced from authorised distributors.",
+        "condition": null,
+        "conditionNotes": null,
+        "images": [
+          {
+            "url": "/images/products/nike-air-max-card.png",
+            "alt": "NIKE Air Max side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8006-000000000001",
+            "sku": "SD-NIKE-AIR-MAX-SUMMIT-WHITE-41",
+            "size": {
+              "eu": "41",
+              "uk": "7",
+              "us": "8",
+              "cm": "26"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          },
+          {
+            "id": "30000000-0000-4000-8006-000000000002",
+            "sku": "SD-NIKE-AIR-MAX-SUMMIT-WHITE-42",
+            "size": {
+              "eu": "42",
+              "uk": "7.5",
+              "us": "8.5",
+              "cm": "26.5"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 1
+          },
+          {
+            "id": "30000000-0000-4000-8006-000000000003",
+            "sku": "SD-NIKE-AIR-MAX-SUMMIT-WHITE-43",
+            "size": {
+              "eu": "43",
+              "uk": "8.5",
+              "us": "9",
+              "cm": "27"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 2
+          },
+          {
+            "id": "30000000-0000-4000-8006-000000000004",
+            "sku": "SD-NIKE-AIR-MAX-SUMMIT-WHITE-44",
+            "size": {
+              "eu": "44",
+              "uk": "9",
+              "us": "10",
+              "cm": "28"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 3
+          }
+        ],
+        "attributes": {
+          "colour": "Summit White",
+          "activity": "Lifestyle",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "new-arrivals",
+          "women",
+          "brand-new",
+          "sale"
+        ],
+        "tags": [],
+        "position": 5,
+        "publishedAt": "2026-10-06T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000007",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "nike-air-max-hyper-violet",
+        "title": "NIKE Air Max",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "slug": "nike",
+          "name": "Nike",
+          "position": 0
+        },
+        "kind": "new",
+        "gender": "unisex",
+        "status": "active",
+        "description": "Nike Air Max — Hyper Violet accents on a lightweight build sized for growing feet. Brand new in the original box, sourced from authorised distributors.",
+        "condition": null,
+        "conditionNotes": null,
+        "images": [
+          {
+            "url": "/images/products/nike-air-max-card.png",
+            "alt": "NIKE Air Max side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8007-000000000001",
+            "sku": "SD-NIKE-AIR-MAX-HYPER-VIOLET-41",
+            "size": {
+              "eu": "41",
+              "uk": "7",
+              "us": "8",
+              "cm": "26"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          },
+          {
+            "id": "30000000-0000-4000-8007-000000000002",
+            "sku": "SD-NIKE-AIR-MAX-HYPER-VIOLET-42",
+            "size": {
+              "eu": "42",
+              "uk": "7.5",
+              "us": "8.5",
+              "cm": "26.5"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 1
+          },
+          {
+            "id": "30000000-0000-4000-8007-000000000003",
+            "sku": "SD-NIKE-AIR-MAX-HYPER-VIOLET-43",
+            "size": {
+              "eu": "43",
+              "uk": "8.5",
+              "us": "9",
+              "cm": "27"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 2
+          },
+          {
+            "id": "30000000-0000-4000-8007-000000000004",
+            "sku": "SD-NIKE-AIR-MAX-HYPER-VIOLET-44",
+            "size": {
+              "eu": "44",
+              "uk": "9",
+              "us": "10",
+              "cm": "28"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 3
+          }
+        ],
+        "attributes": {
+          "colour": "White / Hyper Violet",
+          "activity": "Lifestyle",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "new-arrivals",
+          "kids",
+          "brand-new",
+          "sale"
+        ],
+        "tags": [],
+        "position": 6,
+        "publishedAt": "2026-10-07T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000008",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "brooks-glycerin-20-blue",
+        "title": "BROOKS Glycerin 20",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000010",
+          "slug": "brooks",
+          "name": "Brooks",
+          "position": 9
+        },
+        "kind": "new",
+        "gender": "unisex",
+        "status": "active",
+        "description": "Brooks Glycerin 20 — Blue Opal colourway with a plush, stretch-woven upper. Brand new in the original box, sourced from authorised distributors.",
+        "condition": null,
+        "conditionNotes": null,
+        "images": [
+          {
+            "url": "/images/products/brooks-glycerin-20-card.png",
+            "alt": "BROOKS Glycerin 20 side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8008-000000000001",
+            "sku": "SD-BROOKS-GLYCERIN-20-BLUE-41",
+            "size": {
+              "eu": "41",
+              "uk": "7",
+              "us": "8",
+              "cm": "26"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          },
+          {
+            "id": "30000000-0000-4000-8008-000000000002",
+            "sku": "SD-BROOKS-GLYCERIN-20-BLUE-42",
+            "size": {
+              "eu": "42",
+              "uk": "7.5",
+              "us": "8.5",
+              "cm": "26.5"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 1
+          },
+          {
+            "id": "30000000-0000-4000-8008-000000000003",
+            "sku": "SD-BROOKS-GLYCERIN-20-BLUE-43",
+            "size": {
+              "eu": "43",
+              "uk": "8.5",
+              "us": "9",
+              "cm": "27"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 2
+          },
+          {
+            "id": "30000000-0000-4000-8008-000000000004",
+            "sku": "SD-BROOKS-GLYCERIN-20-BLUE-44",
+            "size": {
+              "eu": "44",
+              "uk": "9",
+              "us": "10",
+              "cm": "28"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 3
+          }
+        ],
+        "attributes": {
+          "colour": "Black / Blue / Orange",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "new-arrivals",
+          "women",
+          "brand-new",
+          "sale"
+        ],
+        "tags": [],
+        "position": 7,
+        "publishedAt": "2026-10-08T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000009",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "adidas-duramo-sl-core-black",
+        "title": "ADIDAS Duramo SL",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000002",
+          "slug": "adidas",
+          "name": "Adidas",
+          "position": 1
+        },
+        "kind": "new",
+        "gender": "unisex",
+        "status": "active",
+        "description": "adidas Duramo SL — Lucid Blue colourway built for gym sessions and easy runs alike. Brand new in the original box, sourced from authorised distributors.",
+        "condition": null,
+        "conditionNotes": null,
+        "images": [
+          {
+            "url": "/images/products/adidas-duramo-sl-card.png",
+            "alt": "ADIDAS Duramo SL side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8009-000000000001",
+            "sku": "SD-ADIDAS-DURAMO-SL-CORE-BLACK-41",
+            "size": {
+              "eu": "41",
+              "uk": "7",
+              "us": "8",
+              "cm": "26"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          },
+          {
+            "id": "30000000-0000-4000-8009-000000000002",
+            "sku": "SD-ADIDAS-DURAMO-SL-CORE-BLACK-42",
+            "size": {
+              "eu": "42",
+              "uk": "7.5",
+              "us": "8.5",
+              "cm": "26.5"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 1
+          },
+          {
+            "id": "30000000-0000-4000-8009-000000000003",
+            "sku": "SD-ADIDAS-DURAMO-SL-CORE-BLACK-43",
+            "size": {
+              "eu": "43",
+              "uk": "8.5",
+              "us": "9",
+              "cm": "27"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 2
+          },
+          {
+            "id": "30000000-0000-4000-8009-000000000004",
+            "sku": "SD-ADIDAS-DURAMO-SL-CORE-BLACK-44",
+            "size": {
+              "eu": "44",
+              "uk": "9",
+              "us": "10",
+              "cm": "28"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 3
+          }
+        ],
+        "attributes": {
+          "colour": "Lucid Blue / White",
+          "activity": "Training",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "new-arrivals",
+          "women",
+          "brand-new",
+          "sale"
+        ],
+        "tags": [],
+        "position": 8,
+        "publishedAt": "2026-10-09T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000010",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "adidas-ozweego",
+        "title": "ADIDAS OZWEEGO",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000002",
+          "slug": "adidas",
+          "name": "Adidas",
+          "position": 1
+        },
+        "kind": "new",
+        "gender": "men",
+        "status": "active",
+        "description": "adidas OZWEEGO — a chunky, '90s-inspired silhouette with Adiprene cushioning and a suede-and-mesh upper. Brand new in the original box, sourced from authorised distributors.",
+        "condition": null,
+        "conditionNotes": null,
+        "images": [
+          {
+            "url": "/images/products/adidas-ozweego-card.png",
+            "alt": "ADIDAS OZWEEGO side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8010-000000000001",
+            "sku": "SD-ADIDAS-OZWEEGO-41",
+            "size": {
+              "eu": "41",
+              "uk": "7",
+              "us": "8",
+              "cm": "26"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          },
+          {
+            "id": "30000000-0000-4000-8010-000000000002",
+            "sku": "SD-ADIDAS-OZWEEGO-42",
+            "size": {
+              "eu": "42",
+              "uk": "7.5",
+              "us": "8.5",
+              "cm": "26.5"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 1
+          },
+          {
+            "id": "30000000-0000-4000-8010-000000000003",
+            "sku": "SD-ADIDAS-OZWEEGO-43",
+            "size": {
+              "eu": "43",
+              "uk": "8.5",
+              "us": "9",
+              "cm": "27"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 2
+          },
+          {
+            "id": "30000000-0000-4000-8010-000000000004",
+            "sku": "SD-ADIDAS-OZWEEGO-44",
+            "size": {
+              "eu": "44",
+              "uk": "9",
+              "us": "10",
+              "cm": "28"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 3
+          }
+        ],
+        "attributes": {
+          "colour": "Grey Two / Grey Three",
+          "activity": "Lifestyle",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "featured",
+          "men",
+          "brand-new"
+        ],
+        "tags": [],
+        "position": 9,
+        "publishedAt": "2026-10-10T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000011",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "nike-vaporfly-3-orange",
+        "title": "NIKE Vaporfly 3",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "slug": "nike",
+          "name": "Nike",
+          "position": 0
+        },
+        "kind": "preloved",
+        "gender": "unisex",
+        "status": "active",
+        "description": "NIKE Vaporfly 3 — a one-off pre-loved pair, inspected and graded by our team. What you see is the exact pair you get.",
+        "condition": "like-new",
+        "conditionNotes": "Worn once or twice indoors. Upper spotless with no creasing, midsole bright with no compression, outsole tread as new. Cleaned before listing.",
+        "images": [
+          {
+            "url": "/images/products/nike-vaporfly-3-orange-card.png",
+            "alt": "NIKE Vaporfly 3 side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8011-000000000001",
+            "sku": "SD-NIKE-VAPORFLY-3-ORANGE-40",
+            "size": {
+              "eu": "40",
+              "uk": "6",
+              "us": "7",
+              "cm": "25"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          }
+        ],
+        "attributes": {
+          "colour": "White / Total Orange",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "pre-loved"
+        ],
+        "tags": [],
+        "position": 10,
+        "publishedAt": "2026-10-11T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000012",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "adidas-ozweego-grey",
+        "title": "ADIDAS OZWEEGO",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000002",
+          "slug": "adidas",
+          "name": "Adidas",
+          "position": 1
+        },
+        "kind": "preloved",
+        "gender": "unisex",
+        "status": "active",
+        "description": "ADIDAS OZWEEGO — a one-off pre-loved pair, inspected and graded by our team. What you see is the exact pair you get.",
+        "condition": "excellent",
+        "conditionNotes": "Regular use, well looked after. Minor creasing on the upper, light surface marks on the midsole, even outsole wear with good grip. Cleaned before listing.",
+        "images": [
+          {
+            "url": "/images/products/adidas-ozweego-card.png",
+            "alt": "ADIDAS OZWEEGO side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8012-000000000001",
+            "sku": "SD-ADIDAS-OZWEEGO-GREY-40",
+            "size": {
+              "eu": "40",
+              "uk": "6",
+              "us": "7",
+              "cm": "25"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          }
+        ],
+        "attributes": {
+          "colour": "Grey Two",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "pre-loved"
+        ],
+        "tags": [],
+        "position": 11,
+        "publishedAt": "2026-10-12T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000013",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "hoka-bondi-7-blue",
+        "title": "HOKA Bondi 7",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000009",
+          "slug": "hoka",
+          "name": "Hoka",
+          "position": 8
+        },
+        "kind": "preloved",
+        "gender": "unisex",
+        "status": "active",
+        "description": "HOKA Bondi 7 — a one-off pre-loved pair, inspected and graded by our team. What you see is the exact pair you get.",
+        "condition": "very-good",
+        "conditionNotes": "Noticeable everyday wear, still reliable. Creasing and small scuffs on the upper, light yellowing on the midsole, even outsole wear. Cleaned before listing.",
+        "images": [
+          {
+            "url": "/images/products/hoka-bondi-7-blue-card.png",
+            "alt": "HOKA Bondi 7 side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8013-000000000001",
+            "sku": "SD-HOKA-BONDI-7-BLUE-40",
+            "size": {
+              "eu": "40",
+              "uk": "6",
+              "us": "7",
+              "cm": "25"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          }
+        ],
+        "attributes": {
+          "colour": "Real Teal / Evening Primrose",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "pre-loved"
+        ],
+        "tags": [],
+        "position": 12,
+        "publishedAt": "2026-10-13T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000014",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "nike-vaporfly-3-teal",
+        "title": "NIKE Vaporfly 3",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "slug": "nike",
+          "name": "Nike",
+          "position": 0
+        },
+        "kind": "preloved",
+        "gender": "unisex",
+        "status": "active",
+        "description": "NIKE Vaporfly 3 — a one-off pre-loved pair, inspected and graded by our team. What you see is the exact pair you get.",
+        "condition": "minor-issue",
+        "conditionNotes": "A small scuff on the toe box and light marks along the midsole, all shown in the photos and reflected in the price. Outsole still grips well. Cleaned before listing.",
+        "images": [
+          {
+            "url": "/images/products/nike-vaporfly-3-teal-card.png",
+            "alt": "NIKE Vaporfly 3 side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8014-000000000001",
+            "sku": "SD-NIKE-VAPORFLY-3-TEAL-40",
+            "size": {
+              "eu": "40",
+              "uk": "6",
+              "us": "7",
+              "cm": "25"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          }
+        ],
+        "attributes": {
+          "colour": "Jade Ice / Black",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "pre-loved"
+        ],
+        "tags": [],
+        "position": 13,
+        "publishedAt": "2026-10-14T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000015",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "adidas-ozweego-grey-2",
+        "title": "ADIDAS OZWEEGO",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000002",
+          "slug": "adidas",
+          "name": "Adidas",
+          "position": 1
+        },
+        "kind": "preloved",
+        "gender": "unisex",
+        "status": "active",
+        "description": "ADIDAS OZWEEGO — a one-off pre-loved pair, inspected and graded by our team. What you see is the exact pair you get.",
+        "condition": "premium",
+        "conditionNotes": "Worn a handful of times. Upper clean with faint toe creasing; midsole shows light creasing; outsole tread above 90 %. Cleaned before listing.",
+        "images": [
+          {
+            "url": "/images/products/adidas-ozweego-card.png",
+            "alt": "ADIDAS OZWEEGO side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8015-000000000001",
+            "sku": "SD-ADIDAS-OZWEEGO-GREY-2-40",
+            "size": {
+              "eu": "40",
+              "uk": "6",
+              "us": "7",
+              "cm": "25"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          }
+        ],
+        "attributes": {
+          "colour": "Grey Three",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "pre-loved"
+        ],
+        "tags": [],
+        "position": 14,
+        "publishedAt": "2026-10-15T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000016",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "hoka-bondi-7-blue-2",
+        "title": "HOKA Bondi 7",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000009",
+          "slug": "hoka",
+          "name": "Hoka",
+          "position": 8
+        },
+        "kind": "preloved",
+        "gender": "unisex",
+        "status": "active",
+        "description": "HOKA Bondi 7 — a one-off pre-loved pair, inspected and graded by our team. What you see is the exact pair you get.",
+        "condition": "like-new",
+        "conditionNotes": "Worn once or twice indoors. Upper spotless with no creasing, midsole bright with no compression, outsole tread as new. Cleaned before listing.",
+        "images": [
+          {
+            "url": "/images/products/hoka-bondi-7-blue-card.png",
+            "alt": "HOKA Bondi 7 side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8016-000000000001",
+            "sku": "SD-HOKA-BONDI-7-BLUE-2-40",
+            "size": {
+              "eu": "40",
+              "uk": "6",
+              "us": "7",
+              "cm": "25"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          }
+        ],
+        "attributes": {
+          "colour": "Real Teal",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "pre-loved"
+        ],
+        "tags": [],
+        "position": 15,
+        "publishedAt": "2026-10-16T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000017",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "nike-vaporfly-3-orange-2",
+        "title": "NIKE Vaporfly 3",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "slug": "nike",
+          "name": "Nike",
+          "position": 0
+        },
+        "kind": "preloved",
+        "gender": "unisex",
+        "status": "active",
+        "description": "NIKE Vaporfly 3 — a one-off pre-loved pair, inspected and graded by our team. What you see is the exact pair you get.",
+        "condition": "excellent",
+        "conditionNotes": "Regular use, well looked after. Minor creasing on the upper, light surface marks on the midsole, even outsole wear with good grip. Cleaned before listing.",
+        "images": [
+          {
+            "url": "/images/products/nike-vaporfly-3-orange-card.png",
+            "alt": "NIKE Vaporfly 3 side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8017-000000000001",
+            "sku": "SD-NIKE-VAPORFLY-3-ORANGE-2-40",
+            "size": {
+              "eu": "40",
+              "uk": "6",
+              "us": "7",
+              "cm": "25"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          }
+        ],
+        "attributes": {
+          "colour": "White / Total Orange",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "pre-loved"
+        ],
+        "tags": [],
+        "position": 16,
+        "publishedAt": "2026-10-17T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000018",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "adidas-ozweego-grey-3",
+        "title": "ADIDAS OZWEEGO",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000002",
+          "slug": "adidas",
+          "name": "Adidas",
+          "position": 1
+        },
+        "kind": "preloved",
+        "gender": "unisex",
+        "status": "active",
+        "description": "ADIDAS OZWEEGO — a one-off pre-loved pair, inspected and graded by our team. What you see is the exact pair you get.",
+        "condition": "very-good",
+        "conditionNotes": "Noticeable everyday wear, still reliable. Creasing and small scuffs on the upper, light yellowing on the midsole, even outsole wear. Cleaned before listing.",
+        "images": [
+          {
+            "url": "/images/products/adidas-ozweego-card.png",
+            "alt": "ADIDAS OZWEEGO side profile",
+            "width": 1254,
+            "height": 1254,
+            "role": "card"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8018-000000000001",
+            "sku": "SD-ADIDAS-OZWEEGO-GREY-3-40",
+            "size": {
+              "eu": "40",
+              "uk": "6",
+              "us": "7",
+              "cm": "25"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          }
+        ],
+        "attributes": {
+          "colour": "Grey Two",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "pre-loved"
+        ],
+        "tags": [],
+        "position": 17,
+        "publishedAt": "2026-10-18T00:00:00.000Z",
+        "seo": {}
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000019",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "hoka-bondi-7-grey",
+        "title": "HOKA Bondi 7",
+        "brand": {
+          "id": "10000000-0000-4000-8000-000000000009",
+          "slug": "hoka",
+          "name": "Hoka",
+          "position": 8
+        },
+        "kind": "preloved",
+        "gender": "men",
+        "status": "active",
+        "description": "HOKA Bondi 7 — HOKA's most cushioned road shoe, a one-off pre-loved pair inspected and graded by our team. The size shown is the size printed on the tag.",
+        "condition": "premium",
+        "conditionNotes": "Worn twice indoors. Upper spotless, midsole foam bright with no compression lines, outsole as new. Original insoles included.",
+        "images": [
+          {
+            "url": "/images/products/hoka-bondi-7-grey-1.png",
+            "alt": "HOKA Bondi 7 side profile",
+            "width": 2000,
+            "height": 2000,
+            "role": "card"
+          },
+          {
+            "url": "/images/products/hoka-bondi-7-grey-1.png",
+            "alt": "Pre-loved HOKA Bondi 7 in grey — view 1",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          },
+          {
+            "url": "/images/products/hoka-bondi-7-grey-2.png",
+            "alt": "Pre-loved HOKA Bondi 7 in grey — view 2",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          },
+          {
+            "url": "/images/products/hoka-bondi-7-grey-3.png",
+            "alt": "Pre-loved HOKA Bondi 7 in grey — view 3",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          },
+          {
+            "url": "/images/products/hoka-bondi-7-grey-4.png",
+            "alt": "Pre-loved HOKA Bondi 7 in grey — view 4",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          },
+          {
+            "url": "/images/products/hoka-bondi-7-grey-5.png",
+            "alt": "Pre-loved HOKA Bondi 7 in grey — view 5",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          },
+          {
+            "url": "/images/products/hoka-bondi-7-grey-6.png",
+            "alt": "Pre-loved HOKA Bondi 7 in grey — view 6",
+            "width": 2000,
+            "height": 2000,
+            "role": "gallery"
+          }
+        ],
+        "variants": [
+          {
+            "id": "30000000-0000-4000-8019-000000000001",
+            "sku": "SD-HOKA-BONDI-7-GREY-42",
+            "size": {
+              "eu": "42",
+              "uk": "6",
+              "us": "8",
+              "cm": "27"
+            },
+            "attributes": {},
+            "weightGrams": 900,
+            "position": 0
+          }
+        ],
+        "attributes": {
+          "colour": "Grey / White",
+          "activity": "Running",
+          "closure": "Laces"
+        },
+        "customFields": {},
+        "collections": [
+          "pre-loved",
+          "featured"
+        ],
+        "tags": [],
+        "position": 18,
+        "publishedAt": "2026-10-19T00:00:00.000Z",
+        "seo": {}
+      }
+    ],
+    "collections": [
+      {
+        "id": "40000000-0000-4000-8000-000000000001",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "new-arrivals",
+        "title": "New Arrival",
+        "headline": [
+          "Every step",
+          "matters"
+        ],
+        "description": "From everyday essentials to standout styles, find the perfect shoes for you.",
+        "kind": "manual",
+        "rules": [],
+        "image": {
+          "url": "/images/site/collection-banner.jpg",
+          "alt": "",
+          "width": 2400,
+          "height": 1600
+        },
+        "position": 0,
+        "seo": {}
+      },
+      {
+        "id": "40000000-0000-4000-8000-000000000002",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "men",
+        "title": "Men",
+        "headline": [
+          "Every step",
+          "matters"
+        ],
+        "description": "Running, training and everyday pairs for men — new and pre-loved.",
+        "kind": "manual",
+        "rules": [],
+        "image": {
+          "url": "/images/site/collection-banner.jpg",
+          "alt": "",
+          "width": 2400,
+          "height": 1600
+        },
+        "position": 1,
+        "seo": {}
+      },
+      {
+        "id": "40000000-0000-4000-8000-000000000003",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "women",
+        "title": "Women",
+        "headline": [
+          "Every step",
+          "matters"
+        ],
+        "description": "Running, training and everyday pairs for women — new and pre-loved.",
+        "kind": "manual",
+        "rules": [],
+        "image": {
+          "url": "/images/site/collection-banner.jpg",
+          "alt": "",
+          "width": 2400,
+          "height": 1600
+        },
+        "position": 2,
+        "seo": {}
+      },
+      {
+        "id": "40000000-0000-4000-8000-000000000004",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "kids",
+        "title": "Kids",
+        "headline": [
+          "Every step",
+          "matters"
+        ],
+        "description": "Durable, comfortable pairs sized for growing feet.",
+        "kind": "manual",
+        "rules": [],
+        "image": {
+          "url": "/images/site/collection-banner.jpg",
+          "alt": "",
+          "width": 2400,
+          "height": 1600
+        },
+        "position": 3,
+        "seo": {}
+      },
+      {
+        "id": "40000000-0000-4000-8000-000000000005",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "sale",
+        "title": "Sale",
+        "headline": [
+          "Every step",
+          "matters"
+        ],
+        "description": "Marked-down pairs while sizes last.",
+        "kind": "rule",
+        "rules": [
+          {
+            "field": "onSale",
+            "equals": true
+          }
+        ],
+        "image": {
+          "url": "/images/site/collection-banner.jpg",
+          "alt": "",
+          "width": 2400,
+          "height": 1600
+        },
+        "position": 4,
+        "seo": {}
+      },
+      {
+        "id": "40000000-0000-4000-8000-000000000006",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "brand-new",
+        "title": "Brand New",
+        "headline": [
+          "Every step",
+          "matters"
+        ],
+        "description": "Brand new, boxed pairs from authorised distributors.",
+        "kind": "rule",
+        "rules": [
+          {
+            "field": "kind",
+            "equals": "new"
+          }
+        ],
+        "image": {
+          "url": "/images/site/collection-banner.jpg",
+          "alt": "",
+          "width": 2400,
+          "height": 1600
+        },
+        "position": 5,
+        "seo": {}
+      },
+      {
+        "id": "40000000-0000-4000-8000-000000000007",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "pre-loved",
+        "title": "Pre-Loved",
+        "headline": [
+          "Every step",
+          "matters"
+        ],
+        "description": "One-off pairs, inspected, cleaned and graded so you know exactly what you're getting.",
+        "kind": "rule",
+        "rules": [
+          {
+            "field": "kind",
+            "equals": "preloved"
+          }
+        ],
+        "image": {
+          "url": "/images/site/collection-banner.jpg",
+          "alt": "",
+          "width": 2400,
+          "height": 1600
+        },
+        "position": 6,
+        "seo": {}
+      },
+      {
+        "id": "40000000-0000-4000-8000-000000000008",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "slug": "featured",
+        "title": "Featured Drop",
+        "headline": [
+          "Featured",
+          "drop"
+        ],
+        "description": "This week's featured pair.",
+        "kind": "manual",
+        "rules": [],
+        "image": {
+          "url": "/images/site/collection-banner.jpg",
+          "alt": "",
+          "width": 2400,
+          "height": 1600
+        },
+        "position": 7,
+        "seo": {}
+      }
+    ],
+    "attributeDefinitions": [
+      {
+        "code": "colour",
+        "label": "Colour",
+        "type": "text",
+        "scope": "product",
+        "filterable": false,
+        "position": 0
+      },
+      {
+        "code": "activity",
+        "label": "Activity",
+        "type": "enum",
+        "scope": "product",
+        "options": [
+          {
+            "value": "Running",
+            "label": "Running"
+          },
+          {
+            "value": "Training",
+            "label": "Training"
+          },
+          {
+            "value": "Lifestyle",
+            "label": "Lifestyle"
+          },
+          {
+            "value": "Basketball",
+            "label": "Basketball"
+          }
+        ],
+        "filterable": true,
+        "position": 1
+      },
+      {
+        "code": "closure",
+        "label": "Closure",
+        "type": "enum",
+        "scope": "product",
+        "options": [
+          {
+            "value": "Laces",
+            "label": "Laces"
+          },
+          {
+            "value": "Slip-on",
+            "label": "Slip-on"
+          },
+          {
+            "value": "Velcro",
+            "label": "Velcro"
+          }
+        ],
+        "filterable": false,
+        "position": 2
+      }
+    ],
+    "customFieldDefinitions": [
+      {
+        "entity": "order",
+        "code": "gift_note",
+        "label": "Gift note",
+        "type": "text",
+        "required": false,
+        "visibleOnStorefront": true
+      },
+      {
+        "entity": "product",
+        "code": "box_included",
+        "label": "Original box included",
+        "type": "boolean",
+        "required": false,
+        "visibleOnStorefront": true
+      }
+    ],
+    "priceLists": [
+      {
+        "id": "50000000-0000-4000-8000-000000000001",
+        "code": "retail-pkr",
+        "currency": "PKR",
+        "customerGroup": null,
+        "priority": 0,
+        "startsAt": null,
+        "endsAt": null
+      },
+      {
+        "id": "50000000-0000-4000-8000-000000000002",
+        "code": "wholesale-pkr",
+        "currency": "PKR",
+        "customerGroup": "wholesale",
+        "priority": 10,
+        "startsAt": null,
+        "endsAt": null
+      }
+    ],
+    "prices": [
+      {
+        "variantId": "30000000-0000-4000-8001-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8001-000000000002",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8001-000000000003",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8001-000000000004",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8002-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8002-000000000002",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8002-000000000003",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8002-000000000004",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8003-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8003-000000000002",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8003-000000000003",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8003-000000000004",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8004-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8004-000000000002",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8004-000000000003",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8004-000000000004",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8005-000000000001",
+        "amount": 1499900,
+        "compareAt": 1999900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8005-000000000002",
+        "amount": 1499900,
+        "compareAt": 1999900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8005-000000000003",
+        "amount": 1499900,
+        "compareAt": 1999900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8005-000000000004",
+        "amount": 1499900,
+        "compareAt": 1999900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8006-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8006-000000000002",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8006-000000000003",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8006-000000000004",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8007-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8007-000000000002",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8007-000000000003",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8007-000000000004",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8008-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8008-000000000002",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8008-000000000003",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8008-000000000004",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8009-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8009-000000000002",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8009-000000000003",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8009-000000000004",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8010-000000000001",
+        "amount": 3299900,
+        "compareAt": null,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8010-000000000002",
+        "amount": 3299900,
+        "compareAt": null,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8010-000000000003",
+        "amount": 3299900,
+        "compareAt": null,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8010-000000000004",
+        "amount": 3299900,
+        "compareAt": null,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8011-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8012-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8013-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8014-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8015-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8016-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8017-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8018-000000000001",
+        "amount": 2899900,
+        "compareAt": 3499900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "variantId": "30000000-0000-4000-8019-000000000001",
+        "amount": 1499900,
+        "compareAt": 1999900,
+        "priceListId": "50000000-0000-4000-8000-000000000001"
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8001-000000000001",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8001-000000000002",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8001-000000000003",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8001-000000000004",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8002-000000000001",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8002-000000000002",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8002-000000000003",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8002-000000000004",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8003-000000000001",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8003-000000000002",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8003-000000000003",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8003-000000000004",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8004-000000000001",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8004-000000000002",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8004-000000000003",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8004-000000000004",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8005-000000000001",
+        "amount": 1274900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8005-000000000002",
+        "amount": 1274900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8005-000000000003",
+        "amount": 1274900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8005-000000000004",
+        "amount": 1274900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8006-000000000001",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8006-000000000002",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8006-000000000003",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8006-000000000004",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8007-000000000001",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8007-000000000002",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8007-000000000003",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8007-000000000004",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8008-000000000001",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8008-000000000002",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8008-000000000003",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8008-000000000004",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8009-000000000001",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8009-000000000002",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8009-000000000003",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8009-000000000004",
+        "amount": 2464900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8010-000000000001",
+        "amount": 2804900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8010-000000000002",
+        "amount": 2804900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8010-000000000003",
+        "amount": 2804900,
+        "compareAt": null
+      },
+      {
+        "priceListId": "50000000-0000-4000-8000-000000000002",
+        "variantId": "30000000-0000-4000-8010-000000000004",
+        "amount": 2804900,
+        "compareAt": null
+      }
+    ],
+    "inventory": [
+      {
+        "variantId": "30000000-0000-4000-8001-000000000001",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8001-000000000002",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8001-000000000003",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8001-000000000004",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8002-000000000001",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8002-000000000002",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8002-000000000003",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8002-000000000004",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8003-000000000001",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8003-000000000002",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8003-000000000003",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8003-000000000004",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8004-000000000001",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8004-000000000002",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8004-000000000003",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8004-000000000004",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8005-000000000001",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8005-000000000002",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8005-000000000003",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8005-000000000004",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8006-000000000001",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8006-000000000002",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8006-000000000003",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8006-000000000004",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8007-000000000001",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8007-000000000002",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8007-000000000003",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8007-000000000004",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8008-000000000001",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8008-000000000002",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8008-000000000003",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8008-000000000004",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8009-000000000001",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8009-000000000002",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8009-000000000003",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8009-000000000004",
+        "onHand": 6,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8010-000000000001",
+        "onHand": 8,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8010-000000000002",
+        "onHand": 8,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8010-000000000003",
+        "onHand": 8,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8010-000000000004",
+        "onHand": 8,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8011-000000000001",
+        "onHand": 1,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8012-000000000001",
+        "onHand": 1,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8013-000000000001",
+        "onHand": 1,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8014-000000000001",
+        "onHand": 1,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8015-000000000001",
+        "onHand": 1,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8016-000000000001",
+        "onHand": 1,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8017-000000000001",
+        "onHand": 1,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8018-000000000001",
+        "onHand": 1,
+        "reserved": 0
+      },
+      {
+        "variantId": "30000000-0000-4000-8019-000000000001",
+        "onHand": 1,
+        "reserved": 0
+      }
+    ],
+    "reservations": [],
+    "inventoryMovements": [],
+    "carts": [],
+    "promotions": [
+      {
+        "id": "70000000-0000-4000-8000-000000000001",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "code": "WELCOME10",
+        "title": "10% off your first order",
+        "conditions": [
+          {
+            "type": "first_order"
+          }
+        ],
+        "actions": [
+          {
+            "type": "percent_off_order",
+            "basisPoints": 1000
+          }
+        ],
+        "startsAt": null,
+        "endsAt": null,
+        "usageLimit": null,
+        "perCustomerLimit": 1,
+        "timesUsed": 0,
+        "active": true,
+        "combinable": false
+      },
+      {
+        "id": "70000000-0000-4000-8000-000000000002",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "code": "PRELOVED500",
+        "title": "Rs. 500 off pre-loved pairs over Rs. 10,000",
+        "conditions": [
+          {
+            "type": "product_kind",
+            "kind": "preloved"
+          },
+          {
+            "type": "subtotal_at_least",
+            "amount": 1000000
+          }
+        ],
+        "actions": [
+          {
+            "type": "fixed_off_order",
+            "amount": 50000
+          }
+        ],
+        "startsAt": null,
+        "endsAt": null,
+        "usageLimit": 500,
+        "perCustomerLimit": null,
+        "timesUsed": 0,
+        "active": true,
+        "combinable": true
+      }
+    ],
+    "promotionRedemptions": [],
+    "shippingZones": [
+      {
+        "id": "60000000-0000-4000-8000-000000000001",
+        "name": "Pakistan",
+        "countries": [
+          "PK"
+        ],
+        "cities": [],
+        "position": 0,
+        "rates": [
+          {
+            "code": "standard",
+            "label": "Standard delivery",
+            "amount": 25000,
+            "freeOver": 1200000,
+            "minDays": 2,
+            "maxDays": 5,
+            "cashOnDelivery": true
+          },
+          {
+            "code": "express",
+            "label": "Express delivery (Karachi, Lahore, Islamabad)",
+            "amount": 60000,
+            "freeOver": null,
+            "minDays": 1,
+            "maxDays": 2,
+            "cashOnDelivery": true
+          }
+        ]
+      }
+    ],
+    "taxRates": [
+      {
+        "country": "PK",
+        "province": null,
+        "label": "GST",
+        "basisPoints": 1800,
+        "inclusive": true
+      }
+    ],
+    "orders": [],
+    "payments": [],
+    "refunds": [],
+    "returns": [],
+    "orderNotes": [],
+    "media": [],
+    "orderSequence": {
+      "prefix": "SD",
+      "next": 10001
+    },
+    "customers": [],
+    "addresses": [],
+    "sessions": [],
+    "passwordResets": [],
+    "staffRoles": [],
+    "staffMembers": [],
+    "adminPermissions": [
+      {
+        "key": "dashboard:read",
+        "label": "See the dashboard",
+        "group": "Dashboard",
+        "sensitive": false
+      },
+      {
+        "key": "orders:read",
+        "label": "See orders",
+        "group": "Orders",
+        "sensitive": false
+      },
+      {
+        "key": "orders:write",
+        "label": "Edit orders (notes, address before fulfilment)",
+        "group": "Orders",
+        "sensitive": false
+      },
+      {
+        "key": "orders:fulfil",
+        "label": "Fulfil and ship orders",
+        "group": "Orders",
+        "sensitive": false
+      },
+      {
+        "key": "orders:mark_paid",
+        "label": "Record payments (bank transfer, cash on delivery)",
+        "group": "Orders",
+        "sensitive": false
+      },
+      {
+        "key": "orders:cancel",
+        "label": "Cancel orders",
+        "group": "Orders",
+        "sensitive": false
+      },
+      {
+        "key": "orders:refund",
+        "label": "Refund orders (up to the role's limit)",
+        "group": "Orders",
+        "sensitive": true
+      },
+      {
+        "key": "orders:returns",
+        "label": "Receive returns and restock",
+        "group": "Orders",
+        "sensitive": false
+      },
+      {
+        "key": "orders:export",
+        "label": "Export orders",
+        "group": "Orders",
+        "sensitive": false
+      },
+      {
+        "key": "products:read",
+        "label": "See products",
+        "group": "Catalogue",
+        "sensitive": false
+      },
+      {
+        "key": "products:write",
+        "label": "Create and edit products",
+        "group": "Catalogue",
+        "sensitive": false
+      },
+      {
+        "key": "products:publish",
+        "label": "Publish and unpublish products",
+        "group": "Catalogue",
+        "sensitive": false
+      },
+      {
+        "key": "products:delete",
+        "label": "Archive products",
+        "group": "Catalogue",
+        "sensitive": true
+      },
+      {
+        "key": "products:import",
+        "label": "Import products",
+        "group": "Catalogue",
+        "sensitive": false
+      },
+      {
+        "key": "products:export",
+        "label": "Export products",
+        "group": "Catalogue",
+        "sensitive": false
+      },
+      {
+        "key": "collections:read",
+        "label": "See collections",
+        "group": "Catalogue",
+        "sensitive": false
+      },
+      {
+        "key": "collections:write",
+        "label": "Edit collections",
+        "group": "Catalogue",
+        "sensitive": false
+      },
+      {
+        "key": "inventory:read",
+        "label": "See stock",
+        "group": "Catalogue",
+        "sensitive": false
+      },
+      {
+        "key": "inventory:adjust",
+        "label": "Adjust stock",
+        "group": "Catalogue",
+        "sensitive": false
+      },
+      {
+        "key": "media:read",
+        "label": "See media",
+        "group": "Catalogue",
+        "sensitive": false
+      },
+      {
+        "key": "media:write",
+        "label": "Upload and edit media",
+        "group": "Catalogue",
+        "sensitive": false
+      },
+      {
+        "key": "customers:read",
+        "label": "See customers (contact details masked)",
+        "group": "Customers",
+        "sensitive": false
+      },
+      {
+        "key": "customers:read_pii",
+        "label": "See customer email, phone and address",
+        "group": "Customers",
+        "sensitive": false
+      },
+      {
+        "key": "customers:write",
+        "label": "Edit customers",
+        "group": "Customers",
+        "sensitive": false
+      },
+      {
+        "key": "customers:export",
+        "label": "Export customer data",
+        "group": "Customers",
+        "sensitive": true
+      },
+      {
+        "key": "customers:delete",
+        "label": "Anonymise customers",
+        "group": "Customers",
+        "sensitive": true
+      },
+      {
+        "key": "promotions:read",
+        "label": "See promotions",
+        "group": "Marketing",
+        "sensitive": false
+      },
+      {
+        "key": "promotions:write",
+        "label": "Create and edit promotions",
+        "group": "Marketing",
+        "sensitive": false
+      },
+      {
+        "key": "marketing:read",
+        "label": "See newsletter and abandoned carts",
+        "group": "Marketing",
+        "sensitive": false
+      },
+      {
+        "key": "marketing:export",
+        "label": "Export subscribers",
+        "group": "Marketing",
+        "sensitive": true
+      },
+      {
+        "key": "search:read",
+        "label": "See search analytics",
+        "group": "Marketing",
+        "sensitive": false
+      },
+      {
+        "key": "search:write",
+        "label": "Edit search synonyms",
+        "group": "Marketing",
+        "sensitive": false
+      },
+      {
+        "key": "content:read",
+        "label": "See pages and FAQs",
+        "group": "Content",
+        "sensitive": false
+      },
+      {
+        "key": "content:write",
+        "label": "Edit pages and FAQs",
+        "group": "Content",
+        "sensitive": false
+      },
+      {
+        "key": "content:publish",
+        "label": "Publish pages and FAQs",
+        "group": "Content",
+        "sensitive": false
+      },
+      {
+        "key": "payments:read",
+        "label": "See payments and refunds",
+        "group": "Money",
+        "sensitive": false
+      },
+      {
+        "key": "payments:reconcile",
+        "label": "Reconcile payments",
+        "group": "Money",
+        "sensitive": false
+      },
+      {
+        "key": "reports:read",
+        "label": "See reports",
+        "group": "Money",
+        "sensitive": false
+      },
+      {
+        "key": "reports:export",
+        "label": "Export reports",
+        "group": "Money",
+        "sensitive": false
+      },
+      {
+        "key": "pricing:read",
+        "label": "See price lists and exchange rates",
+        "group": "Money",
+        "sensitive": false
+      },
+      {
+        "key": "pricing:write",
+        "label": "Edit price lists and exchange rates",
+        "group": "Money",
+        "sensitive": false
+      },
+      {
+        "key": "shipping:read",
+        "label": "See shipping and tax",
+        "group": "Setup",
+        "sensitive": false
+      },
+      {
+        "key": "shipping:write",
+        "label": "Edit shipping and tax",
+        "group": "Setup",
+        "sensitive": false
+      },
+      {
+        "key": "settings:read",
+        "label": "See settings",
+        "group": "Setup",
+        "sensitive": false
+      },
+      {
+        "key": "settings:write",
+        "label": "Edit store settings",
+        "group": "Setup",
+        "sensitive": false
+      },
+      {
+        "key": "settings:flags",
+        "label": "Switch feature flags",
+        "group": "Setup",
+        "sensitive": false
+      },
+      {
+        "key": "settings:payments",
+        "label": "Change payment settings",
+        "group": "Setup",
+        "sensitive": true
+      },
+      {
+        "key": "settings:webhooks",
+        "label": "Manage webhook endpoints",
+        "group": "Setup",
+        "sensitive": true
+      },
+      {
+        "key": "settings:api_keys",
+        "label": "Manage API keys",
+        "group": "Setup",
+        "sensitive": true
+      },
+      {
+        "key": "jobs:run",
+        "label": "Run scheduled jobs",
+        "group": "Setup",
+        "sensitive": false
+      },
+      {
+        "key": "staff:read",
+        "label": "See staff and roles",
+        "group": "Staff",
+        "sensitive": false
+      },
+      {
+        "key": "staff:manage",
+        "label": "Invite, suspend and reset staff",
+        "group": "Staff",
+        "sensitive": true
+      },
+      {
+        "key": "roles:manage",
+        "label": "Create and edit roles",
+        "group": "Staff",
+        "sensitive": true
+      },
+      {
+        "key": "audit:read",
+        "label": "See the audit log",
+        "group": "Staff",
+        "sensitive": false
+      }
+    ],
+    "adminRoles": [
+      {
+        "id": "90000000-0000-4000-8000-000000000001",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "key": "owner",
+        "name": "Owner",
+        "description": "Everything. The store always keeps at least one active Owner.",
+        "isSystem": true,
+        "refundLimit": null,
+        "permissions": [
+          "dashboard:read",
+          "orders:read",
+          "orders:write",
+          "orders:fulfil",
+          "orders:mark_paid",
+          "orders:cancel",
+          "orders:refund",
+          "orders:returns",
+          "orders:export",
+          "products:read",
+          "products:write",
+          "products:publish",
+          "products:delete",
+          "products:import",
+          "products:export",
+          "collections:read",
+          "collections:write",
+          "inventory:read",
+          "inventory:adjust",
+          "media:read",
+          "media:write",
+          "customers:read",
+          "customers:read_pii",
+          "customers:write",
+          "customers:export",
+          "customers:delete",
+          "promotions:read",
+          "promotions:write",
+          "marketing:read",
+          "marketing:export",
+          "search:read",
+          "search:write",
+          "content:read",
+          "content:write",
+          "content:publish",
+          "payments:read",
+          "payments:reconcile",
+          "reports:read",
+          "reports:export",
+          "pricing:read",
+          "pricing:write",
+          "shipping:read",
+          "shipping:write",
+          "settings:read",
+          "settings:write",
+          "settings:flags",
+          "settings:payments",
+          "settings:webhooks",
+          "settings:api_keys",
+          "jobs:run",
+          "staff:read",
+          "staff:manage",
+          "roles:manage",
+          "audit:read"
+        ],
+        "createdAt": "2026-11-07T00:00:00.000Z",
+        "updatedAt": "2026-11-07T00:00:00.000Z"
+      },
+      {
+        "id": "90000000-0000-4000-8000-000000000002",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "key": "admin",
+        "name": "Admin",
+        "description": "Runs the store day to day, including staff.",
+        "isSystem": true,
+        "refundLimit": null,
+        "permissions": [
+          "dashboard:read",
+          "orders:read",
+          "orders:write",
+          "orders:fulfil",
+          "orders:mark_paid",
+          "orders:cancel",
+          "orders:refund",
+          "orders:returns",
+          "orders:export",
+          "products:read",
+          "products:write",
+          "products:publish",
+          "products:delete",
+          "products:import",
+          "products:export",
+          "collections:read",
+          "collections:write",
+          "inventory:read",
+          "inventory:adjust",
+          "media:read",
+          "media:write",
+          "customers:read",
+          "customers:read_pii",
+          "customers:write",
+          "customers:export",
+          "customers:delete",
+          "promotions:read",
+          "promotions:write",
+          "marketing:read",
+          "marketing:export",
+          "search:read",
+          "search:write",
+          "content:read",
+          "content:write",
+          "content:publish",
+          "payments:read",
+          "payments:reconcile",
+          "reports:read",
+          "reports:export",
+          "pricing:read",
+          "pricing:write",
+          "shipping:read",
+          "shipping:write",
+          "settings:read",
+          "settings:write",
+          "settings:flags",
+          "settings:payments",
+          "settings:webhooks",
+          "settings:api_keys",
+          "jobs:run",
+          "staff:read",
+          "staff:manage",
+          "roles:manage",
+          "audit:read"
+        ],
+        "createdAt": "2026-11-07T00:00:00.000Z",
+        "updatedAt": "2026-11-07T00:00:00.000Z"
+      },
+      {
+        "id": "90000000-0000-4000-8000-000000000003",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "key": "store_manager",
+        "name": "Store Manager",
+        "description": "Orders, catalogue, promotions and content; no staff, roles, payment, webhook or API-key settings.",
+        "isSystem": true,
+        "refundLimit": 10000000,
+        "permissions": [
+          "dashboard:read",
+          "orders:read",
+          "orders:write",
+          "orders:fulfil",
+          "orders:mark_paid",
+          "orders:cancel",
+          "orders:refund",
+          "orders:returns",
+          "orders:export",
+          "products:read",
+          "products:write",
+          "products:publish",
+          "products:delete",
+          "products:import",
+          "products:export",
+          "collections:read",
+          "collections:write",
+          "inventory:read",
+          "inventory:adjust",
+          "media:read",
+          "media:write",
+          "customers:read",
+          "customers:read_pii",
+          "customers:write",
+          "customers:export",
+          "promotions:read",
+          "promotions:write",
+          "marketing:read",
+          "marketing:export",
+          "search:read",
+          "search:write",
+          "content:read",
+          "content:write",
+          "content:publish",
+          "payments:read",
+          "payments:reconcile",
+          "reports:read",
+          "reports:export",
+          "pricing:read",
+          "pricing:write",
+          "shipping:read",
+          "shipping:write",
+          "settings:read",
+          "settings:write",
+          "settings:flags",
+          "jobs:run",
+          "staff:read",
+          "audit:read"
+        ],
+        "createdAt": "2026-11-07T00:00:00.000Z",
+        "updatedAt": "2026-11-07T00:00:00.000Z"
+      },
+      {
+        "id": "90000000-0000-4000-8000-000000000004",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "key": "catalogue_editor",
+        "name": "Catalogue Editor",
+        "description": "Keeps products, collections, stock and media right.",
+        "isSystem": true,
+        "refundLimit": 0,
+        "permissions": [
+          "dashboard:read",
+          "products:read",
+          "products:write",
+          "products:publish",
+          "products:import",
+          "products:export",
+          "collections:read",
+          "collections:write",
+          "inventory:read",
+          "inventory:adjust",
+          "media:read",
+          "media:write",
+          "pricing:read"
+        ],
+        "createdAt": "2026-11-07T00:00:00.000Z",
+        "updatedAt": "2026-11-07T00:00:00.000Z"
+      },
+      {
+        "id": "90000000-0000-4000-8000-000000000005",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "key": "content_editor",
+        "name": "Content Editor",
+        "description": "Policy pages, FAQs and media.",
+        "isSystem": true,
+        "refundLimit": 0,
+        "permissions": [
+          "dashboard:read",
+          "content:read",
+          "content:write",
+          "content:publish",
+          "media:read",
+          "media:write"
+        ],
+        "createdAt": "2026-11-07T00:00:00.000Z",
+        "updatedAt": "2026-11-07T00:00:00.000Z"
+      },
+      {
+        "id": "90000000-0000-4000-8000-000000000006",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "key": "marketing",
+        "name": "Marketing",
+        "description": "Promotions, newsletter, search and reports.",
+        "isSystem": true,
+        "refundLimit": 0,
+        "permissions": [
+          "dashboard:read",
+          "promotions:read",
+          "promotions:write",
+          "marketing:read",
+          "marketing:export",
+          "search:read",
+          "search:write",
+          "reports:read",
+          "products:read",
+          "collections:read",
+          "customers:read",
+          "content:read"
+        ],
+        "createdAt": "2026-11-07T00:00:00.000Z",
+        "updatedAt": "2026-11-07T00:00:00.000Z"
+      },
+      {
+        "id": "90000000-0000-4000-8000-000000000007",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "key": "support_agent",
+        "name": "Support Agent",
+        "description": "Answers customers: orders, notes, cancellations, small refunds.",
+        "isSystem": true,
+        "refundLimit": 500000,
+        "permissions": [
+          "dashboard:read",
+          "orders:read",
+          "orders:write",
+          "orders:cancel",
+          "orders:refund",
+          "orders:returns",
+          "customers:read",
+          "customers:read_pii",
+          "customers:write",
+          "products:read",
+          "inventory:read"
+        ],
+        "createdAt": "2026-11-07T00:00:00.000Z",
+        "updatedAt": "2026-11-07T00:00:00.000Z"
+      },
+      {
+        "id": "90000000-0000-4000-8000-000000000008",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "key": "fulfilment",
+        "name": "Fulfilment",
+        "description": "Packs and ships orders, keeps stock right.",
+        "isSystem": true,
+        "refundLimit": 0,
+        "permissions": [
+          "dashboard:read",
+          "orders:read",
+          "orders:fulfil",
+          "orders:returns",
+          "products:read",
+          "inventory:read",
+          "inventory:adjust"
+        ],
+        "createdAt": "2026-11-07T00:00:00.000Z",
+        "updatedAt": "2026-11-07T00:00:00.000Z"
+      },
+      {
+        "id": "90000000-0000-4000-8000-000000000009",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "key": "finance",
+        "name": "Finance",
+        "description": "Payments, refunds, reconciliation and reports.",
+        "isSystem": true,
+        "refundLimit": 50000000,
+        "permissions": [
+          "dashboard:read",
+          "orders:read",
+          "orders:mark_paid",
+          "orders:refund",
+          "orders:export",
+          "payments:read",
+          "payments:reconcile",
+          "reports:read",
+          "reports:export",
+          "pricing:read",
+          "customers:read",
+          "customers:read_pii"
+        ],
+        "createdAt": "2026-11-07T00:00:00.000Z",
+        "updatedAt": "2026-11-07T00:00:00.000Z"
+      },
+      {
+        "id": "90000000-0000-4000-8000-000000000010",
+        "storeId": "00000000-0000-4000-8000-000000000001",
+        "key": "read_only",
+        "name": "Read-only",
+        "description": "Sees everything except customer contact details and the audit log; changes nothing.",
+        "isSystem": true,
+        "refundLimit": 0,
+        "permissions": [
+          "dashboard:read",
+          "orders:read",
+          "products:read",
+          "collections:read",
+          "inventory:read",
+          "media:read",
+          "customers:read",
+          "promotions:read",
+          "marketing:read",
+          "search:read",
+          "content:read",
+          "payments:read",
+          "reports:read",
+          "pricing:read",
+          "shipping:read",
+          "settings:read",
+          "staff:read"
+        ],
+        "createdAt": "2026-11-07T00:00:00.000Z",
+        "updatedAt": "2026-11-07T00:00:00.000Z"
+      }
+    ],
+    "staffRoleLinks": [],
+    "staffInvites": [],
+    "staffSessions": [],
+    "pages": [
+      {
+        "slug": "about",
+        "title": "About Sole Drop",
+        "description": "New and pre-loved footwear from brands you love.",
+        "updatedAt": "2026-11-03T00:00:00.000Z",
+        "seo": {},
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Sole Drop sells brand-new and pre-loved footwear from the brands you love — ASICS, Nike, adidas, HOKA, Brooks and more."
+          },
+          {
+            "type": "paragraph",
+            "text": "Every brand-new pair is sourced from authorised distributors. Every pre-loved pair is inspected, cleaned, graded and photographed, so the pair you see is the pair you get."
+          },
+          {
+            "type": "cta",
+            "text": "Fresh finds. Fresh steps.",
+            "label": "Shop new arrivals",
+            "href": "/collections/new-arrivals"
+          }
+        ]
+      },
+      {
+        "slug": "our-story",
+        "title": "Our Story",
+        "description": "Why we started Sole Drop.",
+        "updatedAt": "2026-11-03T00:00:00.000Z",
+        "seo": {},
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Sole Drop started in Karachi with a simple idea: great shoes shouldn't be hard to find, and good shoes shouldn't go to waste."
+          },
+          {
+            "type": "paragraph",
+            "text": "So we built one place for new releases and second-chance pairs — honest about condition, quick to deliver, and easy to return."
+          }
+        ]
+      }
+    ],
+    "faqs": [
+      {
+        "id": "80000000-0000-4000-8000-000000000001",
+        "category": "Shopping & sizing",
+        "question": "What does Soledrop sell?",
+        "answer": "We offer Brand New shoes and individually assessed Pre-Loved shoes. Both can appear in the same shopping cart, and each item is labeled by category.",
+        "position": 0
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000002",
+        "category": "Shopping & sizing",
+        "question": "Can I order Brand New and Pre-Loved shoes together?",
+        "answer": "Yes, where both items are in stock and eligible for the same checkout. We review any later return request for each product separately.",
+        "position": 1
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000003",
+        "category": "Shopping & sizing",
+        "question": "Are all shoes the same fit in EU size 42, for example?",
+        "answer": "Not necessarily. Shoe sizing varies by brand and model. Use the stated EU size and any measurements provided, or ask support before purchasing.",
+        "position": 2
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000004",
+        "category": "Shopping & sizing",
+        "question": "Which payment methods are accepted?",
+        "answer": "Only payment methods displayed at checkout are currently active. They may include COD or supported prepaid options as configured.",
+        "position": 3
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000005",
+        "category": "Shopping & sizing",
+        "question": "Can I cancel after placing an order?",
+        "answer": "Contact us immediately. We aim to help before dispatch; after dispatch, the normal return process applies.",
+        "position": 4
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000006",
+        "category": "Pre-Loved shoes",
+        "question": "Are Pre-Loved shoes new?",
+        "answer": "No. Even a Like New pair belongs to our Pre-Loved collection. Brand New is a separate category for unused footwear.",
+        "position": 5
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000007",
+        "category": "Pre-Loved shoes",
+        "question": "How do I know the condition of a Pre-Loved pair?",
+        "answer": "Check the actual product photos, condition grade, description, size information, and flaw notes. Our five Pre-Loved grades are Like New, Premium, Excellent, Very Good, and Minor Issue.",
+        "position": 6
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000008",
+        "category": "Pre-Loved shoes",
+        "question": "Do Pre-Loved shoes come with the original box?",
+        "answer": "Only if the product listing says so. Packaging and included accessories may vary from one pair to another.",
+        "position": 7
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000009",
+        "category": "Pre-Loved shoes",
+        "question": "Is every Pre-Loved pair cleaned?",
+        "answer": "We disclose our actual preparation process and do not promise medical sterilization. If you need information about how a particular pair was prepared, ask support.",
+        "position": 8
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000010",
+        "category": "Pre-Loved shoes",
+        "question": "Are Pre-Loved shoes guaranteed to last for a set time?",
+        "answer": "No fixed remaining lifespan can be guaranteed. Prior wear, storage, materials, and age affect durability. This does not remove rights relating to an undisclosed defect or misrepresentation.",
+        "position": 9
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000011",
+        "category": "Delivery & tracking",
+        "question": "How much is delivery?",
+        "answer": "The delivery amount is shown before order confirmation. Standard shipping: {standardShipping}.",
+        "position": 10
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000012",
+        "category": "Delivery & tracking",
+        "question": "How long will delivery take?",
+        "answer": "Our standard is one to two working days to prepare an order, followed by an estimated three to seven working days after dispatch.",
+        "position": 11
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000013",
+        "category": "Delivery & tracking",
+        "question": "How can I track an order?",
+        "answer": "We share a tracking reference or status update when our chosen courier provides it. Contact us with your order number if you need assistance.",
+        "position": 12
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000014",
+        "category": "Returns, exchanges & refunds",
+        "question": "Can I exchange shoes if the size is wrong?",
+        "answer": "Our seven-day policy allows eligible indoor try-on exchanges or returns for both categories. Brand New shoes must remain unused, while Pre-Loved shoes must remain in the condition received. A matching Pre-Loved replacement cannot be guaranteed.",
+        "position": 13
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000015",
+        "category": "Returns, exchanges & refunds",
+        "question": "Can I return a Pre-Loved pair because I changed my mind?",
+        "answer": "Yes, when you contact us within seven calendar days of delivery and the item qualifies for a preference return. Customer-paid return postage normally applies for this reason.",
+        "position": 14
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000016",
+        "category": "Returns, exchanges & refunds",
+        "question": "What if the shoes are damaged or different from the description?",
+        "answer": "Contact support promptly with photographs and your order number. We separately investigate wrong items, undisclosed faults, and materially misleading descriptions. Mandatory legal remedies are not removed by the voluntary return conditions.",
+        "position": 15
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000017",
+        "category": "Returns, exchanges & refunds",
+        "question": "How do refunds work for COD orders?",
+        "answer": "For an approved eligible refund, we can arrange a verified bank transfer or another agreed secure method. We will explain the destination and timing before processing.",
+        "position": 16
+      },
+      {
+        "id": "80000000-0000-4000-8000-000000000018",
+        "category": "Contact us",
+        "question": "How do I contact Soledrop?",
+        "answer": "Email {supportEmail}, call or WhatsApp {contactNumber}, or use our website contact form at {contactPage}.",
+        "position": 17
+      }
+    ],
+    "newsletter": [],
+    "contactMessages": [],
+    "searchSynonyms": [
+      {
+        "id": "60000000-0000-4000-8000-000000000001",
+        "term": "sneakers",
+        "synonyms": [
+          "trainers",
+          "kicks",
+          "joggers"
+        ]
+      },
+      {
+        "id": "60000000-0000-4000-8000-000000000002",
+        "term": "running",
+        "synonyms": [
+          "runners",
+          "jogging"
+        ]
+      },
+      {
+        "id": "60000000-0000-4000-8000-000000000003",
+        "term": "pre-loved",
+        "synonyms": [
+          "preloved",
+          "used",
+          "second hand",
+          "thrift"
+        ]
+      },
+      {
+        "id": "60000000-0000-4000-8000-000000000004",
+        "term": "new balance",
+        "synonyms": [
+          "nb"
+        ]
+      },
+      {
+        "id": "60000000-0000-4000-8000-000000000005",
+        "term": "grey",
+        "synonyms": [
+          "gray"
+        ]
+      },
+      {
+        "id": "60000000-0000-4000-8000-000000000006",
+        "term": "sketchers",
+        "synonyms": [
+          "skechers"
+        ]
+      }
+    ],
+    "searchEvents": [],
+    "flags": [
+      {
+        "key": "b2b-pricing",
+        "description": "Wholesale price list and quote requests for approved trade accounts.",
+        "enabled": false,
+        "customerGroups": [
+          "wholesale"
+        ]
+      },
+      {
+        "key": "multi-currency-display",
+        "description": "Show approximate prices in USD / AED / GBP next to PKR.",
+        "enabled": false
+      },
+      {
+        "key": "stripe-payments",
+        "description": "Card payments through Stripe (needs STRIPE_SECRET_KEY).",
+        "enabled": false
+      },
+      {
+        "key": "express-delivery",
+        "description": "Offer the express delivery rate at checkout.",
+        "enabled": true
+      }
+    ],
+    "outbox": [],
+    "webhookDeliveries": [],
+    "audit": [],
+    "rateLimits": {
+      "mapEntries": []
+    },
+    "idempotency": {
+      "mapEntries": []
+    },
+    "exchangeRates": {
+      "base": "PKR",
+      "rates": {
+        "PKR": 1,
+        "USD": 0.0036,
+        "AED": 0.0132,
+        "GBP": 0.0028
+      },
+      "updatedAt": "2026-11-01T00:00:00.000Z"
+    }
+  }
+}

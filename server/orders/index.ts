@@ -1,4 +1,6 @@
 import "server-only"
+
+import type { OrderOperations as DomainOperations } from "@/server/orders/repository"
 import { createMysqlOrderRepository } from "@/server/orders/mysql.repository"
 import { staffService } from "@/server/db/staff-service"
 
@@ -15,12 +17,11 @@ import { createFixturesOrderRepository } from "@/server/orders/fixtures.reposito
 import { createOrderService } from "@/server/orders/service"
 import { createStaffOrders } from "@/server/orders/staff"
 import { adminService } from "@/server/admin"
-import { createSupabaseOrderRepository } from "@/server/orders/supabase.repository"
 import { currentActor, establishCheckoutEmail, establishOrderLookup, establishOrderToken, withActor } from "@/server/db/context"
 import { systemActor } from "@/server/db/actor"
 import type { CheckoutInput, OrderViewer } from "@/server/orders/service"
 
-const repository = selectRepository({ mysql: createMysqlOrderRepository,  fixtures: createFixturesOrderRepository, supabase: createSupabaseOrderRepository })
+const repository = selectRepository<DomainOperations>({ mysql: createMysqlOrderRepository,  fixtures: createFixturesOrderRepository, })
 
 export const orderService = () => {
   const service = createOrderService({

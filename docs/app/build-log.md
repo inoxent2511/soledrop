@@ -289,3 +289,36 @@ Production browser checks exposed build-inlined CSRF canonical URLs on independe
 Validation: **1,751/1,751** full application checks and **1,390/1,390** database checks, zero pending; typecheck, zero-warning lint, thirteen forward migrations/bundles/grants and final production build pass. **12/12** original production banner journeys pass across Chromium, Firefox and WebKit on isolated MariaDB, covering uploads, homepage/collection publication, referenced-media deletion, stale saves, read-only controls, 320/390/1440 containment and axe. The final read-only reconciliation extension also passes its targeted provider and shared real-engine checks. Private reports: m7-unit-final.json, m7-db-final.json and m7-browser-banners.json. Details: [admin-migration.md](./admin-migration.md). MIG-022–025 record the fixes.
 
 This is the admin migration checkpoint, not final readiness. Next: M8 legacy retirement, complete schema/runtime readiness and pool deadlines; M9 Hostinger import package/private data handoff; M10 two complete production passes per engine, performance and failure acceptance. No push, deployment, hosting/remote DB action or real email/payment has occurred.
+
+## 2026-11-09 — M8 legacy retirement and runtime readiness
+
+Removed the retired backend SDKs, thirteen adapters, obsolete SQL/configuration and emulator harness.
+All 60 original database-test intents have an explicit native replacement ledger; no pending test is
+counted as a pass. Each domain now selects an explicit MySQL or fixture contract. Production defaults
+to MySQL; local saved storage remains available only when explicitly selected. AUTH_SECRET aliases
+the existing SESSION_SECRET and conflicting keys fail instead of silently invalidating imported MFA.
+
+Readiness checks the live engine, exact migration names/checksums, physical schema, selected store,
+storage and configured mail transport. The migration manifest is generated from immutable forward
+SQL. Startup failure exits the process. Pool admission, query and transaction deadlines discard timed-out
+sockets, and graceful shutdown drains admitted work while rejecting new work. Engine errors hide SQL
+and parameters; MariaDB CHECK errno 4025 has an explicit portable mapping.
+
+Public demo fixture generation and empty loopback QA seeding are explicit commands, separate from
+merchant bootstrap. Fresh least-privilege import tests exposed an append-only ledger locking defect:
+an INSERT IGNORE claim now serializes concurrent imports without granting UPDATE/DELETE. Legacy
+queued bearer links can be sealed through a bounded audited tool without changing delivery metadata.
+Both preserved merchant databases already contained sealed payloads (two inspected, zero changes).
+
+Validation: **1,699/1,699** full application tests plus **3/3** subsequently added runtime-environment
+checks; **1,434/1,434** real-engine database checks, zero pending. Typecheck, zero-warning lint and
+production build pass. Four actual standalone startup drills exit with the expected failure for a
+missing session key, refused database, unwritable storage and refused loopback SMTP. Fourteen native
+pool/schema/shutdown failure cases pass across MySQL and MariaDB. A clean source checkout builds
+with neither local environment files nor database credentials. Preserved data comparison is
+**3,758 checks, zero differences on each engine**. Evidence is private under `.data/mysql-migration/`
+(m8-unit-final.json, m8-runtime-env.json, m8-db-final.json, m8-startup-drills.json,
+m8-clean-build.json and both m8 preservation reports).
+
+M9 deployment packaging/private handoff and M10 complete production/performance acceptance remain.
+No hosting account, remote database, deployment, real mail or payment was contacted.

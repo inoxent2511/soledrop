@@ -1,7 +1,7 @@
 /**
  * Query matching shared by both data drivers: diacritics- and case-insensitive, synonym-aware,
  * typo-tolerant (one edit for words of 4–7 letters, two from 8) and aware of SKUs and EU sizes.
- * Pure functions, so the fixtures and Supabase drivers rank results identically.
+ * Pure functions, so the fixtures and MySQL/MariaDB drivers rank results identically.
  */
 
 /** Term → equivalent terms, both folded ("sneakers" → ["trainers", "shoes"]). */

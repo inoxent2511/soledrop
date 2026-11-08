@@ -20,3 +20,33 @@ The app user has table-specific SELECT/INSERT/UPDATE/DELETE grants, except audit
 Plain SQL and runtime column mappings intentionally separate schema authority from Drizzle declarations. PostgreSQL arrays are retained as child relations (ordered `position`, indexed `value`), not filterable JSON. Attribute and search projections are transactional write responsibilities. The two filtered unique guards use virtual generated columns, compatible with cascading foreign keys on both engines. Parent existence is enforced by foreign keys; child cardinality such as a nonempty synonym list is a repository transaction invariant.
 
 No remote server or hosting account is contacted by the local tools. Account-specific setup and fallbacks are in [the Hostinger checklist](../docs/app/hostinger-checklist.md).
+
+## Readiness, fixtures and recovery
+
+`db:bundle` also regenerates `server/db/migration-manifest.ts` from canonical SQL. Commit that
+manifest with each new migration. Runtime readiness verifies exact names/checksums and physical
+tables/columns; no SQL source files or filesystem scan are required in the runtime artifact.
+Startup fails if the database, selected store, storage or configured mail transport is unusable.
+`/api/health` is liveness; `/api/ready` returns 503 for readiness failures.
+
+Pool admission and queries default to 10 seconds, transactions to 30 seconds. Configure
+`DATABASE_ACQUIRE_TIMEOUT_MS`, `DATABASE_QUERY_TIMEOUT_MS` and
+`DATABASE_TRANSACTION_TIMEOUT_MS` within 100–120000 ms. Timed-out sockets are discarded;
+late queue admissions release immediately. Shutdown stops admission and drains active work.
+
+`db:demo-fixture` explicitly generates `db/seed/demo.json` from public fixtures with no staff,
+sessions, private tokens or merchant data. `db:seed-demo` imports it only into an empty, named
+loopback test/QA database. It is never part of startup, production bootstrap or ordinary migrations.
+Tests verify rollback, digest mismatch rejection and concurrent replay. Use guarded `db:reset`
+only to remove a disposable test database's contents.
+
+Fresh-database tests read the ignored portable-engine instance configuration or private
+`DB_TEST_ADMIN_CONNECTIONS` JSON with a root/admin connection URL per engine. Those accounts
+are used only to create and finally remove randomly named loopback QA schemas and dedicated
+least-privilege users. They are never runtime application credentials.
+
+For an imported queue with older plaintext bearer links, run the loopback-only
+`node --conditions=react-server --import ./scripts/register.mjs scripts/normalize-delivery-secrets.ts`.
+It verifies opened link equivalence, preserves delivery metadata, audits changed batches and is
+safe to repeat. Preserve `SESSION_SECRET`; changing it invalidates imported sealed MFA/links.
+`AUTH_SECRET` is an optional alias and must match when both are configured.

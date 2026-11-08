@@ -13,6 +13,17 @@ export function createFileEmailProvider(directory: string, from: string): EmailP
   const transport = nodemailer.createTransport({ streamTransport: true, buffer: true, newline: "unix" })
   return {
     name: "file",
+    async verify() {
+      const probe = path.join(root, ".probe-" + randomUUID())
+      try {
+        await fs.mkdir(root, { recursive: true, mode: 0o700 })
+        const stat = await fs.lstat(root)
+        if (!stat.isDirectory() || stat.isSymbolicLink()) return false
+        await fs.writeFile(probe, "", { flag: "wx", mode: 0o600 })
+        return true
+      } catch { return false }
+      finally { await fs.unlink(probe).catch(() => undefined) }
+    },
     async send(message) {
       const key = message.idempotencyKey ?? randomUUID(), id = createHash("sha256").update(key).digest("hex")
       await fs.mkdir(root, { recursive: true, mode: 0o700 })

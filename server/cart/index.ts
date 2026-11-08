@@ -1,9 +1,10 @@
 import "server-only"
+
+import type { CartOperations as DomainOperations } from "@/server/cart/repository"
 import { createMysqlCartRepository } from "@/server/cart/mysql.repository"
 
 import { createFixturesCartRepository } from "@/server/cart/fixtures.repository"
 import { createCartService } from "@/server/cart/service"
-import { createSupabaseCartRepository } from "@/server/cart/supabase.repository"
 import { catalog } from "@/server/catalog"
 import { selectRepository } from "@/server/db/driver"
 import { inventory } from "@/server/inventory"
@@ -13,7 +14,7 @@ import { pricing } from "@/server/pricing"
 import { promotionsRepository } from "@/server/promotions"
 import { shippingRepository } from "@/server/shipping"
 
-const repository = selectRepository({ mysql: createMysqlCartRepository,  fixtures: createFixturesCartRepository, supabase: createSupabaseCartRepository })
+const repository = selectRepository<DomainOperations>({ mysql: createMysqlCartRepository,  fixtures: createFixturesCartRepository, })
 
 /** The raw cart repository (admin abandoned-bag list). */
 export const cartRepository = repository

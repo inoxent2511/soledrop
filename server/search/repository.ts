@@ -11,6 +11,8 @@ export interface SearchOperations {
   // ─── Staff (admin A8) ─────────────────────────────────────────────────────
   /** What shoppers searched in the last `days`: totals, top queries with clicks, and searches that found nothing. */
   report(storeId: string, days: number, limit: number): Promise<SearchReport>
+  /** Bounded fuzzy merchant-history lookup, replacing the private engine-specific operator. */
+  similarQueries(storeId: string, query: string, days: number, limit: number): Promise<string[]>
   /** Creates or updates a synonym group; a term is unique per store. */
   saveSynonym(storeId: string, group: SynonymGroup): Promise<SynonymGroup>
   deleteSynonym(storeId: string, id: string): Promise<void>

@@ -2,7 +2,7 @@ import type { ActorScoped } from "@/server/db/actor"
 import type { PresetRole } from "@/server/admin/permissions"
 import type { Role, StaffInvite, StaffMember, StaffSession } from "@/server/admin/types"
 
-/** Staff identity and RBAC storage; both drivers implement it (fixtures, supabase). */
+/** Staff identity and RBAC storage; both retained drivers require explicit actors. */
 export interface AdminOperations {
   findMemberByEmail(storeId: string, email: string): Promise<StaffMember | null>
   findMember(storeId: string, userId: string): Promise<StaffMember | null>

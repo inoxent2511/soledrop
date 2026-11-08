@@ -1,4 +1,6 @@
 import "server-only"
+
+import type { ShippingOperations as DomainOperations } from "@/server/shipping/repository"
 import { createMysqlShippingRepository } from "@/server/shipping/mysql.repository"
 import { staffService } from "@/server/db/staff-service"
 
@@ -7,11 +9,9 @@ import { adminService } from "@/server/admin"
 import { localService, selectRepository } from "@/server/db/driver"
 import { createFixturesShippingRepository } from "@/server/shipping/fixtures.repository"
 import { createStaffShipping } from "@/server/shipping/staff"
-import { createSupabaseShippingRepository } from "@/server/shipping/supabase.repository"
 
-export const shippingRepository = selectRepository({ mysql: createMysqlShippingRepository,
+export const shippingRepository = selectRepository<DomainOperations>({ mysql: createMysqlShippingRepository,
   fixtures: createFixturesShippingRepository,
-  supabase: createSupabaseShippingRepository,
 })
 export {
   quoteRates,

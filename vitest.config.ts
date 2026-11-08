@@ -14,7 +14,7 @@ export default defineConfig({
     env: { DATA_DRIVER: "fixtures" },
     include: ["tests/**/*.test.ts"],
     environment: "node",
-    // PGlite boots a WASM Postgres per database suite.
+    // Real-engine contracts run separately through pnpm db:test.
     testTimeout: 60_000,
     hookTimeout: 120_000,
   },

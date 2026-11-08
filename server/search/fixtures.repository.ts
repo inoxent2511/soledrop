@@ -5,16 +5,21 @@ import { searchGuards } from "@/server/db/fixture-guards.repository"
 import { db, transaction } from "@/server/fixtures/store"
 import { DomainError } from "@/server/shared/errors"
 import type { SearchOperations, SearchRepository } from "@/server/search/repository"
+import { assertSearchEvent, searchWindow } from "./validation"
+import { similarHistoryQueries } from "./history"
 
 export function createFixturesSearchRepository(): SearchRepository {
   const operations: SearchOperations = {
+    async similarQueries(storeId, query, days, limit) { return similarHistoryQueries(await operations.report(storeId, days, 1000), query, limit) },
     async listSynonyms() {
       return structuredClone(db().searchSynonyms)
     },
     async logEvent(_storeId, event) {
+      assertSearchEvent(event)
       db().searchEvents.push(structuredClone(event))
     },
     async trending(_storeId, days, limit) {
+      const bounded = searchWindow(days, limit); days = bounded.days; limit = bounded.limit
       const since = Date.now() - days * 86_400_000
       const counts = new Map<string, number>()
       for (const event of db().searchEvents) {
@@ -27,6 +32,7 @@ export function createFixturesSearchRepository(): SearchRepository {
         .slice(0, limit)
     },
     async report(_storeId, days, limit) {
+      const bounded = searchWindow(days, limit, 1000); days = bounded.days; limit = bounded.limit
       const since = Date.now() - days * 86_400_000
       const events = db().searchEvents.filter((event) => Date.parse(event.createdAt) >= since)
       const searches = events.filter((event) => event.clickedSlug === null)

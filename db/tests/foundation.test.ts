@@ -17,6 +17,11 @@ for (const [engine, config] of engines) describe(engine + " foundation", () => {
     expect((await migrate(admin)).engine).toBe(engine)
     expect((await migrate(admin)).migrations).toBe((await migrationFiles()).length)
   })
+  it("requires no executable SQL routines or triggers with elevated security", async () => {
+    const [[rows]] = await admin.query<RowDataPacket[]>("SELECT (SELECT COUNT(*) FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA = DATABASE()) AS routines, (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TRIGGERS WHERE TRIGGER_SCHEMA = DATABASE()) AS triggers")
+    expect(Number(rows.routines)).toBe(0)
+    expect(Number(rows.triggers)).toBe(0)
+  })
 
   it("enforces checksum immutability before executing pending SQL", async () => {
     const [rows] = await admin.query<RowDataPacket[]>("SELECT name, checksum FROM schema_migrations ORDER BY name LIMIT 1")

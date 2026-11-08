@@ -17,7 +17,7 @@ import { mensSizeByEu } from "@/content/size-guide"
  * (design/spec/outline), so every designed screen can be reproduced; copy that the design
  * doesn't show (descriptions, condition notes) is written to the content rules in
  * docs/app/content-rules.md and is replaceable by the owner (docs/app/phase-2.md).
- * The same data seeds Postgres via `node scripts/db-seed-sql.mjs`.
+ * The same public reference data forms the explicit isolated QA fixture.
  */
 
 export const STORE_ID = "00000000-0000-4000-8000-000000000001"

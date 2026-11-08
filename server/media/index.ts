@@ -1,4 +1,6 @@
 import "server-only"
+
+import type { MediaOperations as DomainOperations } from "@/server/media/repository"
 import { createMysqlMediaRepository } from "@/server/media/mysql.repository"
 import { staffService } from "@/server/db/staff-service"
 
@@ -6,9 +8,8 @@ import { adminService } from "@/server/admin"
 import { localService, selectRepository, unitOfWork } from "@/server/db/driver"
 import { createFixturesMediaRepository } from "@/server/media/fixtures.repository"
 import { createMediaService } from "@/server/media/service"
-import { createSupabaseMediaRepository } from "@/server/media/supabase.repository"
 
-const repository = selectRepository({ mysql: createMysqlMediaRepository,  fixtures: createFixturesMediaRepository, supabase: createSupabaseMediaRepository })
+const repository = selectRepository<DomainOperations>({ mysql: createMysqlMediaRepository,  fixtures: createFixturesMediaRepository, })
 export const mediaRepository = repository
 
 export const mediaService = () =>

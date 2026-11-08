@@ -7,7 +7,7 @@ import type { PlatformOperations } from "./repository"
 import type { AuditEntry, EventTopic, FeatureFlag, OutboxEvent, WebhookDelivery } from "./types"
 import type { Permission } from "@/server/admin/permissions"
 import { type Actor, type ActorScoped, requireGrant, requireStore } from "@/server/db/actor"
-import { database, withTransaction } from "@/server/db/client"
+import { database, databaseStatus, withTransaction } from "@/server/db/client"
 import { constant } from "@/server/db/query.repository"
 import { auditLog, authTokens, customers, featureFlagCustomerGroups, featureFlags, idempotencyKeys, outboxChannels, outboxEvents, passwordResets, rateLimits, sessions, staffSessions, webhookDeliveries } from "@/server/db/schema"
 import { escapeLike, isoDate, jsonValue, sqlDate, sqlNow } from "@/server/db/values"
@@ -151,7 +151,7 @@ export function createMysqlPlatformRepository(): ActorScoped<PlatformOperations>
       })
     },
     async ping(_actor) {
-      await database()
+      await databaseStatus()
       return true
     },
     async setFlag(actor, storeId, key, changes) {

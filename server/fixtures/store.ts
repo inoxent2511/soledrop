@@ -24,8 +24,8 @@ import { LocalStore } from "@/server/db/local-store"
 import { homeSeed } from "@/server/fixtures/home-seed"
 
 /**
- * The in-memory database behind DATA_DRIVER=fixtures. Tables mirror the Postgres schema
- * (supabase/migrations) and the fixtures repositories reproduce each RPC's guarantees —
+ * The in-memory database behind DATA_DRIVER=fixtures. Reference tables and repositories
+ * reproduce transactional guarantees —
  * stock never below zero, idempotent order placement, legal state transitions — so the
  * storefront behaves the same on both drivers. Data lives for the life of the server process.
  */
@@ -128,6 +128,13 @@ export function createLocalTables(): FixtureTables {
   return tables
 }
 
+/** Explicit isolated QA seed source. Never includes staff credentials or merchant state. */
+export function createDemoTables(): FixtureTables {
+  const tables = structuredClone(createTables())
+  tables.staffMembers = []; tables.staffRoleLinks = []; tables.staffSessions = []
+  return tables
+}
+
 export function localStore(): LocalStore<FixtureTables> {
   return globalStore.__soledropLocal ??= new LocalStore(serverEnv.LOCAL_DATA_DIR, createLocalTables)
 }
@@ -221,7 +228,7 @@ export function fixtureTablesForStore(actor: Actor): FixtureTables {
 
 /**
  * Runs `work` as one atomic unit: on any throw the tables are restored, which is how the
- * fixtures driver mirrors a Postgres transaction. Node runs it without interleaving because
+ * fixtures driver mirrors a database transaction. Node runs it without interleaving because
  * `work` is synchronous.
  */
 export function transaction<T>(work: (tables: FixtureTables) => T): T {
