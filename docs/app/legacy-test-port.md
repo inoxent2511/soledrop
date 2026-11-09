@@ -68,3 +68,10 @@ Public homepage reads and aggregate trending remain public through the app; priv
 | L58 | `tests/db/search.test.ts` — can use the trigram index for fuzzy merchant reports | [db/tests/legacy-contract.test.ts](../../db/tests/legacy-contract.test.ts) |
 | L59 | `tests/db/seed.test.ts` — is generated from the fixtures and up to date | [db/tests/seed.test.ts](../../db/tests/seed.test.ts) |
 | L60 | `tests/db/seed.test.ts` — loads into the migrated schema with every row the fixtures driver serves | [db/tests/seed.test.ts](../../db/tests/seed.test.ts) |
+
+Production browser ports retain their original assertions and run against isolated native stores.
+`QA_STAFF_FILE` supplies a separate real identity per test/role, enabling all admin cases on
+Firefox and WebKit without shared TOTP replay races. Staff-cookie assertions use the migration's
+explicit SameSite=Lax contract while retaining HttpOnly and revoked-cookie replay checks.
+`QA_MEDIA_FIXTURES_FILE` maps the same large photo fixtures to uploaded/prepared media renditions:
+the original content-type and compression budgets remain, with an additional dimension check.

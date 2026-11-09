@@ -59,7 +59,7 @@ export default async function AdminDashboardPage() {
           <ul className="flex flex-col gap-1">
             {attention.map((item) => (
               <li key={item.key}>
-                <Link href={item.href} className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2.5 text-16 transition-colors hover:border-foreground">
+                <Link href={item.href} prefetch={false} className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2.5 text-16 transition-colors hover:border-foreground">
                   <span className="flex items-center gap-2">
                     <StatusPill tone={item.tone}>{item.count}</StatusPill> {item.label}
                   </span>
@@ -75,7 +75,7 @@ export default async function AdminDashboardPage() {
             title="Latest orders"
             className="xl:col-span-2"
             actions={
-              <Link href="/admin/orders" className="text-14 font-semibold underline underline-offset-4">
+              <Link href="/admin/orders" prefetch={false} className="text-14 font-semibold underline underline-offset-4">
                 All orders
               </Link>
             }
@@ -143,7 +143,7 @@ export default async function AdminDashboardPage() {
           <ul className="flex flex-col divide-y divide-border text-16">
             {activity.entries.map((entry) => (
               <li key={entry.id} className="flex flex-wrap justify-between gap-2 py-2">
-                <span>
+                <span className="min-w-0 break-all">
                   <code className="text-14 font-semibold">{entry.action}</code> <span className="text-subtle-foreground">{entry.entityId !== "*" ? entry.entityId : ""}</span>
                 </span>
                 <span className="text-14 text-subtle-foreground">{time(entry.at)}</span>

@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./support/test"
 
 // lib/site reads the app env through the "@/" alias, so the profile URL is matched here instead.
 const instagramProfile = /^https:\/\/www\.instagram\.com\/[\w.]+$/

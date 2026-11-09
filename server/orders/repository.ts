@@ -3,7 +3,7 @@ import type { EventTopic } from "@/server/platform/types"
 
 /** One line of the money ledger: a payment or a refund, with its order. */
 export type LedgerRow = { id: string; orderNumber: string; provider: string | null; status: string; amount: number; currency: string; reference: string | null; reason: string | null; at: string }
-import type { Order, OrderNote, OrderPage, OrderQuery, OrderStatus, Payment, Refund, ReturnRequest } from "@/server/orders/types"
+import type { Order, OrderNote, OrderPage, OrderQuery, OrderStatus, Payment, Refund, ReturnRequest, SalesOrderPage, SalesOrderQuery } from "@/server/orders/types"
 
 /** A fully priced order ready to persist; everything here was computed on the server. */
 export type OrderDraft = Omit<Order, "id" | "number" | "history" | "placedAt" | "updatedAt" | "refundedTotal">
@@ -42,6 +42,7 @@ export interface OrderOperations {
   nextOrderNumber(storeId: string): Promise<string>
   /** Staff search (admin): number, email, name or phone; filters; one page plus the total. */
   search(storeId: string, query: OrderQuery): Promise<OrderPage>
+  searchSales(storeId: string, query: SalesOrderQuery): Promise<SalesOrderPage>
   listRefunds(orderId: string): Promise<Refund[]>
   /** Approves or rejects a requested return; anything else is an invalid transition. */
   decideReturn(returnId: string, decision: "approved" | "rejected", actor: string): Promise<ReturnRequest>

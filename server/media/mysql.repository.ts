@@ -107,8 +107,8 @@ export function createMysqlMediaRepository(): ActorScoped<MediaOperations> {
       const [row] = await db.select({ path: media.path }).from(media).where(and(eq(media.storeId, actor.storeId), eq(media.path, path))).limit(1)
       return row ? (await storage().get(row.path))?.data ?? null : null
     },
-    async readVariant(actor, path, width, format) {
-      const key = variantKey(path, width, format), db = await database()
+    async readVariant(actor, path, width, format, version) {
+      const key = variantKey(path, width, format, version), db = await database()
       const [row] = await db.select({ path: media.path }).from(media).where(and(eq(media.storeId, actor.storeId), eq(media.path, path))).limit(1)
       return row ? (await storage().get(key))?.data ?? null : null
     },

@@ -1,4 +1,6 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./support/test"
+import { clientAddress } from "./support/admin"
 
 /**
  * Security sweep (E1) against the production build: private and operator endpoints refuse
@@ -6,7 +8,7 @@ import { expect, test } from "@playwright/test"
  * a fake address into X-Forwarded-For (BUG-015). The harness plays the one trusted proxy
  * (TRUSTED_PROXY_HOPS=1), so the last X-Forwarded-For entry is the shopper's address.
  */
-const shopperAddress = () => `198.51.100.${Math.floor(Math.random() * 250) + 1}-${Date.now().toString(36)}`
+const shopperAddress = clientAddress
 const unique = () => `${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`
 
 test("anonymous callers get 401 from account, operator and job endpoints", async ({ request }) => {
@@ -32,11 +34,11 @@ test("cross-site mutations are refused before they run", async ({ request }) => 
   expect((await response.json()).error.code).toBe("forbidden")
 })
 
-test("sign-in attempts are limited per address and a forged X-Forwarded-For entry doesn't reset the count (BUG-015)", async ({ request }) => {
+test("sign-in attempts are limited per address and a forged X-Forwarded-For entry doesn't reset the count (BUG-015)", async ({ request, baseURL }) => {
   const address = shopperAddress()
   const attempt = (forged: string) =>
     request.post("/api/auth/login", {
-      headers: { "x-forwarded-for": `${forged}, ${address}` },
+      headers: { origin: new URL(baseURL!).origin, "x-forwarded-for": `${forged}, ${address}` },
       data: { email: `nobody-${unique()}@example.test`, password: "wrongPassword1" },
     })
   for (let index = 0; index < 10; index += 1) {
@@ -47,7 +49,7 @@ test("sign-in attempts are limited per address and a forged X-Forwarded-For entr
   expect(Number(limited.headers()["retry-after"])).toBeGreaterThan(0)
   // A different shopper behind the same proxy is unaffected.
   const other = await request.post("/api/auth/login", {
-    headers: { "x-forwarded-for": shopperAddress() },
+    headers: { origin: new URL(baseURL!).origin, "x-forwarded-for": shopperAddress() },
     data: { email: `nobody-${unique()}@example.test`, password: "wrongPassword1" },
   })
   expect(other.status()).toBe(401)

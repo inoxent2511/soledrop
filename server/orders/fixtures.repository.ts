@@ -14,6 +14,7 @@ import type { EventTopic } from "@/server/platform/types"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
 import { assertRefundCapacity, assertRefundReplay } from "./refund-intent"
+import { salesOrder, validateSalesQuery } from "./sales"
 
 function nextNumberIn(tables: FixtureTables): string {
   const number = `${tables.orderSequence.prefix}${tables.orderSequence.next}`
@@ -281,6 +282,12 @@ export function createFixturesOrderRepository(): OrderRepository {
     },
     async listReturns(orderId) {
       return structuredClone(db().returns.filter((row) => row.orderId === orderId))
+    },
+    async searchSales(storeId, query) {
+      validateSalesQuery(query)
+      const found = db().orders.filter((order) => order.storeId === storeId && matches(order, query)).sort(SORTERS.placed_asc)
+      const start = (query.page - 1) * query.pageSize
+      return { orders: found.slice(start, start + query.pageSize).map(salesOrder), total: found.length }
     },
     async search(storeId, query) {
       const found = db().orders.filter((order) => order.storeId === storeId && matches(order, query)).sort(SORTERS[query.sort ?? "placed_desc"])

@@ -92,8 +92,8 @@ export function createFixturesMediaRepository(): MediaRepository {
       }
       return files.get(path) ?? null
     },
-    async readVariant(path, width, format) {
-      const key = variantKey(path, width, format)
+    async readVariant(path, width, format, version) {
+      const key = variantKey(path, width, format, version)
       if (!db().media.some((row) => row.path === path)) return null
       if (serverEnv.DATA_DRIVER === "local") {
         const file = localFile(key)

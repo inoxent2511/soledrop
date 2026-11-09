@@ -40,7 +40,7 @@ export function DataTable<Row>({ caption, columns, rows, rowKey, href, empty }: 
               {columns.map((column, index) => (
                 <td key={column.key} className={cn("h-12 px-3 align-middle", column.align === "end" ? "text-end tabular-nums" : "text-start", column.hideBelow && hide[column.hideBelow])}>
                   {index === 0 && href ? (
-                    <Link href={href(row)} className="font-semibold underline-offset-4 hover:underline">
+                    <Link href={href(row)} prefetch={false} className="font-semibold underline-offset-4 hover:underline">
                       {column.render(row)}
                     </Link>
                   ) : (

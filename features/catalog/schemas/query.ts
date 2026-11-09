@@ -1,5 +1,5 @@
 import "@/lib/validation"
-import { z } from "zod"
+import * as z from "zod/mini"
 
 import {
   CONDITION_GRADES,
@@ -28,7 +28,7 @@ const list = (value: string | string[] | undefined) =>
     .map((item) => item.trim())
     .filter(Boolean)
 
-const major = z.coerce.number().int().nonnegative().max(10_000_000)
+const major = z.coerce.number().check(z.int(), z.gte(0), z.lte(10_000_000))
 
 /**
  * Listing URLs are the source of truth for filters (shareable, back-button safe):
@@ -45,7 +45,7 @@ export function parseProductQuery(params: Params): ProductQuery {
   const first = (key: string) => list(get(key))[0]
   const min = major.safeParse(first("min"))
   const max = major.safeParse(first("max"))
-  const page = z.coerce.number().int().min(1).max(500).safeParse(first("page"))
+  const page = z.coerce.number().check(z.int(), z.gte(1), z.lte(500)).safeParse(first("page"))
   const sort = SORT_OPTIONS.find(
     (option) => option.value === first("sort")
   )?.value

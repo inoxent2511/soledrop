@@ -16,7 +16,7 @@ try {
     for (const item of result.items) {
       const bytes = await storage().get(item.path)
       if (!bytes) throw new Error("An indexed original image is missing")
-      await writeImageVariants(item.path, bytes.data, (key, data) => storage().put(key, data))
+      await writeImageVariants(item.path, bytes.data, (key, data) => storage().put(key, data), { exists: async (key) => Boolean(await storage().get(key)) })
       prepared++
       if (prepared % 10 === 0) process.stdout.write(JSON.stringify({ preparedImages: prepared, total: result.total, complete: false }) + "\n")
     }

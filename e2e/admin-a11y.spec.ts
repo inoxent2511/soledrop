@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright"
-import { expect, test, type Page } from "@playwright/test"
+import { expect, type Page } from "@playwright/test"
+import { test } from "./support/test"
 
 import { signInAs } from "./support/admin"
 
@@ -7,7 +8,7 @@ import { signInAs } from "./support/admin"
  * Accessibility of the admin (A11): axe with the WCAG 2.2 A/AA rules on the sign-in screen and
  * every module page as an Admin, at desktop and phone width. Chromium only.
  */
-test.skip(({ browserName }) => browserName !== "chromium", "TOTP-limited demo accounts; covered once")
+test.skip(({ browserName }) => !process.env.QA_STAFF_FILE && browserName !== "chromium", "Shared demo TOTP accounts; isolated QA runs every browser")
 
 const PAGES = [
   "/admin",

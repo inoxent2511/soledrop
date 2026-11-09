@@ -1,4 +1,5 @@
-import { expect, test, type Locator } from "@playwright/test"
+import { expect, type Locator } from "@playwright/test"
+import { test } from "./support/test"
 
 import { waitForHydration } from "./support/panels"
 
@@ -19,7 +20,7 @@ test.describe("hover fills never melt into their section", () => {
     await page.goto("/")
     await waitForHydration(page)
     for (const control of [
-      page.getByRole("link", { name: "New shoes" }),
+      page.locator("section[aria-labelledby='hero-title']").getByRole("link").first(),
       page.getByRole("button", { name: "Add to cart", exact: true }).first(),
       page.getByRole("button", { name: /join now/i }),
       page.getByRole("contentinfo").getByRole("link", { name: "SHOP NOW" }),

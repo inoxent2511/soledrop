@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, type Page } from "@playwright/test"
+import { test } from "./support/test"
 
 // D-067: a Men or Women tab's Brand New and Pre-Loved choices open with that gender ticked; no Kids filter.
 

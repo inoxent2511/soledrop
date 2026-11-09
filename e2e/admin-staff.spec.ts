@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./support/test"
 
 import { totpAt } from "../server/admin/totp"
 import { clientAddress, signInAs } from "./support/admin"
@@ -8,7 +9,7 @@ import { clientAddress, signInAs } from "./support/admin"
  * password, enrols TOTP from the QR key, keeps the recovery codes and lands in the admin with only
  * their role's modules; the Owner then suspends them and their session ends. Also the ⌘K palette.
  */
-test.skip(({ browserName }) => browserName !== "chromium", "TOTP-limited demo accounts; covered once")
+test.skip(({ browserName }) => !process.env.QA_STAFF_FILE && browserName !== "chromium", "Shared demo TOTP accounts; isolated QA runs every browser")
 
 test("an invited member enrols two-step verification, works, and is locked out when suspended", async ({ page, browser }) => {
   test.setTimeout(180_000)
@@ -20,7 +21,9 @@ test("an invited member enrols two-step verification, works, and is locked out w
   const dialog = page.getByRole("dialog")
   await dialog.getByLabel("Their work email").fill(email)
   await dialog.getByLabel("Role").selectOption({ label: "Fulfilment" })
+  const inviteResponse = page.waitForResponse((response) => response.url().endsWith("/api/admin/staff/invites") && response.request().method() === "POST")
   await dialog.getByRole("button", { name: "Create invite" }).click()
+  expect((await inviteResponse).status()).toBe(201)
   const link = (await dialog.locator("code").textContent())?.trim() ?? ""
   expect(link).toMatch(/\/admin\/invite\/[\w-]{43}$/)
   await dialog.getByRole("button", { name: "Done" }).click()

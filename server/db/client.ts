@@ -19,6 +19,7 @@ type Limits = { acquire: number; query: number; transaction: number }
 type Activity = { active: number; closing: boolean; waiters: Set<() => void> }
 type State = { pool: Pool; client: Pool; db: Database; ready: Promise<Engine>; engine?: Engine; limits: Limits; activity: Activity; connections: Set<{ destroy(): void }>; schemaCheckedAt?: number }
 const transaction = new AsyncLocalStorage<Database>()
+const sessionInitializers = new WeakMap<Pool, Map<number, Promise<void>>>()
 const globals = globalThis as typeof globalThis & { __soledropMysql?: State; __soledropMysqlShutdown?: boolean }
 
 function milliseconds(name: string, fallback: number): number {
@@ -34,6 +35,10 @@ async function deadline<T>(connection: PoolConnection, operation: () => Promise<
     return await Promise.race([operation(), new Promise<never>((_resolve, reject) => {
       timer = setTimeout(() => { connection.destroy(); reject(new DomainError("unavailable", "The store is busy. Please try again.")) }, timeout)
     })])
+  } catch (error) {
+    const cause = driverError(error)
+    if (cause && typeof cause === "object" && "errno" in cause && [1317, 1969, 3024].includes(Number(cause.errno))) connection.destroy()
+    throw error
   } finally { clearTimeout(timer) }
 }
 
@@ -92,15 +97,30 @@ function state(): State {
     charset: "utf8mb4_unicode_ci", multipleStatements: false,
     ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: true } : undefined,
   })
-  // Queue session setup before mysql2 hands a newly established connection to a query.
+  const initializers = new Map<number, Promise<void>>()
+  // Admission awaits session setup; async engine detection must finish before the first query.
   raw.on("connection", (connection) => {
     connections.add(connection)
-    connection.once("end", () => connections.delete(connection))
-    connection.query("SET SESSION time_zone = '+00:00'")
-    connection.query("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'")
-    connection.query("SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+    connection.once("end", () => { connections.delete(connection); initializers.delete(connection.threadId) })
+    const initialized = (async () => {
+      const session = connection.promise()
+      await session.query("SET SESSION time_zone = '+00:00'")
+      await session.query("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'")
+      await session.query("SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+      const [[identity]] = await session.query<RowDataPacket[]>("SELECT VERSION() AS version, @@version_comment AS comment")
+      const engine = supportedEngine(String(identity.version), String(identity.comment))
+      // Keep the client deadline first; the engine also cancels work abandoned with its socket.
+      const serverDeadline = limits.query + 250
+      if (engine.engine === "mariadb") await session.query("SET SESSION max_statement_time = ?", [serverDeadline / 1000])
+      else await session.query("SET SESSION max_execution_time = ?", [serverDeadline])
+      await session.query("SET SESSION innodb_lock_wait_timeout = ?", [Math.max(1, Math.ceil(serverDeadline / 1000))])
+    })()
+    initializers.set(connection.threadId, initialized)
+    // A handshake may finish after its waiting borrower expires. Admission still observes errors.
+    void initialized.catch(() => undefined)
   })
   const pool = raw.promise()
+  sessionInitializers.set(pool, initializers)
   const activity: Activity = { active: 0, closing: false, waiters: new Set() }
   const client = boundedPool(pool, limits, activity)
   const db = drizzle({ client, schema, mode: "default" })
@@ -120,7 +140,10 @@ export function databaseError(error: unknown): Error {
   const code = cause && typeof cause === "object" && "code" in cause ? String(cause.code) : ""
   const errno = cause && typeof cause === "object" && "errno" in cause ? Number(cause.errno) : 0
   if (["ER_DUP_ENTRY", "ER_LOCK_DEADLOCK", "ER_LOCK_WAIT_TIMEOUT"].includes(code)) return new DomainError("conflict", "This record changed. Please try again.")
-  if (["ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "PROTOCOL_CONNECTION_LOST", "PROTOCOL_SEQUENCE_TIMEOUT", "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR", "ER_CON_COUNT_ERROR", "ER_USER_LIMIT_REACHED"].includes(code) || cause instanceof Error && /Queue limit reached|Pool is closed|closed state/i.test(cause.message)) return new DomainError("unavailable", "The store is temporarily unavailable. Please try again.")
+  if (["ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "PROTOCOL_CONNECTION_LOST", "PROTOCOL_SEQUENCE_TIMEOUT", "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR", "ER_CON_COUNT_ERROR", "ER_USER_LIMIT_REACHED", "ER_QUERY_INTERRUPTED", "ER_QUERY_TIMEOUT", "ER_STATEMENT_TIMEOUT"].includes(code) || [1317, 1969, 3024].includes(errno) || cause instanceof Error && /Queue limit reached|Pool is closed|closed state/i.test(cause.message)) {
+    console.warn(JSON.stringify({ level: "warn", event: "database_unavailable", code: /^[A-Z0-9_]+$/.test(code) ? code : "pool_unavailable", ...(errno ? { errno } : {}) }))
+    return new DomainError("unavailable", "The store is temporarily unavailable. Please try again.")
+  }
   if (["ER_CHECK_CONSTRAINT_VIOLATED", "ER_CONSTRAINT_FAILED", "ER_NO_REFERENCED_ROW_2", "ER_ROW_IS_REFERENCED_2"].includes(code) || errno === 4025 && globals.__soledropMysql?.engine?.engine === "mariadb") return new DomainError("validation", "This record conflicts with the store's data rules.")
   // Drizzle errors include SQL and bound parameters in their message. Never send those to
   // instrumentation/logs or clients when a driver/schema failure reaches a repository boundary.
@@ -138,6 +161,8 @@ function driverError(error: unknown): unknown {
   return current
 }
 
+export function inDatabaseTransaction(): boolean { return Boolean(transaction.getStore()) }
+
 export async function database(): Promise<Database> {
   const current = transaction.getStore()
   if (current) return current
@@ -148,14 +173,19 @@ export async function database(): Promise<Database> {
 
 async function acquire(pool: Pool, timeout: number): Promise<PoolConnection> {
   let expired = false
+  let admitted: PoolConnection | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
-  const connection = pool.getConnection().then((value) => {
+  const connection = pool.getConnection().then(async (value) => {
     if (expired) { value.release(); throw new DomainError("unavailable", "The store is busy. Please try again.") }
+    admitted = value
+    try { await sessionInitializers.get(pool)?.get(value.threadId) }
+    catch (error) { value.destroy(); throw error }
+    if (expired) { value.destroy(); throw new DomainError("unavailable", "The store is busy. Please try again.") }
     return value
   })
   try {
     return await Promise.race([connection, new Promise<never>((_resolve, reject) => {
-      timer = setTimeout(() => { expired = true; reject(new DomainError("unavailable", "The store is busy. Please try again.")) }, timeout)
+      timer = setTimeout(() => { expired = true; admitted?.destroy(); reject(new DomainError("unavailable", "The store is busy. Please try again.")) }, timeout)
     })])
   } finally { clearTimeout(timer) }
 }
@@ -201,6 +231,8 @@ export async function databaseStatus() {
       const name = getTableConfig(table).name
       if (Object.values(getTableColumns(table)).some((column) => !present.has(name + "." + column.name))) throw new DomainError("unavailable", "The physical database schema is incomplete.", { check: "schema" })
     }
+    const [missingSearch] = await current.client.query<RowDataPacket[]>("SELECT 1 FROM orders o LEFT JOIN order_search_documents d ON d.order_id=o.id AND d.store_id=o.store_id WHERE d.order_id IS NULL OR d.search_version<1 LIMIT 1")
+    if (missingSearch.length) throw new DomainError("unavailable", "Order search backfill is incomplete. Run the release order reindex before starting the application.", { check: "schema" })
     current.schemaCheckedAt = Date.now()
   }
   return { ...engine, migration: rows.at(-1)?.name ?? null, schemaVerified: true, poolMax: Number(process.env.DATABASE_POOL_MAX ?? "5") }

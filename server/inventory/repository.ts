@@ -20,6 +20,8 @@ export interface InventoryOperations {
   levels(variantIds: string[]): Promise<StockLevelRow[]>
   /** Report projection; does not grant access to stock adjustments or movement history. */
   reportLevels(variantIds: string[]): Promise<StockLevelRow[]>
+  /** Product projection; no movement history or adjustment authority. */
+  catalogueLevels(variantIds: string[]): Promise<StockLevelRow[]>
   /** The adjustment ledger, newest first. */
   movements(variantIds: string[], limit: number): Promise<StockMovement[]>
 }

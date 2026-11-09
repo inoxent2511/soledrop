@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import { eq } from "drizzle-orm"
+import { and, eq, inArray } from "drizzle-orm"
 import { ALL_PERMISSIONS, PERMISSIONS, PRESET_ROLES } from "@/server/admin/permissions"
 import type { AdminOperations } from "@/server/admin/repository"
 import type { StaffMember } from "@/server/admin/types"
@@ -30,7 +30,7 @@ import { createMysqlSearchRepository } from "@/server/search/mysql.repository"
 import { anonymousActor, systemActor, type Actor } from "@/server/db/actor"
 import { bindActor } from "@/server/db/bind"
 import { closeDatabase, database } from "@/server/db/client"
-import { inventoryLevels, inventoryReservations, orderNumberSequences, orders as orderRows, products, staffRoles, stores } from "@/server/db/schema"
+import { inventoryLevels, inventoryReservations, orderNumberSequences, orderSearchGrams, orderSearchValues as searchValues, orders as orderRows, products, staffRoles, stores } from "@/server/db/schema"
 import { sqlDate } from "@/server/db/values"
 import { scopedKey } from "@/server/platform/scoped-key"
 import { uuidv7 } from "@/server/db/uuid"
@@ -47,6 +47,9 @@ import { withTransaction } from "@/server/db/client"
 import { fixtureAtomic } from "@/server/fixtures/atomic"
 import { cartService } from "@/server/cart"
 import { catalog as catalogueService } from "@/server/catalog"
+import { reindexOrderSearch, syncOrderSearch } from "@/server/orders/search-index.repository"
+import { orderSearchValues } from "@/server/orders/search-values"
+import { salesOrder } from "@/server/orders/sales"
 
 const hash = (value: string) => createHash("sha256").update(value).digest("hex")
 for (const [engine, configuration] of [["fixtures", null] as const, ...engines] as const) describe(engine + " identity/commerce/jobs contract", () => {
@@ -169,6 +172,48 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     expect((await carts.findById(cart.id))?.status).toBe("converted")
   })
 
+  it("keeps literal substring, Unicode and normalized-phone search identical across drivers", async () => {
+    const original = (await orders.findById(order.id))!
+    const changed = { number: original.number, email: "qa+percent_%@example.test", phone: "+92 (300) 123-4567", shippingAddress: { ...original.shippingAddress, fullName: "İpek Élodie Straße 𐐀_% N\0Z" } }
+    const update = async (value: typeof changed) => {
+      if (fixture) Object.assign(fixtureDb().orders.find((row) => row.id === order.id)!, structuredClone(value))
+      else {
+        await withTransaction(async (db) => {
+          await db.update(orderRows).set({ ...value, updatedAt: sqlDate(original.updatedAt) }).where(eq(orderRows.id, order.id))
+          await syncOrderSearch(db, actor, order.id)
+        })
+      }
+    }
+    try {
+      await update(changed)
+      if (!fixture) expect((await reindexOrderSearch(actor, null)).count).toBe(1)
+      for (const [q, expected] of [["i̇pek", true], ["ipek", false], ["élodie", true], ["elodie", false], ["straße", true], ["strasse", false], ["𐐨", true], ["_%", true], ["\\", false], ["N\0Z", true], [changed.number.slice(-1) + "\0qa", false], ["3001", true], ["301", false], ["+92 (300)", true], ["   ", true]] as const) {
+        const result = await orders.search(storeId, { q, page: 1, pageSize: 10 })
+        expect(result.orders.map((row) => row.id), q).toEqual(expected ? [order.id] : [])
+        expect(result.total, q).toBe(expected ? 1 : 0)
+      }
+      expect((await orders.search(storeId, { q: "élodie", page: 2, pageSize: 10 })).total).toBe(1)
+      expect((await orders.findById(order.id))?.updatedAt).toBe(original.updatedAt)
+      if (!fixture) {
+        await expect(withTransaction(async (db) => {
+          await db.update(orderRows).set({ email: "rollback-only@example.test" }).where(eq(orderRows.id, order.id))
+          await syncOrderSearch(db, actor, order.id)
+          throw new Error("Rollback search projection")
+        })).rejects.toThrow("Rollback search projection")
+        expect((await orders.search(storeId, { q: "rollback-only", page: 1, pageSize: 10 })).total).toBe(0)
+      }
+    } finally {
+      await update({ number: original.number, email: original.email, phone: original.phone, shippingAddress: original.shippingAddress })
+      if (!fixture) {
+        const originalHashes = new Set(orderSearchValues({ ...original, fullName: original.shippingAddress.fullName }).map((row) => row.valueHash))
+        const erased = orderSearchValues({ ...changed, fullName: changed.shippingAddress.fullName }).map((row) => row.valueHash).filter((key) => !originalHashes.has(key))
+        const db = await database()
+        expect(await db.select({ id: searchValues.valueHash }).from(searchValues).where(and(eq(searchValues.storeId, storeId), inArray(searchValues.valueHash, erased)))).toEqual([])
+        expect(await db.select({ id: orderSearchGrams.valueHash }).from(orderSearchGrams).where(and(eq(orderSearchGrams.storeId, storeId), inArray(orderSearchGrams.valueHash, erased)))).toEqual([])
+      }
+    }
+  })
+
   it("records payments once, follows the state machine, notes and return decisions", async () => {
     const input = { orderId: order.id, provider: "cod", status: "captured" as const, amount: 10000, currency: "PKR" as const, providerRef: null, idempotencyKey: uuidv7() }
     const paid = await orders.recordPayment(input)
@@ -177,8 +222,10 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     expect((await platform.outboxSummary(storeId)).pending).toBe(pendingAfterPayment)
     expect((await orders.listPayments(order.id)).length).toBe(1)
     expect((await orders.findById(order.id))?.paymentStatus).toBe("paid")
+    expect((await orders.search(storeId, { q: order.number, paymentStatus: ["paid"], page: 1, pageSize: 10 })).total).toBe(1)
     await expect(orders.transition(order.id, "delivered", "migration")).rejects.toMatchObject({ code: "invalid_transition" })
     for (const status of ["processing", "shipped", "delivered"] as const) await orders.transition(order.id, status, "migration")
+    expect((await orders.search(storeId, { q: order.number, status: ["delivered"], page: 1, pageSize: 10 })).total).toBe(1)
     const note = await orders.addNote({ orderId: order.id, author: ownerId, authorName: "Contract staff", body: "Internal contract note" })
     expect(await orders.listNotes(order.id)).toEqual([note])
     const request = await orders.createReturn({ orderId: order.id, lines: [{ orderLineId: order.lines[0].id, quantity: 1 }], reason: "Fit" })
@@ -197,6 +244,7 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     await expect(orders.createRefund({ ...input, lines: [], amount: 6000, idempotencyKey: uuidv7() })).rejects.toMatchObject({ code: "validation" })
     expect((await orders.findByNumber(storeId, order.number))?.refundedTotal).toBe(5000)
     expect((await orders.search(storeId, { q: order.number, page: 1, pageSize: 10 })).total).toBe(1)
+    expect((await orders.search(storeId, { q: order.number, paymentStatus: ["partially_refunded"], page: 1, pageSize: 10 })).total).toBe(1)
     expect((await orders.listByCustomer(storeId, customerId)).length).toBe(1)
     expect((await orders.listRefunds(order.id)).length).toBe(1)
     expect((await orders.ledger(storeId, { kind: "payments", page: 1, pageSize: 10 })).rows[0].amount).toBe(10000)
@@ -396,6 +444,8 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     expect(scrubbed?.passwordHash).toBe("")
     expect(await customers.listAddresses(customerId)).toEqual([])
     expect((await orders.findById(order.id))?.total).toBe(10000)
+    expect((await orders.search(storeId, { q: "contract@example.test", page: 1, pageSize: 100 })).orders.map((row) => row.id)).not.toContain(order.id)
+    expect((await orders.search(storeId, { q: order.number, page: 1, pageSize: 10 })).orders[0].email).toContain("@invalid")
   })
 
   it("refreshes an expired idempotency entry while retaining first-write-wins within its live window", async () => {
@@ -411,6 +461,21 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     await platform.saveIdempotent(key, 201, { version: 2 })
     await platform.saveIdempotent(key, 202, { version: 3 })
     expect(await platform.getIdempotent(key)).toEqual({ status: 201, body: { version: 2 } })
+  })
+
+  it("reports financials and catalogue stock without granting orders, PII or inventory management", async () => {
+    const reportActor = systemActor(storeId, "integration", ["reports:read"])
+    const reporting = bindActor<OrderOperations>(fixture ? createFixturesOrderRepository() : createMysqlOrderRepository(), () => reportActor)
+    const expected = await orders.search(storeId, { page: 1, pageSize: 1000, sort: "placed_asc" })
+    const page = await reporting.searchSales(storeId, { page: 1, pageSize: 1000 })
+    expect(page).toEqual({ orders: expected.orders.map(salesOrder), total: expected.total })
+    expect(JSON.stringify(page)).not.toMatch(/email|phone|shippingAddress|accessTokenHash|customerId|idempotencyKey/)
+    await expect(reporting.search(storeId, { page: 1, pageSize: 10 })).rejects.toMatchObject({ code: "forbidden" })
+    await expect(reporting.searchSales(uuidv7(), { page: 1, pageSize: 10 })).rejects.toMatchObject({ code: "forbidden" })
+    await expect(reporting.searchSales(storeId, { page: 1, pageSize: 1001 })).rejects.toMatchObject({ code: "validation" })
+    const catalogue = bindActor<InventoryOperations>(fixture ? createFixturesInventoryRepository() : createMysqlInventoryRepository(), () => systemActor(storeId, "integration", ["products:read"]))
+    expect(await catalogue.catalogueLevels([variantId])).toEqual(await inventory.levels([variantId]))
+    await expect(catalogue.levels([variantId])).rejects.toMatchObject({ code: "forbidden" })
   })
 
   it("bounds scheduled expiry but never lets an unrelated backlog block a shopper's own sizes", async () => {

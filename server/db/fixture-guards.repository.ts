@@ -81,7 +81,7 @@ export const inventoryGuards: FixtureGuards<InventoryOperations> = {
   reserve(actor, cartId) { fixtureCartOwner(actor, cartId) }, release(actor, cartId) { fixtureCartOwner(actor, cartId) },
   onHand: grant("inventory:read"), releaseExpired: jobGrant,
   adjust(actor, _id, _delta, _reason, label) { requireGrant(actor, "inventory:adjust"); actionLabel(actor, label) },
-  levels: grant("inventory:read"), reportLevels: grant("reports:read"), movements: grant("inventory:read"),
+  levels: grant("inventory:read"), reportLevels: grant("reports:read"), catalogueLevels: grant("products:read"), movements: grant("inventory:read"),
 }
 function cartAssignment(actor: Actor, customerId: string | null) {
   if (trusted(actor) || actor.kind === "customer" && (!customerId || customerId === actor.id) || actor.kind === "anonymous" && customerId === null) return

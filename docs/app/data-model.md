@@ -61,10 +61,30 @@ sealed with the existing session key and opened only by the email renderer.
 
 ## Accounts, migrations and tests
 
+Large-catalogue reads use transactional unique-size and headline-price projections. Search
+aggregates indexed matching terms and a field-aware vocabulary, preserving the pure scorer's
+weights, synonyms and Unicode behavior. Facet results use a bounded, store/query/list-scoped
+cache keyed by a database identity and committed catalogue revision. Product, collection and
+price mutations advance that revision inside their transaction; rollbacks cannot publish cache
+entries, and live stock and page rows are always read separately.
+
+Sitemap queries project at most 5,000 rows without hydrating product graphs. Large entities
+have separate sitemap files advertised in robots.txt. Draft and noindex content stays excluded.
+
+Staff order search uses `order_search_documents` for filters/sorting and shared normalized
+values with binary one-, two- and three-character grams. Gram matches are always checked by
+exact binary substring before joining order links. Order creation, payment/state/refund changes,
+import and anonymisation maintain these records in the parent transaction. Removing a link also
+erases unused personal-data values and their grams. Release upgrades must finish the restartable
+100-order JS reindex; readiness checks the completed index version without changing order versions.
+
 The runtime account has table-specific DML grants. `audit_log`, `inventory_movements`, `order_notes`,
 `webhook_deliveries` and `data_imports` allow SELECT/INSERT only; `schema_migrations` allows SELECT only.
 The separate migrator has schema-scoped DDL rights. Shared hosting that exposes only one DDL-capable
 account loses database-enforced append-only protection; document that limitation explicitly.
+
+Staff directories load role assignments and permitted recovery-code rows in bulk. They do not
+start one database operation per staff member; role order and secret masking remain unchanged.
 
 Startup and `/api/ready` validate the live engine, every migration checksum, physical tables/columns,
 store, storage and configured mail transport. Pool admission, queries and transactions have deadlines;

@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, type Page } from "@playwright/test"
+import { test } from "./support/test"
 
 // Home · Brand New Drops (D-076) above Pre-Loved Drops (D-074): four pairs each, View all on the right.
 

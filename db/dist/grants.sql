@@ -10,6 +10,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`brands` TO 'soledrop_app'@'l
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`cart_lines` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`cart_promotion_codes` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`carts` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`catalogue_read_revisions` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`collection_products` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`collections` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`contact_messages` TO 'soledrop_app'@'localhost';
@@ -34,6 +35,10 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`order_lines` TO 'soledrop_ap
 GRANT SELECT, INSERT ON `soledrop`.`order_notes` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`order_number_sequences` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`order_promotion_codes` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`order_search_documents` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`order_search_grams` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`order_search_links` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`order_search_values` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`orders` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`outbox_channels` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`outbox_events` TO 'soledrop_app'@'localhost';
@@ -45,6 +50,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`price_lists` TO 'soledrop_ap
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`prices` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`product_attribute_values` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`product_images` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`product_list_prices` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`product_listing_sizes` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`product_tags` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`products` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`promotion_redemptions` TO 'soledrop_app'@'localhost';
@@ -59,6 +66,7 @@ GRANT SELECT ON `soledrop`.`schema_migrations` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_document_terms` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_documents` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_field_terms` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_field_vocabulary` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_queries` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_skus` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`search_synonym_values` TO 'soledrop_app'@'localhost';

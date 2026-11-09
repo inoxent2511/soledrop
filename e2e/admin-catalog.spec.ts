@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./support/test"
 import sharp from "sharp"
 
 import { signInAs } from "./support/admin"
@@ -8,7 +9,7 @@ import { signInAs } from "./support/admin"
  * pair with sizes and prices, publishes it and sees it live on the storefront; stock is adjusted
  * with a reason. Chromium only (TOTP-limited demo accounts).
  */
-test.skip(({ browserName }) => browserName !== "chromium", "TOTP-limited demo accounts; covered once")
+test.skip(({ browserName }) => !process.env.QA_STAFF_FILE && browserName !== "chromium", "Shared demo TOTP accounts; isolated QA runs every browser")
 
 test("a Store Manager creates, prices, photographs and publishes a pair, then adjusts its stock", async ({ page }) => {
   test.setTimeout(180_000)
@@ -30,8 +31,9 @@ test("a Store Manager creates, prices, photographs and publishes a pair, then ad
   // A photo from the media picker, uploaded on the spot.
   await page.getByRole("button", { name: "Add photos" }).click()
   const png = await sharp({ create: { width: 1200, height: 800, channels: 3, background: { r: 30, g: 30, b: 30 } } }).png().toBuffer()
-  await page.getByLabel("Choose photos to upload").setInputFiles({ name: "e2e-shoe.png", mimeType: "image/png", buffer: png })
-  await expect(page.getByRole("dialog").getByText("e2e-shoe.png")).toBeVisible()
+  const filename = `e2e-shoe-${suffix}.png`
+  await page.getByLabel("Choose photos to upload").setInputFiles({ name: filename, mimeType: "image/png", buffer: png })
+  await expect(page.getByRole("dialog").getByText(filename, { exact: true })).toBeVisible()
   await page.getByRole("dialog").getByRole("button", { name: "Done" }).click()
   await expect(page.getByLabel("Alt text").first()).toBeVisible()
   await page.getByLabel("Alt text").first().fill("Black test runner, side view")

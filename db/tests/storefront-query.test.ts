@@ -16,11 +16,12 @@ import { applicablePriceLists, createPricingService } from "@/server/pricing/ser
 import type { PriceList } from "@/server/pricing/types"
 import { anonymousActor, systemActor } from "@/server/db/actor"
 import { bindActor } from "@/server/db/bind"
-import { closeDatabase, database } from "@/server/db/client"
+import { closeDatabase, database, withTransaction } from "@/server/db/client"
 import { priceLists, stores } from "@/server/db/schema"
 import { uuidv7, uuidToBytes } from "@/server/db/uuid"
 import { db, resetFixtures } from "@/server/fixtures/store"
 import { connect, engines } from "./connections"
+import { catalogueRevision } from "@/server/catalog/facet-cache.repository"
 
 for (const [engine, config] of engines) describe(engine + " indexed storefront parity", () => {
   const storeId = uuidv7(), worker = systemActor(storeId, "migration", ALL_PERMISSIONS), visitor = anonymousActor(storeId)
@@ -95,5 +96,83 @@ for (const [engine, config] of engines) describe(engine + " indexed storefront p
     const context = { storeId, customerGroup: null }, product = (await reference.queryProducts({}, context)).items[0]
     const expected = await reference.related(product, context, 3)
     expect((await native.related(visitor, storeId, product, 3)).map((row) => row.id)).toEqual(expected.map((row) => row.id))
+  })
+  it("keeps unique size facets and tied/changed price heads correct, including a rolled-back price write", async () => {
+    const special: Product = { ...structuredClone(samples[0]), id: uuidv7(), slug: "projection-tie", title: "Projection tie", position: 20, variants: [0, 1, 2].map((position) => ({ ...structuredClone(samples[0].variants[0]), id: uuidv7(), sku: "PROJECTION-" + storeId.slice(-12) + "-" + position, position, size: { eu: position < 2 ? "42" : "43", uk: "8", us: "9", cm: "27" } })) }
+    for (const catalog of [fixtureCatalog, mysqlCatalog]) await catalog.saveProduct(storeId, structuredClone(special), null)
+    const initial = special.variants.map((variant, position) => ({ variantId: variant.id, priceListId: lists[0].id, amount: position < 2 ? 3000 : 5000, compareAt: position === 0 ? 6000 : null }))
+    for (const repository of [fixturePricing, mysqlPricing]) await repository.upsertPrices(initial)
+    const context = { storeId, customerGroup: null }, query = { q: "projection", collection: "sale" }
+    const compareSelection = async () => {
+      const expected = await reference.queryProducts(query, context)
+      const selected = await native.selectPage(visitor, storeId, query, [lists[0].id], groups.find((group) => group.slug === "sale"), synonyms)
+      expect(selected.total).toBe(expected.total)
+      expect(selected.facets).toEqual(expected.facets)
+      expect((await resolved.enrich(selected.products, context)).map((product) => product.price)).toEqual(expected.items.map((product) => product.price))
+      return selected
+    }
+    const before = await compareSelection()
+    expect(before.total).toBe(1)
+    expect(before.facets.sizes).toEqual([{ value: "42", count: 1 }, { value: "43", count: 1 }])
+    const change = { ...initial[1], amount: 1000 }
+    for (const repository of [fixturePricing, mysqlPricing]) await repository.upsertPrices([change])
+    expect((await compareSelection()).total).toBe(0)
+    await expect(withTransaction(async () => {
+      await mysqlPricing.upsertPrices([{ ...change, amount: 999, compareAt: 5000 }])
+      throw new Error("Abort the complete price transaction")
+    })).rejects.toThrow("Abort the complete price transaction")
+    expect((await compareSelection()).total).toBe(0)
+  })
+  it("retains exact scoped search facets after edits, rollback, reindex and deletion", async () => {
+    const originals = await mysqlCatalog.listProducts(storeId), term = "universalcoverageterm"
+    const context = { storeId, customerGroup: null }, query = { q: term }
+    const compare = async () => {
+      const expected = await reference.queryProducts(query, context)
+      const actual = await native.selectPage(visitor, storeId, query, [lists[0].id], undefined, synonyms)
+      expect(actual.total).toBe(expected.total)
+      expect(actual.facets).toEqual(expected.facets)
+      expect(actual.products.map((row) => row.id)).toEqual(expected.items.map((row) => row.id))
+    }
+    try {
+      for (const repository of [fixtureCatalog, mysqlCatalog]) for (const product of originals) await repository.saveProduct(storeId, { ...product, tags: [...product.tags, term] }, null)
+      const revision = await catalogueRevision(await database(), worker)
+      await compare()
+      await expect(withTransaction(async () => {
+        await mysqlCatalog.saveProduct(storeId, originals[0], null)
+        throw new Error("Rollback vocabulary counts")
+      })).rejects.toThrow("Rollback vocabulary counts")
+      expect(await catalogueRevision(await database(), worker)).toBe(revision)
+      await reindexCatalogueSearch(worker)
+      expect(await catalogueRevision(await database(), worker)).toBeGreaterThan(revision)
+      for (const repository of [fixtureCatalog, mysqlCatalog]) await repository.saveProduct(storeId, originals[0], null)
+      await compare()
+      const temporary = { ...structuredClone(originals[0]), id: uuidv7(), slug: "coverage-deletion", variants: [], tags: [term] }
+      for (const repository of [fixtureCatalog, mysqlCatalog]) { await repository.saveProduct(storeId, temporary, null); await repository.deleteProduct(storeId, temporary.id) }
+      await compare()
+    } finally {
+      for (const repository of [fixtureCatalog, mysqlCatalog]) for (const product of originals) await repository.saveProduct(storeId, product, null)
+    }
+  })
+  it("invalidates committed facets without publishing rolled-back data or mutable cached DTOs", async () => {
+    const read = () => native.selectPage(visitor, storeId, {}, [lists[0].id], undefined, synonyms)
+    const first = await read(), expected = structuredClone(first.facets)
+    first.facets.sizes[0].count = -999
+    expect((await read()).facets).toEqual(expected)
+    const before = await mysqlPricing.listPrices(samples[0].variants.map((row) => row.id))
+    const changed = (amount: number) => samples[0].variants.map((row) => ({ priceListId: lists[0].id, variantId: row.id, amount, compareAt: null }))
+    const revision = await catalogueRevision(await database(), worker)
+    try {
+      await expect(withTransaction(async () => {
+        await mysqlPricing.upsertPrices(changed(50000))
+        expect((await read()).facets.price.max).toBe(50000)
+        throw new Error("Rollback cached facets")
+      })).rejects.toThrow("Rollback cached facets")
+      expect(await catalogueRevision(await database(), worker)).toBe(revision)
+      expect((await read()).facets).toEqual(expected)
+      for (const repository of [fixturePricing, mysqlPricing]) await repository.upsertPrices(changed(60000))
+      const referencePage = await reference.queryProducts({}, { storeId, customerGroup: null })
+      expect((await read()).facets).toEqual(referencePage.facets)
+      expect((await read()).facets.price.max).toBe(60000)
+    } finally { for (const repository of [fixturePricing, mysqlPricing]) await repository.upsertPrices(before) }
   })
 })

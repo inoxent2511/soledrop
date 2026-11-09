@@ -38,7 +38,9 @@ export async function signInAs(page: Page, role: string, next = "/admin") {
   await page.goto(`/admin/login?next=${encodeURIComponent(next)}`)
   await page.getByLabel("Work email").fill(demoEmail(role))
   await page.getByLabel("Password").fill(DEMO_PASSWORD)
+  const passwordResponse = page.waitForResponse((response) => response.url().endsWith("/api/admin/auth/login") && response.request().method() === "POST")
   await page.getByRole("button", { name: "Continue" }).click()
+  expect((await passwordResponse).status(), `${role} password response`).toBe(200)
   await expect(page).toHaveURL(/\/admin\/mfa\?/)
   for (let attempt = 0; attempt < 3; attempt++) {
     await page.getByLabel("Authenticator code").fill(codeFor(role))
@@ -47,7 +49,7 @@ export async function signInAs(page: Page, role: string, next = "/admin") {
       page.waitForURL((url) => !url.pathname.startsWith("/admin/mfa"), { timeout: 10_000 }).then(() => "in" as const),
       page.getByText("That code didn't work").waitFor({ timeout: 10_000 }).then(() => "refused" as const),
     ])
-    if (outcome === "in") return
+    if (outcome === "in") { await page.waitForLoadState("networkidle"); return }
     // Same step already used by this account: wait for the next 30-second step.
     await page.waitForTimeout(30_000 - (Date.now() % 30_000) + 500)
   }

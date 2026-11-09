@@ -277,6 +277,7 @@ export function createOrderService(deps: Deps) {
     listPayments: orders.listPayments,
     restockReturn: orders.restockReturn,
     search: orders.search,
+    searchSales: orders.searchSales,
     listRefunds: orders.listRefunds,
     decideReturn: orders.decideReturn,
     addNote: orders.addNote,

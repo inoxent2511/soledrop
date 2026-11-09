@@ -38,6 +38,7 @@ function Nav({ permissions, onNavigate }: { permissions: string[]; onNavigate?: 
                   <li key={module.key}>
                     <Link
                       href={module.href}
+                      prefetch={false}
                       onClick={onNavigate}
                       aria-current={active ? "page" : undefined}
                       className={cn(
@@ -61,7 +62,7 @@ function Nav({ permissions, onNavigate }: { permissions: string[]; onNavigate?: 
 
 function Brand() {
   return (
-    <Link href="/admin" className="flex h-16 items-center gap-2 px-6 font-display text-20 font-extrabold text-background">
+    <Link href="/admin" prefetch={false} className="flex h-16 items-center gap-2 px-6 font-display text-20 font-extrabold text-background">
       Sole Drop <span className="rounded-sm bg-brand px-1.5 text-14 text-brand-foreground uppercase">Admin</span>
     </Link>
   )
@@ -118,10 +119,10 @@ export function AdminShell({ staff, children }: { staff: ShellStaff; children: R
             <div className="flex-1" />
             <NotificationBell />
 
-            <Link href="/" className={adminButton({ tone: "ghost", size: "sm" })} target="_blank" rel="noopener">
+            <Link href="/" prefetch={false} className={adminButton({ tone: "ghost", size: "sm" })} target="_blank" rel="noopener">
               <Store aria-hidden /> <span className="sr-only sm:not-sr-only">View store</span>
             </Link>
-            <Link href="/admin/account" className={cn(adminButton({ tone: "ghost", size: "sm" }), "max-w-60")}>
+            <Link href="/admin/account" prefetch={false} className={cn(adminButton({ tone: "ghost", size: "sm" }), "max-w-60")}>
               <UserRound aria-hidden />
               <span className="sr-only md:not-sr-only md:truncate">{staff.displayName}</span>
             </Link>

@@ -362,3 +362,61 @@ Hostinger account paths/privileges, Linux native runtime, deliverability and rea
 owner/manual checks. M10 full production regression and large-data/performance acceptance remain
 before the authorized ready-release push. No hosting account/deployment/remote DB/real mail/payment
 action occurred; the GitHub release has not been pushed yet.
+
+### M10 — large-data performance and final QA (in progress, 2026-11-09)
+
+Created separate least-privilege loopback performance datasets on both actual engines:
+100,000 products, 300,000 variants and 500,000 orders. Budgets were fixed before tuning:
+500 ms product listing/search, 300 ms order listing and 500 ms order search, measured with
+three warmups and 20 samples. The committed runner verifies results and records actual EXPLAIN
+plans; these are repository budgets, with browser/HTTP acceptance still separate.
+
+Forward migrations 0014–0025 add covering indexes, transactional unique sizes and price heads,
+store-scoped search terms, field-aware vocabulary, and order search documents/value/gram/link
+projections. Product search aggregates matching indexed terms once, retains original weighting,
+and caches only bounded committed-revision facets, scoped to database, store, query, collection
+and ordered price lists. Stock and page rows remain live reads. Normalized order values use byte
+grams followed by exact substring
+verification. State/payment/refund changes, import, rollback and customer anonymisation retain
+atomic projections; unused personal-data values and grams are erased together. Upgrade startup
+requires the bounded 100-order JS backfill, which leaves order timestamps unchanged.
+
+Native client socket deadlines now also install engine statement and lock-wait limits. Actual
+process-list checks prove slow-query cleanup and safe subsequent reads. Backfill readiness,
+Unicode/accents, literal wildcard/NUL search, formatted phones, price ties, duplicate sizes,
+projection rollback, vocabulary edits/reindex/deletion and unused-PII erasure have regressions.
+
+The application suite passes **1,709/1,709** and the complete native suite **1,459/1,459**, zero
+pending. Both large gram indexes are seeded. The fixed repository matrix passes all 22 cases
+across both engines: product listing/search p95 4.2–53.22 ms, order listing 26.23–73.16 ms and
+order search 9.94–23.74 ms. Reports retain every sample, cold/warm plans and cold timings.
+These results do not establish browser or HTTP acceptance.
+Both preserved merchant database copies are upgraded to 0025 and pass 3,758-field preservation
+verification with zero differences. The original local-store digest remains unchanged and
+`.env.local` still explicitly selects the local driver. No Owner reset or hosting change occurred.
+
+Sitemaps now use bounded 5,000-row metadata projections and robots.txt advertises large-entity
+shards. Both-engine boundary, noindex/draft, image and isolation checks pass. The production build
+and standalone privacy scan pass with these routes.
+
+Unmasked comparison against the preserved production build found photo-only differences.
+Immutable v2 variants retain the exact responsive widths and frozen q=75 encoder settings,
+including four-thread AVIF tiling. All ten desktop reference screens now have **zero mismatched
+pixels and equal heights**, including the three-item cart. Existing v1 objects remain untouched;
+both merchant copies have the complete new variants. Other visual profiles remain to be run.
+
+The production admin sweep exposed queue saturation from per-member role/code reads, the
+Marketing role's product/report reads depending on unrelated permissions, and an invite duplicate
+check depending on an authentication-only method. Bulk reads, dedicated product-stock/financial
+projections and a secret-free invite check have shared fixture/native regressions. Financial reads
+exclude PII in SQL and reports aggregate bounded batches. Long audit identifiers now wrap on
+phones; auth/promotion actions wait for hydration. The full admin rerun is in progress.
+Private sidebar/table/breadcrumb links now fetch on navigation instead of speculatively loading
+other admin pages. The browser sweep exposed aborted background prefetches during navigation;
+the full rerun checks this change without filtering console failures.
+
+Still required: remaining load/recovery and large-data HTTP checks, two complete clean production
+browser/visual/accessibility/performance passes per engine, refreshed private backup/restore
+handoff and a clean verified release commit. Mobile JS and first-home LCP remain over their
+unchanged budgets. The ready-release GitHub push remains pending; its remote main is still the
+owner's `b1cd1bf`. No deployment or remote database action has occurred.

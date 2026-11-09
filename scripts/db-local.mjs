@@ -38,7 +38,10 @@ if (docker.status === 0) {
     child.unref()
     await log.close()
     let ready = false
-    for (let attempt = 0; attempt < 50; attempt++) {
+    // A large InnoDB redo recovery can exceed ten seconds after an interrupted
+    // local QA session. This bounds service startup, not application query time.
+    const startupDeadline = Date.now() + 120_000
+    while (Date.now() < startupDeadline) {
       try { const connection = await connect(); await connection.end(); ready = true; break } catch { await delay(200) }
     }
     if (!ready) throw new Error("Portable engine did not become ready: " + instance.engine)

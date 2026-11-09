@@ -6,7 +6,7 @@ import type { StaffContext } from "@/server/admin/types"
 import type { Product } from "@/server/catalog/types"
 import { toCsv } from "@/server/import-export/csv"
 import type { StockLevelRow } from "@/server/inventory/repository"
-import type { Order, OrderPage, OrderQuery } from "@/server/orders/types"
+import type { OrderQuery, SalesOrder, SalesOrderPage } from "@/server/orders/types"
 import type { PriceList, PriceRow } from "@/server/pricing/types"
 import { DomainError } from "@/server/shared/errors"
 
@@ -20,7 +20,7 @@ import { DomainError } from "@/server/shared/errors"
 type Audit = (staff: StaffContext, meta: RequestMeta, entry: { action: string; entity: string; entityId: string; after?: unknown; storeId: string }) => Promise<void>
 
 type Deps = {
-  orders: { search: (storeId: string, query: OrderQuery) => Promise<OrderPage> }
+  orders: { search: (storeId: string, query: OrderQuery) => Promise<SalesOrderPage> }
   products: (storeId: string) => Promise<Product[]>
   levels: (variantIds: string[]) => Promise<StockLevelRow[]>
   pricing: { priceLists: (storeId: string) => Promise<PriceList[]>; rawPrices: (variantIds: string[]) => Promise<PriceRow[]> }
@@ -39,12 +39,13 @@ const addDays = (day: string, days: number) => new Date(Date.parse(`${day}T00:00
 export type SalesDay = { day: string; orders: number; items: number; gross: number; refunds: number; net: number; cancelled: number }
 
 export function createReports(deps: Deps) {
-  async function ordersIn(storeId: string, from: string, to: string): Promise<Order[]> {
-    const all: Order[] = []
+  async function* ordersIn(storeId: string, from: string, to: string): AsyncGenerator<SalesOrder> {
+    let seen = 0
     for (let page = 1; ; page++) {
       const result = await deps.orders.search(storeId, { placedFrom: dayStart(from), placedTo: dayStart(addDays(to, 1)), sort: "placed_asc", page, pageSize: 1000 })
-      all.push(...result.orders)
-      if (all.length >= result.total || result.orders.length === 0) return all
+      yield* result.orders
+      seen += result.orders.length
+      if (seen >= result.total || result.orders.length === 0) return
     }
   }
 
@@ -52,14 +53,13 @@ export function createReports(deps: Deps) {
     need(staff, "reports:read")
     if (from > to) throw new DomainError("validation", "The start date is after the end date.")
     if (Date.parse(to) - Date.parse(from) > 366 * 86_400_000) throw new DomainError("validation", "Reports cover up to a year at a time.")
-    const orders = await ordersIn(staff.member.storeId, from, to)
     const days = new Map<string, SalesDay>()
     for (let day = from; day <= to; day = addDays(day, 1)) days.set(day, { day, orders: 0, items: 0, gross: 0, refunds: 0, net: 0, cancelled: 0 })
     const methods = new Map<string, { orders: number; total: number }>()
     const kinds = { new: 0, preloved: 0 }
     const products = new Map<string, { title: string; units: number; revenue: number }>()
     const codes = new Map<string, number>()
-    for (const order of orders) {
+    for await (const order of ordersIn(staff.member.storeId, from, to)) {
       const row = days.get(pkDay(order.placedAt))
       if (!row) continue
       if (order.status === "cancelled") {

@@ -1,6 +1,6 @@
 import { mysqlTable, varchar, char, text, int, tinyint, datetime, decimal } from "drizzle-orm/mysql-core"
 import { uuid } from "./uuid"
-import { portableJson, safeBigint } from "./columns"
+import { portableJson, safeBigint, searchDigest, searchGram } from "./columns"
 import { sqlDate, sqlNow } from "./values"
 
 /** Column mappings; committed db/migrations SQL is the schema source of truth. */
@@ -376,11 +376,11 @@ export const products = mysqlTable("products", {
   slug: varchar("slug", { length: 190 }).notNull(),
   title: varchar("title", { length: 190 }).notNull(),
   brandId: uuid("brand_id").notNull(),
-  kind: varchar("kind", { length: 190 }).notNull(),
-  gender: varchar("gender", { length: 190 }).notNull(),
-  status: varchar("status", { length: 190 }).notNull().default("draft"),
+  kind: varchar("kind", { length: 16 }).notNull(),
+  gender: varchar("gender", { length: 16 }).notNull(),
+  status: varchar("status", { length: 16 }).notNull().default("draft"),
   description: text("description").notNull().default(""),
-  conditionGrade: varchar("condition_grade", { length: 190 }),
+  conditionGrade: varchar("condition_grade", { length: 16 }),
   conditionNotes: text("condition_notes"),
   attributes: portableJson("attributes").notNull().default({}),
   customFields: portableJson("custom_fields").notNull().default({}),
@@ -389,6 +389,20 @@ export const products = mysqlTable("products", {
   seo: portableJson("seo").notNull().default({}),
   createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
   updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+})
+
+export const productListingSizes = mysqlTable("product_listing_sizes", {
+  productId: uuid("product_id").notNull(),
+  storeId: uuid("store_id").notNull(),
+  size: varchar("size_eu", { length: 190 }).notNull(),
+})
+
+export const productListPrices = mysqlTable("product_list_prices", {
+  productId: uuid("product_id").notNull(),
+  priceListId: uuid("price_list_id").notNull(),
+  storeId: uuid("store_id").notNull(),
+  amount: safeBigint("amount").notNull(),
+  compareAt: safeBigint("compare_at"),
 })
 
 export const rolePermissions = mysqlTable("role_permissions", {
@@ -715,9 +729,23 @@ export const searchDocuments = mysqlTable("search_documents", {
 
 export const searchFieldTerms = mysqlTable("search_field_terms", {
   productId: uuid("product_id").notNull(),
+  storeId: uuid("store_id").notNull(),
   field: varchar("field", { length: 8 }).notNull(),
   term: varchar("term", { length: 300 }).notNull(),
   position: int("position").notNull(),
+})
+
+export const searchFieldVocabulary = mysqlTable("search_field_vocabulary", {
+  storeId: uuid("store_id").notNull(),
+  term: varchar("term", { length: 300 }).notNull(),
+  field: varchar("field", { length: 8 }).notNull(),
+  documentFrequency: int("document_frequency").notNull(),
+  length: int("length").notNull(),
+})
+
+export const catalogueReadRevisions = mysqlTable("catalogue_read_revisions", {
+  storeId: uuid("store_id").notNull(),
+  revision: safeBigint("revision").notNull().default(0),
 })
 
 export const searchSkus = mysqlTable("search_skus", {
@@ -749,6 +777,33 @@ export const orderContacts = mysqlTable("order_contacts", {
   storeId: uuid("store_id").notNull(),
   recipientName: varchar("recipient_name", { length: 190 }).notNull(),
   phoneDigits: varchar("phone_digits", { length: 40 }).notNull(),
+})
+
+export const orderSearchDocuments = mysqlTable("order_search_documents", {
+  storeId: uuid("store_id").notNull(),
+  orderId: uuid("order_id").notNull(),
+  searchText: text("search_text").notNull(),
+  numberBytes: int("number_bytes", { unsigned: true }).notNull(),
+  emailBytes: int("email_bytes", { unsigned: true }).notNull(),
+  phoneBytes: int("phone_bytes", { unsigned: true }).notNull(),
+  phoneDigits: varchar("phone_digits", { length: 190 }).notNull(),
+  status: varchar("status", { length: 190 }).notNull(),
+  paymentStatus: varchar("payment_status", { length: 190 }).notNull(),
+  paymentMethod: varchar("payment_method", { length: 190 }).notNull(),
+  placedAt: datetime("placed_at", { mode: "string", fsp: 3 }).notNull(),
+  total: safeBigint("total").notNull(),
+  searchVersion: tinyint("search_version").notNull().default(0),
+})
+
+export const orderSearchValues = mysqlTable("order_search_values", {
+  storeId: uuid("store_id").notNull(), valueHash: searchDigest("value_hash").notNull(),
+  kind: tinyint("kind").notNull(), normalizedText: text("normalized_text").notNull(),
+})
+export const orderSearchGrams = mysqlTable("order_search_grams", {
+  storeId: uuid("store_id").notNull(), gram: searchGram("gram").notNull(), valueHash: searchDigest("value_hash").notNull(),
+})
+export const orderSearchLinks = mysqlTable("order_search_links", {
+  storeId: uuid("store_id").notNull(), orderId: uuid("order_id").notNull(), valueHash: searchDigest("value_hash").notNull(),
 })
 
 export const dataImports = mysqlTable("data_imports", {

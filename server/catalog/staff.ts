@@ -93,7 +93,7 @@ export function createStaffCatalog(deps: Deps) {
       need(staff, "products:read")
       const { products, total } = await catalog.searchProducts(staff.member.storeId, query)
       const variantIds = products.flatMap((product) => product.variants.map((variant) => variant.id))
-      const [base, prices, levels] = await Promise.all([baseList(staff.member.storeId), pricing.rawPrices(variantIds), inventory.levels(variantIds)])
+      const [base, prices, levels] = await Promise.all([baseList(staff.member.storeId), pricing.rawPrices(variantIds), inventory.catalogueLevels(variantIds)])
       return {
         total,
         rows: products.map((product) => {
@@ -120,7 +120,7 @@ export function createStaffCatalog(deps: Deps) {
       need(staff, "products:read")
       const product = await load(staff, id)
       const variantIds = product.variants.map((variant) => variant.id)
-      const [base, prices, levels] = await Promise.all([baseList(staff.member.storeId), pricing.rawPrices(variantIds), inventory.levels(variantIds)])
+      const [base, prices, levels] = await Promise.all([baseList(staff.member.storeId), pricing.rawPrices(variantIds), inventory.catalogueLevels(variantIds)])
       return {
         product,
         prices: Object.fromEntries(prices.filter((row) => row.priceListId === base.id).map((row) => [row.variantId, { amount: row.amount, compareAt: row.compareAt }])),

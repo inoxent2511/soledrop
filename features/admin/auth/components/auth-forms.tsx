@@ -10,6 +10,7 @@ import { AdminField, FormAlert } from "@/components/admin/form"
 import { useSchemaForm } from "@/features/account/components/form-field"
 import { acceptInviteSchema, codeSchema, staffLoginSchema } from "@/features/admin/auth/schemas"
 import { cn } from "@/lib/utils"
+import { useHydrated } from "@/hooks/use-hydrated"
 
 const submit = cn(adminButton({ tone: "primary" }), "w-full")
 const values = (form: HTMLFormElement) => Object.fromEntries(new FormData(form)) as Record<string, string>
@@ -21,6 +22,7 @@ function afterPassword(needs: SignInNext, next: string) {
 }
 
 export function StaffLoginForm({ next }: { next: string }) {
+  const hydrated = useHydrated()
   const id = useId()
   const router = useRouter()
   const login = useMutation({ mutationFn: adminAuthApi.login })
@@ -38,7 +40,7 @@ export function StaffLoginForm({ next }: { next: string }) {
       <AdminField formId={id} name="email" type="email" label="Work email" autoComplete="username" error={errors.email} />
       <AdminField formId={id} name="password" type="password" label="Password" autoComplete="current-password" error={errors.password} />
       <FormAlert>{formError}</FormAlert>
-      <button type="submit" disabled={login.isPending} className={submit}>
+      <button type="submit" disabled={!hydrated || login.isPending} className={submit}>
         {login.isPending ? "Signing in…" : "Continue"}
       </button>
     </form>
@@ -46,6 +48,7 @@ export function StaffLoginForm({ next }: { next: string }) {
 }
 
 export function VerifyCodeForm({ next }: { next: string }) {
+  const hydrated = useHydrated()
   const id = useId()
   const router = useRouter()
   const verify = useMutation({ mutationFn: adminAuthApi.verify })
@@ -78,7 +81,7 @@ export function VerifyCodeForm({ next }: { next: string }) {
         error={errors.code}
       />
       <FormAlert>{formError}</FormAlert>
-      <button type="submit" disabled={verify.isPending} className={submit}>
+      <button type="submit" disabled={!hydrated || verify.isPending} className={submit}>
         {verify.isPending ? "Checking…" : "Verify"}
       </button>
     </form>
@@ -168,6 +171,7 @@ export function EnrolForm({ next }: { next: string }) {
 }
 
 export function AcceptInviteForm({ token, email }: { token: string; email: string }) {
+  const hydrated = useHydrated()
   const id = useId()
   const router = useRouter()
   const accept = useMutation({ mutationFn: (input: { displayName: string; password: string }) => adminAuthApi.acceptInvite(token, input) })
@@ -186,7 +190,7 @@ export function AcceptInviteForm({ token, email }: { token: string; email: strin
       <AdminField formId={id} name="displayName" label="Your name" autoComplete="name" error={errors.displayName} />
       <AdminField formId={id} name="password" type="password" label="Choose a password" autoComplete="new-password" hint="At least 12 characters. A short sentence works well." error={errors.password} />
       <FormAlert>{formError}</FormAlert>
-      <button type="submit" disabled={accept.isPending} className={submit}>
+      <button type="submit" disabled={!hydrated || accept.isPending} className={submit}>
         {accept.isPending ? "Creating your account…" : "Create account"}
       </button>
     </form>

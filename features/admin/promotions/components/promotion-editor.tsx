@@ -11,6 +11,7 @@ import { adminControl, AdminField, FormAlert } from "@/components/admin/form"
 import { promotionInput, type PromotionInput } from "@/features/admin/promotions/schema"
 import { formatPrice } from "@/lib/format"
 import { cn } from "@/lib/utils"
+import { useHydrated } from "@/hooks/use-hydrated"
 
 type Condition = PromotionInput["conditions"][number]
 type Action = PromotionInput["actions"][number]
@@ -46,6 +47,7 @@ const message = (failure: unknown) => (failure instanceof ApiError ? failure.mes
 const toIso = (local: string) => (local ? new Date(`${local}:00+05:00`).toISOString() : null)
 
 export function PromotionEditor({ initial, collections, canWrite }: { initial: PromotionDraft; collections: { slug: string; title: string }[]; canWrite: boolean }) {
+  const hydrated = useHydrated()
   const id = useId()
   const router = useRouter()
   const [form, setForm] = useState(initial)
@@ -121,7 +123,7 @@ export function PromotionEditor({ initial, collections, canWrite }: { initial: P
         void save()
       }}
     >
-      <fieldset disabled={!canWrite} className="min-w-0 flex flex-col gap-6 lg:col-span-2">
+      <fieldset disabled={!canWrite || !hydrated} className="min-w-0 flex flex-col gap-6 lg:col-span-2">
         <AdminCard title="Basics">
           <AdminField formId={id} name="title" label="Title" hint="Staff-facing name, also shown in the bag when it applies." value={form.title} onChange={(event) => update({ title: event.target.value })} />
           <div className="flex items-end gap-2">
@@ -282,7 +284,7 @@ export function PromotionEditor({ initial, collections, canWrite }: { initial: P
             <input type="number" min={0} value={basket.previousOrders} onChange={(event) => setBasket({ ...basket, previousOrders: Number(event.target.value) || 0 })} className={small} />
           </label>
         </div>
-        <button type="button" onClick={() => void simulate()} className={adminButton({ tone: "secondary" })}>
+        <button type="button" disabled={!hydrated} onClick={() => void simulate()} className={adminButton({ tone: "secondary" })}>
           Run test
         </button>
         {simulation ? (

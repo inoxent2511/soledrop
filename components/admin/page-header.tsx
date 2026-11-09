@@ -11,7 +11,7 @@ export function PageHeader({ title, description, crumbs = [], actions }: { title
             <ol className="flex flex-wrap items-center gap-1.5 text-14 text-subtle-foreground">
               {crumbs.map((crumb) => (
                 <li key={crumb.href} className="flex items-center gap-1.5">
-                  <Link href={crumb.href} className="underline-offset-4 hover:text-foreground hover:underline">
+                  <Link href={crumb.href} prefetch={false} className="underline-offset-4 hover:text-foreground hover:underline">
                     {crumb.label}
                   </Link>
                   <span aria-hidden>/</span>

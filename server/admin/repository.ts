@@ -5,6 +5,8 @@ import type { Role, StaffInvite, StaffMember, StaffSession } from "@/server/admi
 /** Staff identity and RBAC storage; both retained drivers require explicit actors. */
 export interface AdminOperations {
   findMemberByEmail(storeId: string, email: string): Promise<StaffMember | null>
+  /** Invite duplicate check without exposing authentication secrets. */
+  emailInUse(storeId: string, email: string): Promise<boolean>
   findMember(storeId: string, userId: string): Promise<StaffMember | null>
   listMembers(storeId: string): Promise<StaffMember[]>
   createMember(member: StaffMember): Promise<StaffMember>
@@ -20,6 +22,7 @@ export interface AdminOperations {
   deleteRole(storeId: string, key: string): Promise<void>
 
   rolesOf(storeId: string, userId: string): Promise<Role[]>
+  listRoleAssignments(storeId: string): Promise<{ userId: string; roleId: string }[]>
   /** Replaces a member's roles. Refuses (conflict) to leave the store without an active Owner (A-008). */
   setRoles(storeId: string, userId: string, roleKeys: string[]): Promise<void>
   countActiveOwners(storeId: string): Promise<number>

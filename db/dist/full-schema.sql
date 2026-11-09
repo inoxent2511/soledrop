@@ -1308,3 +1308,213 @@ CREATE TABLE IF NOT EXISTS refund_intents (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO schema_migrations (name, checksum) VALUES ('0013_refund_intents.sql', '5e573ea2e884d08a44ae29ce86976b199ae35395054bcd3b0aebb050f4c2da68') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0014_listing_covering_indexes.sql / SHA256 19c3f448e2f1a76e4ee353d068cfb6a3c91aebddb25b5f7c3af57cbcfdaf5c3d
+-- Existing CHECK enums already restrict these strings to short values. Smaller index keys
+-- retain every valid value and permit covering facet indexes within both engines' key limits.
+ALTER TABLE products MODIFY COLUMN status VARCHAR(16) NOT NULL DEFAULT 'draft',
+  MODIFY COLUMN kind VARCHAR(16) NOT NULL,
+  MODIFY COLUMN gender VARCHAR(16) NOT NULL,
+  MODIFY COLUMN condition_grade VARCHAR(16) NULL;
+CREATE INDEX products_store_status_facets ON products(store_id,status,gender,condition_grade,brand_id,position,id);
+CREATE INDEX products_store_status_newest ON products(store_id,status,published_at DESC,position,id);
+CREATE INDEX products_store_status_title ON products(store_id,status,title,position,id);
+CREATE INDEX variants_product_size ON variants(product_id,size_eu);
+CREATE INDEX variants_size_product ON variants(size_eu,product_id);
+CREATE INDEX orders_store_total_desc ON orders(store_id,total DESC,placed_at DESC,id);
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0014_listing_covering_indexes.sql', '19c3f448e2f1a76e4ee353d068cfb6a3c91aebddb25b5f7c3af57cbcfdaf5c3d') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0015_listing_projections.sql / SHA256 de682e211be714ff6abfd52d75b285c3c1c53f41570d01a306fb71ff1c451df5
+-- Compact, transactional projections avoid materializing wide variant/price tables on GET.
+CREATE TABLE IF NOT EXISTS product_listing_sizes (
+  product_id BINARY(16) NOT NULL,
+  store_id BINARY(16) NOT NULL,
+  size_eu VARCHAR(190) NOT NULL,
+  PRIMARY KEY(product_id,size_eu),
+  INDEX listing_sizes_store_size(store_id,size_eu,product_id),
+  CONSTRAINT listing_sizes_product_fk FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE,
+  CONSTRAINT listing_sizes_store_fk FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS product_list_prices (
+  product_id BINARY(16) NOT NULL,
+  price_list_id BINARY(16) NOT NULL,
+  store_id BINARY(16) NOT NULL,
+  amount BIGINT NOT NULL CHECK(amount BETWEEN 0 AND 9007199254740991),
+  compare_at BIGINT NULL CHECK(compare_at BETWEEN -9007199254740991 AND 9007199254740991),
+  PRIMARY KEY(product_id,price_list_id),
+  INDEX listing_prices_list_amount(price_list_id,amount,product_id),
+  CONSTRAINT listing_prices_product_fk FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE,
+  CONSTRAINT listing_prices_list_fk FOREIGN KEY(price_list_id) REFERENCES price_lists(id) ON DELETE CASCADE,
+  CONSTRAINT listing_prices_store_fk FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO product_listing_sizes(product_id,store_id,size_eu)
+SELECT DISTINCT v.product_id,p.store_id,v.size_eu FROM variants v INNER JOIN products p ON p.id=v.product_id;
+
+INSERT INTO product_list_prices(product_id,price_list_id,store_id,amount,compare_at)
+SELECT product_id,price_list_id,store_id,amount,compare_at FROM (
+  SELECT v.product_id,pr.price_list_id,p.store_id,pr.amount,pr.compare_at,
+    ROW_NUMBER() OVER(PARTITION BY v.product_id,pr.price_list_id ORDER BY pr.amount,v.position,v.id) AS price_rank
+  FROM prices pr INNER JOIN variants v ON v.id=pr.variant_id
+    INNER JOIN products p ON p.id=v.product_id
+    INNER JOIN price_lists pl ON pl.id=pr.price_list_id AND pl.store_id=p.store_id
+) ranked_prices WHERE price_rank=1;
+
+CREATE INDEX products_listing_by_id ON products(id,store_id,status,kind,gender,condition_grade,brand_id,published_at,position);
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0015_listing_projections.sql', 'de682e211be714ff6abfd52d75b285c3c1c53f41570d01a306fb71ff1c451df5') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0016_order_search_indexes.sql / SHA256 16351560b695d24b7b5c0b6b33a300dd43366b33b82b04b3203bbb49c588e16e
+-- Covering text-search branches read compact store ranges instead of wide order rows and
+-- one correlated contact lookup per order. Keep each existing substring/collation rule.
+CREATE INDEX orders_store_phone ON orders(store_id,phone,id);
+CREATE INDEX orders_store_total_asc ON orders(store_id,total,placed_at DESC,id);
+CREATE INDEX orders_store_placed_asc ON orders(store_id,placed_at,id);
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0016_order_search_indexes.sql', '16351560b695d24b7b5c0b6b33a300dd43366b33b82b04b3203bbb49c588e16e') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0017_order_search_projection.sql / SHA256 dc44db3e1bd54ea909ef668ca7f7f57cc7fe2a670bfc061dbe97faa3f29e4b24
+-- Rebuild with scripts/reindex-orders.ts before starting this release on an
+-- existing database. JavaScript lowercasing preserves the reference search
+-- semantics, including Unicode mappings that differ from SQL LOWER().
+CREATE TABLE IF NOT EXISTS order_search_documents (
+  store_id BINARY(16) NOT NULL,
+  order_id BINARY(16) NOT NULL,
+  search_text TEXT NOT NULL,
+  number_bytes INT UNSIGNED NOT NULL,
+  email_bytes INT UNSIGNED NOT NULL,
+  phone_bytes INT UNSIGNED NOT NULL,
+  phone_digits VARCHAR(190) NOT NULL,
+  status VARCHAR(190) NOT NULL,
+  payment_status VARCHAR(190) NOT NULL,
+  payment_method VARCHAR(190) NOT NULL,
+  placed_at DATETIME(3) NOT NULL,
+  total BIGINT NOT NULL CHECK(total BETWEEN 0 AND 9007199254740991),
+  PRIMARY KEY(store_id,order_id),
+  UNIQUE INDEX order_search_order(order_id),
+  CONSTRAINT order_search_store_fk FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE,
+  CONSTRAINT order_search_order_fk FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0017_order_search_projection.sql', 'dc44db3e1bd54ea909ef668ca7f7f57cc7fe2a670bfc061dbe97faa3f29e4b24') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0018_order_search_table_defaults.sql / SHA256 9f4bf173926a476638e70c4256b37e58981226032fa0cc894744aad0debe00b6
+-- Retain the shared table default; substring comparisons explicitly use binary
+-- bytes and do not depend on the engine's accent/case collation rules.
+ALTER TABLE order_search_documents DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0018_order_search_table_defaults.sql', '9f4bf173926a476638e70c4256b37e58981226032fa0cc894744aad0debe00b6') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0019_store_scoped_search_terms.sql / SHA256 9e920a54aec97662a4a34b6c2f241682aafbe50bd1e1e76ed4b97aa9302a19c2
+-- Resolve matching terms without fetching the wide parent product on each hit.
+ALTER TABLE search_field_terms ADD COLUMN store_id BINARY(16) NULL;
+UPDATE search_field_terms t INNER JOIN products p ON p.id=t.product_id SET t.store_id=p.store_id;
+ALTER TABLE search_field_terms MODIFY COLUMN store_id BINARY(16) NOT NULL,
+  ADD INDEX search_field_store_lookup(store_id,term,field,product_id),
+  ADD CONSTRAINT search_field_store_fk FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0019_store_scoped_search_terms.sql', '9e920a54aec97662a4a34b6c2f241682aafbe50bd1e1e76ed4b97aa9302a19c2') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0020_search_field_vocabulary.sql / SHA256 1e1a3a8ec5b28b0249f4ebddffe67cd58bed082bce0468d3335fa1dec630b165
+-- Tiny field-aware vocabulary avoids scanning all postings to discover whether
+-- a term's relevance is constant. UTF-16 lengths match the shared JS scorer.
+CREATE TABLE IF NOT EXISTS search_field_vocabulary (
+  store_id BINARY(16) NOT NULL,
+  term VARCHAR(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  field VARCHAR(8) NOT NULL CHECK(field IN ('title','body')),
+  document_frequency INT NOT NULL CHECK(document_frequency>=0),
+  length INT NOT NULL CHECK(length>=0),
+  PRIMARY KEY(store_id,term,field),
+  INDEX search_field_vocabulary_length(store_id,length,term,field),
+  CONSTRAINT search_field_vocabulary_store_fk FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+INSERT INTO search_field_vocabulary(store_id,term,field,document_frequency,length)
+SELECT store_id,term,field,COUNT(*),LENGTH(CONVERT(term USING utf16))/2
+FROM search_field_terms GROUP BY store_id,term,field;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0020_search_field_vocabulary.sql', '1e1a3a8ec5b28b0249f4ebddffe67cd58bed082bce0468d3335fa1dec630b165') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0021_order_substring_lookup.sql / SHA256 ceb7cfcfe4af0aee141f37e7ad42c083eb4523f5ad8ad384669a92a20fa1d1fa
+-- Re-run the bounded JS order reindex before startup after this upgrade.
+CREATE TABLE IF NOT EXISTS order_search_values (
+  store_id BINARY(16) NOT NULL,
+  value_hash BINARY(32) NOT NULL,
+  kind TINYINT NOT NULL CHECK(kind IN (0,1)),
+  normalized_text TEXT NOT NULL,
+  PRIMARY KEY(store_id,value_hash),
+  CONSTRAINT order_search_value_store_fk FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS order_search_grams (
+  store_id BINARY(16) NOT NULL,
+  gram VARBINARY(12) NOT NULL,
+  value_hash BINARY(32) NOT NULL,
+  PRIMARY KEY(store_id,gram,value_hash),
+  INDEX order_search_gram_value(store_id,value_hash),
+  CONSTRAINT order_search_gram_value_fk FOREIGN KEY(store_id,value_hash) REFERENCES order_search_values(store_id,value_hash) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS order_search_links (
+  store_id BINARY(16) NOT NULL,
+  order_id BINARY(16) NOT NULL,
+  value_hash BINARY(32) NOT NULL,
+  PRIMARY KEY(store_id,value_hash,order_id),
+  INDEX order_search_link_order(order_id),
+  CONSTRAINT order_search_link_value_fk FOREIGN KEY(store_id,value_hash) REFERENCES order_search_values(store_id,value_hash) ON DELETE CASCADE,
+  CONSTRAINT order_search_link_order_fk FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE order_search_documents ADD COLUMN search_version TINYINT NOT NULL DEFAULT 0;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0021_order_substring_lookup.sql', 'ceb7cfcfe4af0aee141f37e7ad42c083eb4523f5ad8ad384669a92a20fa1d1fa') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0022_price_head_scope.sql / SHA256 401e14ec8a467f9ac7a2ff11b6218d55a17079ed8048aadfd32bd57e378bbfdd
+-- Count scoped coverage through a compact index, with tenant consistency enforced
+-- by composite foreign keys rather than assumed from application writes.
+CREATE UNIQUE INDEX products_id_store ON products(id,store_id);
+CREATE UNIQUE INDEX price_lists_id_store ON price_lists(id,store_id);
+ALTER TABLE product_list_prices ADD INDEX listing_prices_scope(store_id,price_list_id,product_id),
+  ADD CONSTRAINT listing_prices_product_store_fk FOREIGN KEY(product_id,store_id) REFERENCES products(id,store_id) ON DELETE CASCADE,
+  ADD CONSTRAINT listing_prices_list_store_fk FOREIGN KEY(price_list_id,store_id) REFERENCES price_lists(id,store_id) ON DELETE CASCADE;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0022_price_head_scope.sql', '401e14ec8a467f9ac7a2ff11b6218d55a17079ed8048aadfd32bd57e378bbfdd') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0023_product_brand_scope.sql / SHA256 fcd109be47f2d715b0a39386817ef1e1db803e2d7438b2c2b4ffab1b1bdb5082
+-- Scoped ownership is structural, so non-brand facets can read the compact
+-- product index without repeating the same brand lookup for every product.
+CREATE UNIQUE INDEX brands_id_store ON brands(id,store_id);
+ALTER TABLE products ADD CONSTRAINT products_brand_store_fk FOREIGN KEY(brand_id,store_id) REFERENCES brands(id,store_id);
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0023_product_brand_scope.sql', 'fcd109be47f2d715b0a39386817ef1e1db803e2d7438b2c2b4ffab1b1bdb5082') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0024_catalogue_read_revisions.sql / SHA256 fa551073977601098dd3dd46248f8429f0701598dc7cdcdcdfdb5b2b2059d731
+-- Facet caches read this committed revision on every request. Relevant writes
+-- advance it in their existing store-first transaction, including imports.
+CREATE TABLE IF NOT EXISTS catalogue_read_revisions (
+  store_id BINARY(16) NOT NULL,
+  revision BIGINT NOT NULL DEFAULT 0 CHECK(revision BETWEEN 0 AND 9007199254740991),
+  PRIMARY KEY(store_id),
+  CONSTRAINT catalogue_read_revision_store_fk FOREIGN KEY(store_id) REFERENCES stores(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+INSERT INTO catalogue_read_revisions(store_id,revision) SELECT id,0 FROM stores;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0024_catalogue_read_revisions.sql', 'fa551073977601098dd3dd46248f8429f0701598dc7cdcdcdfdb5b2b2059d731') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0025_sitemap_indexes.sql / SHA256 e343aa4851224a123e5f670e34786eef7e150bedd1975df567f0ee9b2db082bb
+-- Sitemap projections return bounded metadata, never hydrated product graphs.
+CREATE INDEX products_sitemap ON products(store_id,status,id,slug,published_at);
+CREATE INDEX product_images_sitemap ON product_images(product_id,position,id,url);
+CREATE INDEX pages_sitemap ON pages(store_id,published,slug,updated_at);
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0025_sitemap_indexes.sql', 'e343aa4851224a123e5f670e34786eef7e150bedd1975df567f0ee9b2db082bb') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);

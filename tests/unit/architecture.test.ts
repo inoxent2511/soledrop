@@ -26,7 +26,7 @@ describe("data seam", () => {
     const browserSchemas = source.filter((file) => file.startsWith(`features${path.sep}`) || file === path.join("lib", "env.ts"))
     for (const file of browserSchemas) {
       const text = read(file)
-      if (/^import (?!type )[^\n]*from "zod"/m.test(text)) expect(text, file).toMatch(/^(?:"use client"\r?\n\r?\n)?import "@\/lib\/validation"\r?\n/)
+      if (/^import (?!type )[^\n]*from "zod(?:\/mini)?"/m.test(text)) expect(text, file).toMatch(/^(?:"use client"\r?\n\r?\n)?import "@\/lib\/validation"\r?\n/)
     }
   })
 

@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./support/test"
 
 import { clientAddress, codeFor, DEMO_PASSWORD, demoEmail, signInAs, staffHeaders } from "./support/admin"
 
@@ -72,7 +73,7 @@ test.describe("without a staff session", () => {
 test.describe("with a staff session", () => {
   test("the Owner signs in with a second factor and sees every module, without CSP violations", async ({ page, browserName }) => {
     // One demo account per browser, so parallel projects don't race for the same TOTP step.
-    const role = { chromium: "owner", firefox: "admin", webkit: "store_manager" }[browserName] ?? "owner"
+    const role = process.env.QA_STAFF_FILE ? "owner" : { chromium: "owner", firefox: "admin", webkit: "store_manager" }[browserName] ?? "owner"
     const violations: string[] = []
     await page.exposeFunction("reportCspViolation", (directive: string, blockedURI: string) => {
       violations.push(`${directive}: ${blockedURI}`)
@@ -95,7 +96,7 @@ test.describe("with a staff session", () => {
   })
 
   test("a Support Agent sees only their modules, and a refused permission explains itself", async ({ page, browserName }) => {
-    test.skip(browserName !== "chromium", "one TOTP-limited account; permissions don't vary by engine")
+    test.skip(!process.env.QA_STAFF_FILE && browserName !== "chromium", "Shared demo TOTP account; isolated QA runs every browser")
     await signInAs(page, "support_agent")
     const nav = page.getByRole("navigation", { name: "Admin" }).first()
     await expect(nav.getByRole("link", { name: "Orders" })).toBeVisible()
@@ -110,20 +111,26 @@ test.describe("with a staff session", () => {
   })
 
   test("signing out ends the session for good", async ({ page, browserName }) => {
-    test.skip(browserName !== "chromium", "one TOTP-limited account")
+    test.skip(!process.env.QA_STAFF_FILE && browserName !== "chromium", "Shared demo TOTP account; isolated QA runs every browser")
+    const verified = page.waitForResponse((response) => response.url().endsWith("/api/admin/auth/mfa/verify") && response.request().method() === "POST" && response.ok(), { timeout: 120_000 })
+    void verified.catch(() => undefined)
     await signInAs(page, "fulfilment")
+    const headers = await (await verified).headerValues("set-cookie")
+    const attributes = headers.find((header) => header.startsWith("sd_staff="))?.split(";").slice(1).map((attribute) => attribute.trim().toLowerCase()) ?? []
+    // Inspect wire attributes: browser cookie inspectors normalize SameSite differently.
+    expect(attributes).toEqual(expect.arrayContaining(["httponly", "path=/", "samesite=lax"]))
     const cookies = await page.context().cookies()
     const staffCookie = cookies.find((cookie) => cookie.name === "sd_staff")
-    expect(staffCookie).toMatchObject({ httpOnly: true, sameSite: "Strict" })
+    expect(staffCookie).toMatchObject({ httpOnly: true, path: "/" })
     await page.getByRole("button", { name: "Sign out" }).click()
     await expect(page).toHaveURL(/\/admin\/login/)
     // Replaying the old cookie gets nothing.
-    await page.context().addCookies([{ ...staffCookie!, sameSite: "Strict" }])
+    await page.context().addCookies([{ ...staffCookie! }])
     expect((await page.request.get("/api/admin/me")).status()).toBe(401)
   })
 
   test("a refused code doesn't sign anyone in", async ({ page, baseURL, browserName }) => {
-    test.skip(browserName !== "chromium", "one TOTP-limited account")
+    test.skip(!process.env.QA_STAFF_FILE && browserName !== "chromium", "Shared demo TOTP account; isolated QA runs every browser")
     await page.request.post("/api/admin/auth/login", { headers: staffHeaders(baseURL), data: { email: demoEmail("content_editor"), password: DEMO_PASSWORD } })
     const wrong = String((Number(codeFor("content_editor")) + 500_000) % 1_000_000).padStart(6, "0")
     const verify = await page.request.post("/api/admin/auth/mfa/verify", { headers: staffHeaders(baseURL), data: { code: wrong } })

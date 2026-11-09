@@ -1,28 +1,22 @@
 import "server-only"
 
-import { and, asc, count, countDistinct, desc, eq, exists, gt, gte, inArray, isNotNull, like, lte, max, min, notInArray, or, Param, SQL, sql } from "drizzle-orm"
-import { alias } from "drizzle-orm/mysql-core"
+import { and, asc, count, desc, eq, exists, gt, gte, inArray, isNotNull, lte, max, min, not, notInArray, or, Param, SQL, sql } from "drizzle-orm"
+import { alias, type MySqlSelect } from "drizzle-orm/mysql-core"
 import type { CollectionRule, Facets } from "./types"
 import type { StorefrontQueries, StorefrontRepository } from "./storefront.repository"
 import { hydrateProducts } from "./mysql.repository"
 import { requireStore } from "@/server/db/actor"
-import { database } from "@/server/db/client"
+import { database, inDatabaseTransaction } from "@/server/db/client"
 import { mysqlPolicy } from "@/server/db/policy.repository"
-import { brands, collectionProducts, collections, inventoryLevels, priceLists, prices, products, productTags, searchDocuments, searchFieldTerms, searchSkus, searchTerms, variants } from "@/server/db/schema"
-import { escapeLike, sqlDate } from "@/server/db/values"
-import { allowedEdits, expand, fold, terms, wordMatches } from "@/server/search/match"
+import { brands, collectionProducts, collections, inventoryLevels, priceLists, prices, productListingSizes, productListPrices, products, productTags, searchFieldTerms, variants } from "@/server/db/schema"
+import { sqlDate } from "@/server/db/values"
+import { terms } from "@/server/search/match"
+import { scoredCatalogueCandidates } from "@/server/search/scored-candidates.repository"
 import { DomainError } from "@/server/shared/errors"
+import { catalogueRevision, readFacetRows } from "./facet-cache.repository"
 
 const value = (input: unknown) => new SQL([new Param(input)])
-const zero = () => value(0)
 const choose = (condition: SQL | undefined, yes: SQL | number, no: SQL | number) => sql.fromList([sql.raw("CASE WHEN "), condition ?? value(false), sql.raw(" THEN "), typeof yes === "number" ? value(yes) : yes, sql.raw(" ELSE "), typeof no === "number" ? value(no) : no, sql.raw(" END")])
-const sum = (items: SQL[]) => items.length ? sql.join(items, sql.raw(" + ")) : value(1)
-const greatest = (items: SQL[]) => sql.fromList([sql.raw("GREATEST("), sql.join(items, sql.raw(", ")), sql.raw(")")])
-// Some shared-engine LIKE range optimizers discard supplementary-plane prefixes. Binary
-// byte matching is equivalent for a literal escaped prefix and avoids that range shortcut.
-const prefixMatch = (term: string) => /[\u{10000}-\u{10ffff}]/u.test(term)
-  ? sql.fromList([sql.raw("BINARY "), searchFieldTerms.term, sql.raw(" LIKE BINARY "), value(escapeLike(term) + "%")])
-  : like(searchFieldTerms.term, escapeLike(term) + "%")
 
 /** Indexed public listing projection. Charging and merchandising rules retain their pure implementations. */
 export function createMysqlStorefrontRepository(): StorefrontRepository {
@@ -42,46 +36,27 @@ export function createMysqlStorefrontRepository(): StorefrontRepository {
       const pageSize = query.pageSize ?? 9
       if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 1000) throw new DomainError("validation", "Invalid page size.")
       const db = await database(), at = Date.now()
+      const cacheRevision = !inDatabaseTransaction() && !collection?.rules.some((rule) => rule.field === "publishedWithinDays") ? await catalogueRevision(db, actor) : undefined
       const pricing = alias(prices, "resolved_prices"), lists = alias(priceLists, "resolved_lists")
       const quoted = (column: typeof pricing.amount | typeof pricing.compareAt, id: string) => db.select({ value: column }).from(pricing).innerJoin(lists, eq(lists.id, pricing.priceListId)).where(and(eq(pricing.variantId, variants.id), eq(pricing.priceListId, id), eq(lists.storeId, actor.storeId))).limit(1)
       const hasPrice = (id: string) => exists(db.select({ id: pricing.variantId }).from(pricing).innerJoin(lists, eq(lists.id, pricing.priceListId)).where(and(eq(pricing.variantId, variants.id), eq(pricing.priceListId, id), eq(lists.storeId, actor.storeId))))
       const amount = listIds.length ? sql.fromList([sql.raw("COALESCE("), sql.join(listIds.map((id) => quoted(pricing.amount, id)), sql.raw(", ")), sql.raw(", NULL)")]) : value(null)
       const compare = listIds.reduceRight<SQL>((next, id) => choose(hasPrice(id), sql.fromList([sql.raw("("), quoted(pricing.compareAt, id), sql.raw(")")]), next), value(null))
-      const offers = db.select({ productId: variants.productId, position: variants.position, amount: amount.mapWith(Number).as("amount"), compare: compare.as("compare_at") }).from(variants).innerJoin(products, eq(products.id, variants.productId)).where(eq(products.storeId, actor.storeId)).as("variant_offers")
-      const ranked = db.select({ productId: offers.productId, amount: offers.amount, compare: offers.compare, rank: sql.fromList([sql.raw("ROW_NUMBER() OVER (PARTITION BY "), offers.productId, sql.raw(" ORDER BY "), offers.amount, sql.raw(" ASC, "), offers.position, sql.raw(" ASC)")]).mapWith(Number).as("price_rank") }).from(offers).where(isNotNull(offers.amount)).as("headline_offers")
-      const headline = sql.fromList([sql.raw("COALESCE("), ranked.amount, sql.raw(", 0)")]).mapWith(Number)
-      const sale = and(isNotNull(ranked.compare), gt(ranked.compare, headline))
+      // Correlated offers let count/non-price facets avoid resolving every variant's price.
+      // A global window derived table materialized the whole store for each facet query.
+      const fallbackOffer = (column: SQL) => db.select({ value: column }).from(variants).where(and(eq(variants.productId, products.id), isNotNull(amount))).orderBy(asc(amount), asc(variants.position)).limit(1)
+      const selectedAmount = !listIds.length ? value(null) : fallbackOffer(amount).getSQL()
+      const selectedCompare = !listIds.length ? value(null) : fallbackOffer(compare).getSQL()
+      const aggregateOffers = alias(productListPrices, "catalogue_offer_heads")
+      const headline = (listIds.length === 1 ? sql.fromList([sql.raw("COALESCE("), aggregateOffers.amount, sql.raw(", 0)")]) : sql.fromList([sql.raw("COALESCE(("), selectedAmount, sql.raw("), 0)")])).mapWith(Number)
+      const headlineCompare = listIds.length === 1 ? sql.fromList([aggregateOffers.compareAt]) : sql.fromList([sql.raw("("), selectedCompare, sql.raw(")")])
+      const sale = and(isNotNull(headlineCompare), gt(headlineCompare, headline))
       const stocked = exists(db.select({ id: variants.id }).from(variants).innerJoin(inventoryLevels, eq(inventoryLevels.variantId, variants.id)).where(and(eq(variants.productId, products.id), gt(inventoryLevels.onHand, inventoryLevels.reserved))))
-      const discounts = choose(sale, sql.fromList([sql.raw("ROUND(("), ranked.compare, sql.raw(" - "), headline, sql.raw(") / "), ranked.compare, sql.raw(" * 100)")]), 0).mapWith(Number)
-      const queryTerms = terms(query.q ?? ""), alternatives = queryTerms.flatMap((term) => expand(term, synonyms))
-      const fuzzyAlternatives = alternatives.filter((term) => !term.includes(" ") && allowedEdits(term) > 0)
-      const dictionary = fuzzyAlternatives.length ? await db.select({ term: searchTerms.term }).from(searchTerms).where(and(eq(searchTerms.storeId, actor.storeId), gt(searchTerms.documentFrequency, 0), or(...fuzzyAlternatives.map((term) => and(gte(searchTerms.length, term.length - allowedEdits(term)), lte(searchTerms.length, term.length + allowedEdits(term))))))) : []
-      const fuzzy = (term: string) => dictionary.map((row) => row.term).filter((word) => wordMatches(term, word) === "fuzzy")
-      const matchingWord = (term: string) => or(eq(searchFieldTerms.term, term), term.length >= 3 ? prefixMatch(term) : undefined, fuzzy(term).length ? inArray(searchFieldTerms.term, fuzzy(term)) : undefined)
-      const fieldScore = (field: "title" | "body", choices: string[]) => {
-        const matches = (condition: SQL | undefined) => exists(db.select({ id: searchFieldTerms.productId }).from(searchFieldTerms).where(and(eq(searchFieldTerms.productId, products.id), eq(searchFieldTerms.field, field), condition)))
-        const exact = choices.map((term) => term.includes(" ") ? like(sql.fromList([sql.raw("CONCAT(' ', "), field === "title" ? searchDocuments.title : searchDocuments.body, sql.raw(", ' ')")]), "% " + escapeLike(term) + " %") : matches(eq(searchFieldTerms.term, term)))
-        const prefixes = choices.filter((term) => !term.includes(" ") && term.length >= 3).map((term) => matches(prefixMatch(term)))
-        const edits = [...new Set(choices.filter((term) => !term.includes(" ")).flatMap(fuzzy))]
-        return choose(or(...exact), 3, choose(prefixes.length ? or(...prefixes) : value(false), 2.5, choose(edits.length ? matches(inArray(searchFieldTerms.term, edits)) : value(false), 1.5, 0)))
-      }
-      const sku = exists(db.select({ id: searchSkus.productId }).from(searchSkus).where(and(eq(searchSkus.storeId, actor.storeId), eq(searchSkus.productId, products.id), eq(searchSkus.compact, fold(query.q ?? "").replace(/\s/g, "")))))
-      const numeric = queryTerms.filter((term) => /^\d{2}(\.\d)?$/.test(term))
-      const termScores = queryTerms.map((term) => {
-        const choices = expand(term, synonyms), title = fieldScore("title", choices), body = sql.fromList([sql.raw("("), fieldScore("body", choices), sql.raw(") / 3")])
-        const size = /^\d{2}(\.\d)?$/.test(term) ? choose(exists(db.select({ id: variants.id }).from(variants).where(and(eq(variants.productId, products.id), eq(variants.sizeEu, term)))), 1, 0) : zero()
-        return greatest([title, body, size])
-      })
-      const relevance = choose(sku, 10, sum(termScores)).mapWith(Number)
-      // FULLTEXT handles normal tokens; indexed field/SKU/size unions cover short terms, stopwords and typos.
-      const fulltext = sql.fromList([sql.raw("MATCH("), searchDocuments.title, sql.raw(", "), searchDocuments.body, sql.raw(") AGAINST ("), value(alternatives.flatMap(terms).map((term) => term + "*").join(" ")), sql.raw(" IN BOOLEAN MODE)")])
-      const candidateQueries = queryTerms.length ? [
-        db.select({ id: searchDocuments.productId }).from(searchDocuments).where(and(eq(searchDocuments.storeId, actor.storeId), gt(fulltext, 0))),
-        db.select({ id: searchFieldTerms.productId }).from(searchFieldTerms).innerJoin(products, eq(products.id, searchFieldTerms.productId)).where(and(eq(products.storeId, actor.storeId), or(...alternatives.map((term) => matchingWord(term.includes(" ") ? terms(term)[0] : term))))),
-        db.select({ id: searchSkus.productId }).from(searchSkus).where(and(eq(searchSkus.storeId, actor.storeId), eq(searchSkus.compact, fold(query.q ?? "").replace(/\s/g, "")))),
-        ...(numeric.length ? [db.select({ id: variants.productId }).from(variants).innerJoin(products, eq(products.id, variants.productId)).where(and(eq(products.storeId, actor.storeId), inArray(variants.sizeEu, numeric)))] : []),
-      ] : []
-      const candidates = candidateQueries.length ? sql.fromList([sql.raw("("), sql.join(candidateQueries.map((part) => part.getSQL()), sql.raw(" UNION ")), sql.raw(")")]) : undefined
+      const discounts = choose(sale, sql.fromList([sql.raw("ROUND(("), headlineCompare, sql.raw(" - "), headline, sql.raw(") / "), headlineCompare, sql.raw(" * 100)")]), 0).mapWith(Number)
+      const queryTerms = terms(query.q ?? "")
+      const search = await scoredCatalogueCandidates(db, actor.storeId, query.q ?? "", synonyms), candidates = search?.source
+      const relevance = candidates ? sql.raw("catalogue_search_candidates.relevance").mapWith(Number) : sql.raw("(1 + 0)")
+      const root = candidates ?? products
       const rule = (item: CollectionRule): SQL | undefined => {
         switch (item.field) {
           case "kind": return eq(products.kind, item.equals)
@@ -92,26 +67,104 @@ export function createMysqlStorefrontRepository(): StorefrontRepository {
         }
       }
       const collectionScope = !collection ? undefined : collection.kind === "manual" ? exists(db.select({ id: collectionProducts.productId }).from(collectionProducts).where(and(eq(collectionProducts.productId, products.id), eq(collectionProducts.collectionId, collection.id)))) : collection.rules.length ? and(...collection.rules.map(rule)) : value(false)
-      const scope = and(eq(products.storeId, actor.storeId), eq(products.status, "active"), query.kind ? eq(products.kind, query.kind) : undefined, query.excludeIds?.length ? notInArray(products.id, query.excludeIds) : undefined, collectionScope,
-        candidates ? sql.fromList([products.id, sql.raw(" IN "), candidates]) : undefined,
-        queryTerms.length ? or(sku, and(...termScores.map((term) => gt(term, 0)))) : undefined)
-      const scoped = db.select({ id: products.id, title: products.title, kind: products.kind, gender: products.gender, condition: products.conditionGrade, brand: brands.slug, brandName: brands.name, position: products.position, publishedAt: products.publishedAt, amount: headline.as("amount"), discount: discounts.as("discount"), inStock: choose(stocked, 1, 0).mapWith(Number).as("in_stock"), relevance: relevance.as("relevance") }).from(products).innerJoin(brands, and(eq(brands.id, products.brandId), eq(brands.storeId, actor.storeId))).leftJoin(ranked, and(eq(ranked.productId, products.id), eq(ranked.rank, 1))).leftJoin(searchDocuments, eq(searchDocuments.productId, products.id)).where(scope).as("scoped_products")
-      const sizeFilter = query.sizes?.length ? exists(db.select({ id: variants.id }).from(variants).innerJoin(inventoryLevels, eq(inventoryLevels.variantId, variants.id)).where(and(eq(variants.productId, scoped.id), inArray(variants.sizeEu, query.sizes), gt(inventoryLevels.onHand, inventoryLevels.reserved)))) : undefined
-      const filters = and(query.gender?.length ? or(inArray(scoped.gender, query.gender), eq(scoped.gender, "unisex")) : undefined, sizeFilter, query.brands?.length ? inArray(sql.fromList([sql.raw("BINARY "), scoped.brand]), query.brands) : undefined, query.condition?.length ? inArray(scoped.condition, query.condition) : undefined, query.priceMin !== undefined ? gte(scoped.amount, query.priceMin) : undefined, query.priceMax !== undefined ? lte(scoped.amount, query.priceMax) : undefined)
-      const [[total], genders, sizes, brandRows, conditions, [range]] = await Promise.all([
-        db.select({ count: count() }).from(scoped).where(filters),
-        db.select({ value: scoped.gender, count: count() }).from(scoped).where(sql.fromList([scoped.gender, sql.raw(" <> "), value("unisex")])).groupBy(scoped.gender).orderBy(min(scoped.position)),
-        db.select({ value: variants.sizeEu, count: countDistinct(scoped.id) }).from(scoped).innerJoin(variants, eq(variants.productId, scoped.id)).groupBy(variants.sizeEu).orderBy(sql.fromList([sql.raw("CAST("), variants.sizeEu, sql.raw(" AS DECIMAL(10,2))")])),
-        db.select({ value: scoped.brand, label: scoped.brandName, count: count() }).from(scoped).groupBy(scoped.brand, scoped.brandName).orderBy(min(scoped.position)),
-        db.select({ value: scoped.condition, count: count() }).from(scoped).where(isNotNull(scoped.condition)).groupBy(scoped.condition).orderBy(min(scoped.position)),
-        db.select({ min: min(scoped.amount), max: max(scoped.amount) }).from(scoped),
+      const scope = and(eq(products.storeId, actor.storeId), eq(products.status, "active"), query.kind ? eq(products.kind, query.kind) : undefined, query.excludeIds?.length ? notInArray(products.id, query.excludeIds) : undefined, collectionScope)
+      // Select only what a query consumes: scalar SELECT columns prevent derived-table merging
+      // on both engines, otherwise even gender/count facets calculate every price and stock flag.
+      const brandScope = and(eq(brands.id, products.brandId), eq(brands.storeId, actor.storeId))
+      function joinSources<T extends MySqlSelect>(builder: T, needsPrice: boolean, productsFirst = false, needsBrand = true) {
+        const withProducts = candidates && !productsFirst ? builder.innerJoin(products, eq(products.id, sql.raw("catalogue_search_candidates.id")), { forceIndex: "products_listing_by_id" }) : builder
+        const withScores = candidates && productsFirst ? withProducts.innerJoin(candidates, eq(products.id, sql.raw("catalogue_search_candidates.id"))) : withProducts
+        const withBrand = needsBrand ? withScores.innerJoin(brands, brandScope) : withScores
+        return listIds.length === 1 && needsPrice ? withBrand.leftJoin(aggregateOffers, and(eq(aggregateOffers.productId, products.id), eq(aggregateOffers.storeId, actor.storeId), eq(aggregateOffers.priceListId, listIds[0]), exists(db.select({ id: priceLists.id }).from(priceLists).where(and(eq(priceLists.id, listIds[0]), eq(priceLists.storeId, actor.storeId)))))) : withBrand
+      }
+      const scopeNeedsPrice = Boolean(collection?.rules.some((item) => item.field === "onSale")), filterNeedsPrice = query.priceMin !== undefined || query.priceMax !== undefined
+      const sizeFilter = query.sizes?.length ? exists(db.select({ id: variants.id }).from(variants).innerJoin(inventoryLevels, eq(inventoryLevels.variantId, variants.id)).where(and(eq(variants.productId, products.id), inArray(variants.sizeEu, query.sizes), gt(inventoryLevels.onHand, inventoryLevels.reserved)))) : undefined
+      const filters = and(query.gender?.length ? or(inArray(products.gender, query.gender), eq(products.gender, "unisex")) : undefined, sizeFilter, query.brands?.length ? inArray(sql.fromList([sql.raw("BINARY "), brands.slug]), query.brands) : undefined, query.condition?.length ? inArray(products.conditionGrade, query.condition) : undefined, query.priceMin !== undefined ? gte(headline, query.priceMin) : undefined, query.priceMax !== undefined ? lte(headline, query.priceMax) : undefined)
+      const uniqueSizes = productListingSizes
+      const facetHints = !candidates ? { forceIndex: "products_store_status_facets" } : undefined
+      // MariaDB otherwise starts with each brand and rescans the entire store's product range.
+      const sizeValue = sql.fromList([sql.raw("STRAIGHT_JOIN "), uniqueSizes.size]).mapWith(String)
+      const pageId = sql.fromList([sql.raw("STRAIGHT_JOIN "), products.id]).mapWith(products.id)
+      const groupGender = candidates ? sql.fromList([sql.raw("STRAIGHT_JOIN "), products.gender]).mapWith(String) : products.gender
+      const pageHints = queryTerms.length ? undefined : { forceIndex: query.sort === "newest" || query.sort === "oldest" ? "products_store_status_newest" : !query.sort || query.sort === "featured" ? "products_store_status_position" : "products_store_status_facets" }
+      const hasFilters = Boolean(query.gender?.length || query.sizes?.length || query.brands?.length || query.condition?.length || filterNeedsPrice)
+      const ordering = query.sort === "title-asc" ? [asc(products.title), asc(products.position)] : query.sort === "title-desc" ? [desc(products.title), asc(products.position)] : query.sort === "newest" ? [desc(products.publishedAt), asc(products.position)] : query.sort === "oldest" ? [asc(products.publishedAt), asc(products.position)] : query.sort === "price-asc" ? [asc(headline), asc(products.position)] : query.sort === "price-desc" ? [desc(headline), asc(products.position)] : query.sort === "discount-desc" ? [desc(discounts), asc(products.position)] : query.q ? search?.constantRelevance ? [asc(products.position)] : [desc(relevance), asc(products.position)] : [desc(choose(stocked, 1, 0)), asc(products.position)]
+      const productsFirst = Boolean(search?.constantRelevance) && (!query.sort || query.sort === "featured")
+      const ordinaryPage = (offset: number) => joinSources(db.select({ id: pageId }).from(productsFirst ? products : root, productsFirst ? { forceIndex: "products_store_status_position" } : pageHints).$dynamic(), scopeNeedsPrice || filterNeedsPrice || ["price-asc", "price-desc", "discount-desc"].includes(query.sort ?? ""), productsFirst).where(and(scope, filters)).orderBy(...ordering, asc(products.id)).limit(pageSize).offset(offset)
+      async function selectPageIds(offset: number) {
+        if (offset !== 0 || query.q || listIds.length !== 1 || !["price-asc", "price-desc"].includes(query.sort ?? "")) return ordinaryPage(offset)
+        const totalProducts = db.select({ count: count() }).from(products).where(eq(products.storeId, actor.storeId))
+        const [coverage] = await db.select({ prices: count(), products: sql.fromList([sql.raw("("), totalProducts.getSQL(), sql.raw(")")]).mapWith(Number) }).from(aggregateOffers, { forceIndex: "listing_prices_scope" }).where(and(eq(aggregateOffers.storeId, actor.storeId), eq(aggregateOffers.priceListId, listIds[0])))
+        if (coverage.prices !== coverage.products) return ordinaryPage(offset)
+        function priceSources<T extends MySqlSelect>(builder: T) {
+          return builder.innerJoin(products, eq(products.id, aggregateOffers.productId), { forceIndex: "products_listing_by_id" }).innerJoin(brands, brandScope)
+        }
+        const eligible = and(scope, filters, eq(aggregateOffers.storeId, actor.storeId), eq(aggregateOffers.priceListId, listIds[0]), exists(db.select({ id: priceLists.id }).from(priceLists).where(and(eq(priceLists.id, listIds[0]), eq(priceLists.storeId, actor.storeId)))))
+        const ascending = query.sort === "price-asc"
+        const bounds = await priceSources(db.select({ amount: sql.fromList([sql.raw("STRAIGHT_JOIN "), aggregateOffers.amount]).mapWith(Number) }).from(aggregateOffers, { forceIndex: "listing_prices_list_amount" }).$dynamic()).where(eligible).orderBy(ascending ? asc(aggregateOffers.amount) : desc(aggregateOffers.amount)).limit(pageSize)
+        if (!bounds.length) return []
+        const bound = bounds.at(-1)!.amount
+        // Include the entire boundary-price tie before position ordering.
+        return priceSources(db.select({ id: pageId }).from(aggregateOffers, { forceIndex: "listing_prices_list_amount" }).$dynamic()).where(and(eligible, ascending ? lte(aggregateOffers.amount, bound) : gte(aggregateOffers.amount, bound))).orderBy(...ordering, asc(products.id)).limit(pageSize)
+      }
+      // Page one never needs clamping, so its independent read can overlap facets.
+      const firstPage = (query.page ?? 1) <= 1 && (query.q || query.sort && query.sort !== "featured") ? selectPageIds(0) : undefined
+      const sizesQuery = joinSources(db.select({ value: sizeValue, count: count() }).from(root, facetHints).$dynamic(), scopeNeedsPrice, false, false).innerJoin(uniqueSizes, and(eq(uniqueSizes.productId, products.id), eq(uniqueSizes.storeId, actor.storeId))).where(scope).groupBy(uniqueSizes.size).orderBy(sql.fromList([sql.raw("CAST("), uniqueSizes.size, sql.raw(" AS DECIMAL(10,2))")]))
+      const facetScope = { listIds, collection: collection ? { id: collection.id, kind: collection.kind, rules: collection.rules } : null, kind: query.kind, excludeIds: query.excludeIds, q: query.q, synonyms: [...synonyms] }
+      const facetRows = () => readFacetRows(db, actor, facetScope, cacheRevision, async () => {
+        const [groups, sizes] = await Promise.all([
+          joinSources(db.select({ gender: groupGender, brandId: products.brandId, condition: products.conditionGrade, count: count(), min: min(headline), max: max(headline) }).from(root, facetHints).$dynamic(), true, false, false).where(scope).groupBy(products.gender, products.brandId, products.conditionGrade).orderBy(min(products.position)),
+          sizesQuery,
+        ])
+        return { groups, sizes }
+      })
+      const [[filteredTotal], { groups, sizes }, firstIds] = await Promise.all([
+        hasFilters ? joinSources(db.select({ count: count() }).from(root, facetHints).$dynamic(), scopeNeedsPrice || filterNeedsPrice).where(and(scope, filters)) : Promise.resolve([{ count: 0 }]),
+        facetRows(),
+        firstPage ?? Promise.resolve(undefined),
       ])
-      const pageCount = Math.max(1, Math.ceil(total.count / pageSize)), page = Math.min(Math.max(1, query.page ?? 1), pageCount)
-      const ordering = query.sort === "title-asc" ? [asc(scoped.title), asc(scoped.position)] : query.sort === "title-desc" ? [desc(scoped.title), asc(scoped.position)] : query.sort === "newest" ? [desc(scoped.publishedAt), asc(scoped.position)] : query.sort === "oldest" ? [asc(scoped.publishedAt), asc(scoped.position)] : query.sort === "price-asc" ? [asc(scoped.amount), asc(scoped.position)] : query.sort === "price-desc" ? [desc(scoped.amount), asc(scoped.position)] : query.sort === "discount-desc" ? [desc(scoped.discount), asc(scoped.position)] : query.q ? [desc(scoped.relevance), asc(scoped.position)] : [desc(scoped.inStock), asc(scoped.position)]
-      const ids = await db.select({ id: scoped.id }).from(scoped).where(filters).orderBy(...ordering, asc(scoped.id)).limit(pageSize).offset((page - 1) * pageSize)
+      // One grouped pass supplies the marginal facets and total instead of rescanning the
+      // catalogue independently for gender, brand, condition, range and the unfiltered count.
+      const genders = new Map<string, { value: string; count: number }>(), brandRows = new Map<string, { value: string; label: string; count: number }>(), conditions = new Map<string, { value: string; count: number }>()
+      const brandLabels = new Map<string, { slug: string; name: string }>(), brandIds = [...new Set(groups.map((row) => row.brandId))]
+      for (let start = 0; start < brandIds.length; start += 500) {
+        const rows = await db.select({ id: brands.id, slug: brands.slug, name: brands.name }).from(brands).where(and(eq(brands.storeId, actor.storeId), inArray(brands.id, brandIds.slice(start, start + 500))))
+        for (const row of rows) brandLabels.set(row.id, row)
+      }
+      let baseTotal = 0, priceMin = Infinity, priceMax = -Infinity
+      for (const group of groups) {
+        baseTotal += group.count
+        priceMin = Math.min(priceMin, Number(group.min)); priceMax = Math.max(priceMax, Number(group.max))
+        if (group.gender !== "unisex") {
+          const facet = genders.get(group.gender) ?? { value: group.gender, count: 0 }
+          facet.count += group.count; genders.set(group.gender, facet)
+        }
+        const label = brandLabels.get(group.brandId)
+        if (!label) throw new DomainError("unavailable", "The catalogue changed. Please refresh and try again.")
+        const brand = brandRows.get(label.slug) ?? { value: label.slug, label: label.name, count: 0 }
+        brand.count += group.count; brandRows.set(label.slug, brand)
+        if (group.condition !== null) {
+          const facet = conditions.get(group.condition) ?? { value: group.condition, count: 0 }
+          facet.count += group.count; conditions.set(group.condition, facet)
+        }
+      }
+      const total = hasFilters ? filteredTotal.count : baseTotal
+      const pageCount = Math.max(1, Math.ceil(total / pageSize)), page = Math.min(Math.max(1, query.page ?? 1), pageCount)
+      const offset = (page - 1) * pageSize
+      let ids: { id: string }[]
+      if (!query.q && (!query.sort || query.sort === "featured")) {
+        // Read stocked rows in the existing position index, stopping as soon as the page fills.
+        // Sorting a computed EXISTS flag forced every product's stock to be read first.
+        ids = await joinSources(db.select({ id: pageId }).from(products, pageHints).$dynamic(), scopeNeedsPrice || filterNeedsPrice).where(and(scope, filters, stocked)).orderBy(asc(products.position), asc(products.id)).limit(pageSize).offset(offset)
+        if (ids.length < pageSize) {
+          const stockedTotal = offset === 0 ? ids.length : ids.length ? offset + ids.length : (await joinSources(db.select({ count: count() }).from(products).$dynamic(), scopeNeedsPrice || filterNeedsPrice).where(and(scope, filters, stocked)))[0].count
+          const remainder = await joinSources(db.select({ id: pageId }).from(products, pageHints).$dynamic(), scopeNeedsPrice || filterNeedsPrice).where(and(scope, filters, not(stocked), ids.length ? notInArray(products.id, ids.map((row) => row.id)) : undefined)).orderBy(asc(products.position), asc(products.id)).limit(pageSize - ids.length).offset(Math.max(0, offset - stockedTotal))
+          ids.push(...remainder)
+        }
+      } else ids = firstIds ?? await selectPageIds(offset)
       const hydrated = ids.length ? await hydrateProducts(db, actor, await db.select().from(products).where(and(eq(products.storeId, actor.storeId), eq(products.status, "active"), inArray(products.id, ids.map((row) => row.id))))) : []
-      const facets: Facets = { genders: genders as Facets["genders"], sizes, brands: brandRows, conditions: conditions as Facets["conditions"], price: { min: Number(range?.min ?? 0), max: Number(range?.max ?? 0) } }
-      return { products: ids.flatMap((row) => hydrated.find((product) => product.id === row.id) ?? []), total: total.count, page, pageCount, facets }
+      const facets: Facets = { genders: [...genders.values()] as Facets["genders"], sizes, brands: [...brandRows.values()], conditions: [...conditions.values()] as Facets["conditions"], price: { min: groups.length ? priceMin : 0, max: groups.length ? priceMax : 0 } }
+      return { products: ids.flatMap((row) => hydrated.find((product) => product.id === row.id) ?? []), total, page, pageCount, facets }
     },
     async vocabulary(actor, storeId) {
       requireStore(actor, storeId)

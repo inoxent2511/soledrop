@@ -34,7 +34,7 @@ type Deps = {
 }
 
 /** Lowest-priced variant's price is the product's card price. */
-function headlinePrice(prices: VariantPrice[]): ProductView["price"] {
+export function headlinePrice(prices: VariantPrice[]): ProductView["price"] {
   const cheapest = [...prices].sort((a, b) => a.amount - b.amount)[0]
   if (!cheapest) return { amount: 0, compareAt: null, currency: "PKR", discountPercent: null }
   return { amount: cheapest.amount, compareAt: cheapest.compareAt, currency: cheapest.currency, discountPercent: discountPercent(cheapest.amount, cheapest.compareAt) }

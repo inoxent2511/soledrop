@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./support/test"
 
 import { signInAs } from "./support/admin"
 
@@ -6,7 +7,7 @@ import { signInAs } from "./support/admin"
  * Every admin module page renders for the Owner without errors or CSP violations, and the
  * promotion simulator and rate tester answer (admin A4, A5). Chromium only.
  */
-test.skip(({ browserName }) => browserName !== "chromium", "TOTP-limited demo accounts; covered once")
+test.skip(({ browserName }) => !process.env.QA_STAFF_FILE && browserName !== "chromium", "Shared demo TOTP accounts; isolated QA runs every browser")
 
 const PAGES = [
   ["/admin", /^Hello, DEMO/],
@@ -50,8 +51,9 @@ test("the Owner can open every module, and the simulator and rate tester answer"
     if (message.type() === "error") problems.push(`${page.url()}: ${message.text()}`)
   })
   page.on("pageerror", (error) => problems.push(`${page.url()}: ${error.message}`))
+  page.on("response", (response) => { if (response.status() >= 400) problems.push(`${new URL(response.url()).pathname}: HTTP ${response.status()}`) })
   for (const [path, heading] of PAGES) {
-    const response = await page.goto(path)
+    const response = await page.goto(path, { waitUntil: "networkidle" })
     expect(response?.status(), path).toBe(200)
     await expect(page.getByRole("heading", { level: 1, name: heading }), path).toBeVisible()
   }

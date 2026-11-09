@@ -22,6 +22,7 @@ function canGrant(actor: Actor, permissions: readonly Permission[], keys: readon
 const targetOwner = (id: string) => db().staffRoleLinks.some((link) => link.userId === id && db().adminRoles.some((role) => role.id === link.roleId && role.key === "owner"))
 export const adminGuards: FixtureGuards<AdminOperations> = {
   findMemberByEmail(actor, storeId) { store(actor, storeId); requireSystem(actor, ["auth:staff", "bootstrap", "migration"]) },
+  emailInUse(actor, storeId) { store(actor, storeId); manage(actor) },
   findMember: memberRead, listMembers: memberRead,
   createMember(actor, member) { store(actor, member.storeId); manage(actor) },
   updateMember(actor, storeId, userId, changes) {
@@ -38,7 +39,7 @@ export const adminGuards: FixtureGuards<AdminOperations> = {
   createRole(actor, role) { store(actor, role.storeId); manage(actor, "roles:manage"); canGrant(actor, role.permissions, [role.key]); if (role.isSystem) throw new DomainError("forbidden", "System roles are managed by the registry.") },
   updateRole(actor, storeId, key, changes) { store(actor, storeId); manage(actor, "roles:manage"); canGrant(actor, changes.permissions ?? []); if (key === "owner") throw new DomainError("forbidden", "The Owner role cannot be edited.") },
   deleteRole(actor, storeId, key) { store(actor, storeId); manage(actor, "roles:manage"); if (db().adminRoles.find((row) => row.storeId === storeId && row.key === key)?.isSystem) throw new DomainError("forbidden", "System roles cannot be deleted.") },
-  rolesOf: memberRead,
+  rolesOf: memberRead, listRoleAssignments: memberRead,
   setRoles(actor, storeId, userId, keys) { store(actor, storeId); manage(actor); const selected = db().adminRoles.filter((role) => keys.includes(role.key)); canGrant(actor, selected.flatMap((role) => role.permissions), keys); if (targetOwner(userId) && !keys.includes("owner")) canGrant(actor, [], ["owner"]) },
   countActiveOwners: memberRead,
   createInvite(actor, invite) { store(actor, invite.storeId); manage(actor); const role = db().adminRoles.find((row) => row.key === invite.roleKey); if (!role) throw new DomainError("validation", "Unknown role."); canGrant(actor, role.permissions, [role.key]) },
@@ -82,6 +83,7 @@ export const orderGuards: FixtureGuards<OrderOperations> = {
   createReturn(actor, input) { if (actor.kind === "staff" || actor.kind === "system") requireGrant(actor, "orders:returns"); ownedOrder(actor, input.orderId) },
   restockReturn(actor, _id, label) { requireGrant(actor, "orders:returns"); actionLabel(actor, label) }, decideReturn(actor, _id, _decision, label) { requireGrant(actor, "orders:returns"); actionLabel(actor, label) },
   nextOrderNumber(actor, storeId) { store(actor, storeId); requireGrant(actor, "orders:write") }, search(actor, storeId) { store(actor, storeId); requireGrant(actor, "orders:read") },
+  searchSales(actor, storeId) { store(actor, storeId); requireGrant(actor, "reports:read") },
   addNote(actor, note) { requireGrant(actor, "orders:write"); if (actor.kind === "staff" && note.author !== actor.id) throw new DomainError("forbidden", "Note author does not match the actor."); ownedOrder(actor, note.orderId) },
   listNotes(actor, id) { requireGrant(actor, "orders:read"); ownedOrder(actor, id) }, ledger(actor, storeId) { store(actor, storeId); requireGrant(actor, "payments:read") },
   anonymiseCustomer(actor, customerId) { requireCustomerOwner(actor, customerId, "customers:delete"); if (actor.kind === "staff") requireFreshGrant(actor, "customers:delete") },

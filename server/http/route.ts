@@ -57,14 +57,14 @@ export function route<Context = unknown>(handler: (request: Request, context: Co
 }
 
 /** Parses and validates a JSON body; field errors come back as `details.fields`. */
-export async function parseBody<Schema extends z.ZodType>(request: Request, schema: Schema): Promise<z.infer<Schema>> {
+export async function parseBody<Schema extends z.core.$ZodType>(request: Request, schema: Schema): Promise<z.infer<Schema>> {
   let body: unknown
   try {
     body = await request.json()
   } catch {
     throw new DomainError("validation", "The request body must be JSON.")
   }
-  const result = schema.safeParse(body)
+  const result = z.core.safeParse(schema, body)
   if (!result.success) {
     throw new DomainError("validation", "Please check the highlighted fields.", { fields: z.flattenError(result.error).fieldErrors })
   }

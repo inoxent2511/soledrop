@@ -1,25 +1,19 @@
 import "@/lib/validation"
-import { z } from "zod"
+import * as z from "zod/mini"
 
-import { emailSchema } from "@/features/checkout/schemas/checkout"
+import { emailSchema } from "@/features/checkout/schemas/email"
 
 export const contactSchema = z.object({
-  name: z.string().trim().min(2, "Enter your name").max(80),
+  name: z.string().check(z.trim(), z.minLength(2, "Enter your name"), z.maxLength(80)),
   email: emailSchema,
-  orderNumber: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .regex(/^SD\d{5,}$/, "Order numbers look like SD10001")
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
-  message: z.string().trim().min(10, "Tell us a little more (10 characters or more)").max(2000),
+  orderNumber: z.union([z.optional(z.string().check(z.trim(), z.toUpperCase(), z.regex(/^SD\d{5,}$/, "Order numbers look like SD10001"))), z.pipe(z.literal(""), z.transform(() => undefined))]),
+  message: z.string().check(z.trim(), z.minLength(10, "Tell us a little more (10 characters or more)"), z.maxLength(2000)),
   /** Honeypot: humans never see or fill it. */
-  website: z.string().max(0).optional(),
+  website: z.optional(z.string().check(z.maxLength(0))),
 })
 
 export const newsletterSchema = z.object({
   email: emailSchema,
-  source: z.string().max(40).default("footer"),
-  website: z.string().max(0).optional(),
+  source: z._default(z.string().check(z.maxLength(40)), "footer"),
+  website: z.optional(z.string().check(z.maxLength(0))),
 })

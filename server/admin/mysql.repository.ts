@@ -27,9 +27,9 @@ function memberProjection(actor: Actor, own = false) {
   const secrets = auth(actor) || own
   return { ...getTableColumns(staffMembers), passwordHash: secrets ? staffMembers.passwordHash : constant(null), totpSecret: secrets ? staffMembers.totpSecret : constant(null) }
 }
-async function member(db: Database, actor: Actor, row: typeof staffMembers.$inferSelect): Promise<StaffMember> {
+async function member(db: Database, actor: Actor, row: typeof staffMembers.$inferSelect, loadedCodes?: { value: string }[]): Promise<StaffMember> {
   const codes = auth(actor) || actor.kind === "staff" && actor.id === row.userId
-    ? await db.select({ value: staffRecoveryCodes.value }).from(staffRecoveryCodes).where(and(eq(staffRecoveryCodes.storeId, actor.storeId), eq(staffRecoveryCodes.userId, row.userId))).orderBy(asc(staffRecoveryCodes.position)) : []
+    ? loadedCodes ?? await db.select({ value: staffRecoveryCodes.value }).from(staffRecoveryCodes).where(and(eq(staffRecoveryCodes.storeId, actor.storeId), eq(staffRecoveryCodes.userId, row.userId))).orderBy(asc(staffRecoveryCodes.position)) : []
   return { userId: row.userId, storeId: row.storeId, email: row.email ?? "", displayName: row.displayName, status: row.status as StaffMember["status"], passwordHash: row.passwordHash, totpSecret: row.totpSecret, totpEnabledAt: nullableIsoDate(row.totpEnabledAt), totpLastStep: row.totpLastStep, recoveryCodes: codes.map((code) => code.value), failedLogins: row.failedLogins, lockedUntil: nullableIsoDate(row.lockedUntil), lastSeenAt: nullableIsoDate(row.lastSeenAt), createdAt: isoDate(row.createdAt), updatedAt: isoDate(row.updatedAt) }
 }
 async function roleRows(db: Database, actor: Actor, rows: (typeof roles.$inferSelect)[]): Promise<Role[]> {
@@ -71,6 +71,11 @@ export function createMysqlAdminRepository(): ActorScoped<AdminOperations> {
       const [row] = await db.select(memberProjection(actor)).from(staffMembers).where(and(eq(staffMembers.storeId, actor.storeId), eq(staffMembers.email, email.trim().toLowerCase()))).limit(1)
       return row ? member(db, actor, row) : null
     },
+    async emailInUse(actor, storeId, email) {
+      requireStore(actor, storeId); manage(actor)
+      const [row] = await (await database()).select({ id: staffMembers.userId }).from(staffMembers).where(and(eq(staffMembers.storeId, actor.storeId), eq(staffMembers.email, email.trim().toLowerCase()))).limit(1)
+      return Boolean(row)
+    },
     async findMember(actor, storeId, userId) {
       readMember(actor, storeId, userId)
       const db = await database()
@@ -81,7 +86,10 @@ export function createMysqlAdminRepository(): ActorScoped<AdminOperations> {
       readMember(actor, storeId)
       const db = await database()
       const rows = await db.select(memberProjection(actor)).from(staffMembers).where(eq(staffMembers.storeId, actor.storeId)).orderBy(asc(staffMembers.createdAt), staffMembers.userId)
-      return Promise.all(rows.map((row) => member(db, actor, row)))
+      const codes = auth(actor) || actor.kind === "staff" ? await db.select({ userId: staffRecoveryCodes.userId, value: staffRecoveryCodes.value }).from(staffRecoveryCodes).where(and(eq(staffRecoveryCodes.storeId, actor.storeId), auth(actor) ? undefined : eq(staffRecoveryCodes.userId, actor.id!))).orderBy(staffRecoveryCodes.userId, staffRecoveryCodes.position) : []
+      const byUser = new Map<string, { value: string }[]>()
+      for (const code of codes) { const values = byUser.get(code.userId) ?? []; values.push(code); byUser.set(code.userId, values) }
+      return Promise.all(rows.map((row) => member(db, actor, row, byUser.get(row.userId) ?? [])))
     },
     async createMember(actor, input) {
       requireStore(actor, input.storeId); manage(actor)
@@ -203,6 +211,11 @@ export function createMysqlAdminRepository(): ActorScoped<AdminOperations> {
       readMember(actor, storeId, userId)
       const db = await database()
       return roleRows(db, actor, await db.select(getTableColumns(roles)).from(roles).innerJoin(staffRoles, eq(staffRoles.roleId, roles.id)).where(and(eq(roles.storeId, actor.storeId), eq(staffRoles.storeId, actor.storeId), eq(staffRoles.userId, userId))))
+    },
+    async listRoleAssignments(actor, storeId) {
+      readMember(actor, storeId)
+      const db = await database()
+      return db.select({ userId: staffRoles.userId, roleId: staffRoles.roleId }).from(staffRoles).where(eq(staffRoles.storeId, actor.storeId)).orderBy(staffRoles.userId, staffRoles.roleId)
     },
     async setRoles(actor, storeId, userId, roleKeys) {
       requireStore(actor, storeId); manage(actor)

@@ -138,3 +138,8 @@ export type OrderQuery = {
 }
 
 export type OrderPage = { orders: Order[]; total: number }
+
+/** Financial reporting excludes customer identities, addresses, notes and access proofs. */
+export type SalesOrder = Pick<Order, "placedAt" | "status" | "total" | "refundedTotal" | "paymentMethod" | "promotionCodes"> & { lines: Pick<OrderLine, "productId" | "title" | "brand" | "kind" | "quantity" | "total">[] }
+export type SalesOrderPage = { orders: SalesOrder[]; total: number }
+export type SalesOrderQuery = Pick<OrderQuery, "placedFrom" | "placedTo" | "page" | "pageSize">

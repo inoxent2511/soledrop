@@ -11,6 +11,8 @@ import { uuidv7 } from "@/server/db/uuid"
 import { escapeLike, isoDate, jsonValue, sqlDate } from "@/server/db/values"
 import { DomainError } from "@/server/shared/errors"
 import { removeCatalogueSearch, syncCatalogueSearch } from "@/server/search/catalogue-index.repository"
+import { syncCatalogueListing } from "./listing-index.repository"
+import { bumpCatalogueRevision } from "./facet-cache.repository"
 
 export async function hydrateProducts(db: Database, actor: Actor, rows: (typeof products.$inferSelect)[]): Promise<Product[]> {
   if (!rows.length) return []
@@ -56,6 +58,7 @@ export async function reindexCatalogueSearch(actor: Actor, cursor: string | null
     await db.select({ id: stores.id }).from(stores).where(eq(stores.id, actor.storeId)).for("update")
     const rows = await db.select().from(products).where(and(eq(products.storeId, actor.storeId), cursor ? gt(products.id, cursor) : undefined)).orderBy(asc(products.id)).limit(limit).for("update")
     for (const product of await hydrateProducts(db, actor, rows)) await syncCatalogueSearch(db, product)
+    await syncCatalogueListing(db, actor, rows.map((row) => row.id))
     return { count: rows.length, cursor: rows.at(-1)?.id ?? null }
   })
 }
@@ -179,6 +182,7 @@ export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
         }
         const saved = (await hydrateProducts(db, actor, await db.select().from(products).where(where)))[0]
         await syncCatalogueSearch(db, saved)
+        await syncCatalogueListing(db, actor, [saved.id])
         return saved
       })
     },
@@ -192,6 +196,7 @@ export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
         if (ordered) throw new DomainError("conflict", "This product has been ordered, so it can't be deleted. Archive it instead.")
         await removeCatalogueSearch(db, actor.storeId, id)
         await db.delete(products).where(and(eq(products.id, id), eq(products.storeId, actor.storeId)))
+        await bumpCatalogueRevision(db, actor)
       })
     },
     async saveCollection(actor, storeId, input, productIds) {
@@ -212,14 +217,18 @@ export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
             await db.insert(collectionProducts).values(productIds.map((productId, position) => ({ collectionId: id, productId, position, productPosition: Math.max(-1, ...memberships.filter((link) => link.productId === productId).map((link) => link.position)) + 1 })))
           }
         }
+        await bumpCatalogueRevision(db, actor)
         return collection((await db.select().from(collections).where(where))[0])
       })
     },
     async deleteCollection(actor, storeId, id) {
       requireStore(actor, storeId); requireGrant(actor, "collections:write")
-      const db = await database()
-      const [result] = await db.delete(collections).where(and(eq(collections.storeId, actor.storeId), eq(collections.id, id)))
-      if (!result.affectedRows) throw new DomainError("not_found", "Collection not found.")
+      await withTransaction(async (db) => {
+        await db.select({ id: stores.id }).from(stores).where(eq(stores.id, actor.storeId)).for("update")
+        const [result] = await db.delete(collections).where(and(eq(collections.storeId, actor.storeId), eq(collections.id, id)))
+        if (!result.affectedRows) throw new DomainError("not_found", "Collection not found.")
+        await bumpCatalogueRevision(db, actor)
+      })
     },
     async collectionProductIds(actor, storeId, collectionId) {
       requireStore(actor, storeId); requireGrant(actor, "collections:read")

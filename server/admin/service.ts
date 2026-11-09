@@ -396,7 +396,7 @@ export function createAdminService(deps: Deps) {
       const role = await repo.findRole(storeId, input.roleKey)
       if (!role) throw new DomainError("validation", "Choose a role.")
       assertCanGrant(staff, role.permissions, [role.key])
-      if (await repo.findMemberByEmail(storeId, email)) throw new DomainError("conflict", "Someone with this email is already on the team.")
+      if (await repo.emailInUse(storeId, email)) throw new DomainError("conflict", "Someone with this email is already on the team.")
       const token = newToken()
       const invite = await repo.createInvite({ id: newId(), storeId, email, roleKey: role.key, tokenHash: hashToken(token), invitedBy: staff.member.userId, expiresAt: iso(clock() + INVITE_HOURS * 3_600_000), acceptedAt: null, revokedAt: null, createdAt: iso() })
       await recordAudit(staff, meta, { action: "staff.invited", entity: "staff_invite", entityId: invite.id, after: { email, role: role.key }, storeId })
@@ -470,8 +470,11 @@ export function createAdminService(deps: Deps) {
     // ─── Staff ─────────────────────────────────────────────────────────────
     async listStaff(staff: StaffContext): Promise<StaffSummary[]> {
       requireIn(staff, "staff:read")
-      const members = await repo.listMembers(staff.member.storeId)
-      return Promise.all(members.map(async (member) => toSummary(member, await repo.rolesOf(member.storeId, member.userId))))
+      const storeId = staff.member.storeId
+      const [members, roles, assignments] = await Promise.all([repo.listMembers(storeId), repo.listRoles(storeId), repo.listRoleAssignments(storeId)])
+      const assigned = new Map<string, Role[]>(), byId = new Map(roles.map((role) => [role.id, role]))
+      for (const link of assignments) { const memberRoles = assigned.get(link.userId) ?? [], role = byId.get(link.roleId); if (role) memberRoles.push(role); assigned.set(link.userId, memberRoles) }
+      return members.map((member) => toSummary(member, assigned.get(member.userId) ?? []))
     },
 
     async getStaff(staff: StaffContext, userId: string) {
@@ -525,10 +528,10 @@ export function createAdminService(deps: Deps) {
     async listRoles(staff: StaffContext) {
       requireIn(staff, "staff:read")
       const roles = await repo.listRoles(staff.member.storeId)
-      const members = await repo.listMembers(staff.member.storeId)
+      const assignments = await repo.listRoleAssignments(staff.member.storeId)
       const holders = new Map<string, number>()
-      for (const member of members) for (const role of await repo.rolesOf(member.storeId, member.userId)) holders.set(role.key, (holders.get(role.key) ?? 0) + 1)
-      return roles.map((role) => ({ ...role, members: holders.get(role.key) ?? 0 }))
+      for (const link of assignments) holders.set(link.roleId, (holders.get(link.roleId) ?? 0) + 1)
+      return roles.map((role) => ({ ...role, members: holders.get(role.id) ?? 0 }))
     },
 
     async saveRole(
@@ -549,7 +552,8 @@ export function createAdminService(deps: Deps) {
         if (before.key === OWNER_ROLE_KEY) throw new DomainError("forbidden", "The Owner role cannot be changed.")
         const after = await repo.updateRole(storeId, input.key, { name: input.name, description: input.description, refundLimit: input.refundLimit, permissions }, expectedUpdatedAt)
         await recordAudit(staff, meta, { action: "role.updated", entity: "role", entityId: after.key, before: { name: before.name, refundLimit: before.refundLimit, permissions: before.permissions }, after: { name: after.name, refundLimit: after.refundLimit, permissions: after.permissions }, storeId })
-        await Promise.all((await repo.listMembers(storeId)).map(async (member) => ((await repo.rolesOf(storeId, member.userId)).some((role) => role.key === after.key) && member.userId !== staff.member.userId ? repo.revokeSessions(storeId, member.userId) : undefined)))
+        const assignments = await repo.listRoleAssignments(storeId)
+        for (const link of assignments) if (link.roleId === after.id && link.userId !== staff.member.userId) await repo.revokeSessions(storeId, link.userId)
         return after
       }
       const base = input.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 32) || "role"

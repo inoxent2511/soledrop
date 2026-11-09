@@ -15,6 +15,7 @@ import { uuidv7 } from "@/server/db/uuid"
 import { lockCart, lockLevels, lockStore, releaseCartReservations, releaseExpiredReservations } from "@/server/inventory/mysql.repository"
 import type { PromotionCondition } from "@/server/promotions/types"
 import { DomainError } from "@/server/shared/errors"
+import { syncOrderSearch } from "./search-index.repository"
 
 type Writes = Pick<ActorScoped<OrderOperations>, "placeOrder" | "transition" | "recordPayment" | "createRefund" | "createReturn" | "restockReturn" | "decideReturn" | "addNote" | "nextOrderNumber" | "anonymiseCustomer">
 const transitionPermission = { pending_payment: "orders:write", confirmed: "orders:mark_paid", processing: "orders:fulfil", shipped: "orders:fulfil", delivered: "orders:fulfil", cancelled: "orders:cancel", returned: "orders:returns" } as const
@@ -75,6 +76,7 @@ export function createMysqlOrderWrites(): Writes {
         await db.insert(orderLines).values(lines.map((line, position) => ({ ...line, orderId: id, position })))
         if (promotionCodes.length) await db.insert(orderPromotionCodes).values(promotionCodes.map((value, position) => ({ id, value, position })))
         await db.insert(orderContacts).values({ orderId: id, storeId: actor.storeId, recipientName: draft.shippingAddress.fullName, phoneDigits: draft.phone.replace(/\D/g, "") })
+        await syncOrderSearch(db, actor, id)
         if (selected.length) await db.insert(promotionRedemptions).values(selected.map((promotionId) => ({ id: uuidv7(), promotionId, orderId: id, customerId: draft.customerId, email })))
         await db.update(carts).set({ status: "converted", updatedAt: sqlDate(at) }).where(and(eq(carts.storeId, actor.storeId), eq(carts.id, cart.id)))
         await enqueueOrderEvent(db, actor, id, event.topic, { ...event.payload, number })
@@ -100,6 +102,7 @@ export function createMysqlOrderWrites(): Writes {
         const history = [...order.history, { from, to, at: isoDate(at), actor: label, ...(note ? { note } : {}) }]
         const fulfillmentStatus = to === "shipped" || to === "delivered" ? "fulfilled" : to === "returned" ? "returned" : order.fulfillmentStatus
         await db.update(orders).set({ status: to, fulfillmentStatus, history, updatedAt: at, ...(trackingNumber ? { trackingNumber } : {}) }).where(and(eq(orders.storeId, actor.storeId), eq(orders.id, order.id)))
+        await syncOrderSearch(db, actor, order.id)
         await auditOrder(db, actor, "order.transition", "order", order.id, { status: from }, { status: to, note })
         await enqueueOrderEvent(db, actor, order.id, "order.status_changed", { number: order.number, from, to, trackingNumber: trackingNumber ?? order.trackingNumber })
         return { ...order, status: to, fulfillmentStatus, history, trackingNumber: trackingNumber ?? order.trackingNumber, updatedAt: isoDate(at) }
@@ -138,6 +141,7 @@ export function createMysqlOrderWrites(): Writes {
           }
         }
         await db.update(orders).set({ paymentStatus, status, history, updatedAt: at }).where(and(eq(orders.storeId, actor.storeId), eq(orders.id, order.id)))
+        await syncOrderSearch(db, actor, order.id)
         await enqueueOrderEvent(db, actor, order.id, "payment.recorded", { number: order.number, provider: existing.provider, status: existing.status, amount: existing.amount })
         return payment(existing)
       }, { retries: 3, idempotencyKey: input.idempotencyKey })
@@ -176,6 +180,7 @@ export function createMysqlOrderWrites(): Writes {
         }
         const refundedTotal = order.refundedTotal + input.amount
         await db.update(orders).set({ refundedTotal, paymentStatus: refundedTotal >= paid ? "refunded" : "partially_refunded", updatedAt: orderUpdatedAt(order.updatedAt) }).where(and(eq(orders.storeId, actor.storeId), eq(orders.id, order.id)))
+        await syncOrderSearch(db, actor, order.id)
         if (targetPayment) await db.update(payments).set({ refundedAmount: targetPayment.refundedAmount + input.amount, status: targetPayment.refundedAmount + input.amount >= targetPayment.amount ? "refunded" : "partially_refunded" }).where(and(eq(payments.id, targetPayment.id), eq(payments.orderId, order.id)))
         const row = { ...input, lines: items, restock: input.restock ? 1 : 0, id: uuidv7(), createdAt: sqlDate(new Date().toISOString()) }
         await db.insert(refunds).values(row)
@@ -250,6 +255,7 @@ export function createMysqlOrderWrites(): Writes {
           const address = jsonValue<Order["shippingAddress"]>(row.shippingAddress)
           await db.update(orders).set({ email: "deleted+" + row.id.slice(0, 8) + "@invalid", phone: "", customerId: null, updatedAt: orderUpdatedAt(isoDate(row.updatedAt)), shippingAddress: { fullName: "Deleted customer", phone: "", line1: "", city: address.city, province: address.province, country: address.country } }).where(and(eq(orders.storeId, actor.storeId), eq(orders.id, row.id)))
           await db.update(orderContacts).set({ recipientName: "Deleted customer", phoneDigits: "" }).where(and(eq(orderContacts.storeId, actor.storeId), eq(orderContacts.orderId, row.id)))
+          await syncOrderSearch(db, actor, row.id)
         }
         return rows.length
       })

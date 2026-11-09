@@ -1,4 +1,5 @@
-import { expect, test, type APIRequestContext } from "@playwright/test"
+import { expect, type APIRequestContext } from "@playwright/test"
+import { test } from "./support/test"
 
 import { PRESET_ROLES, type Permission } from "../server/admin/permissions"
 import { codeFor, DEMO_PASSWORD, demoEmail, staffHeaders } from "./support/admin"
@@ -8,7 +9,7 @@ import { codeFor, DEMO_PASSWORD, demoEmail, staffHeaders } from "./support/admin
  * admin read API and opens every module page; each answer must match the role's permissions in
  * server/admin/permissions.ts (200 when held, 403 / no-access when not). Chromium only.
  */
-test.skip(({ browserName }) => browserName !== "chromium", "TOTP-limited demo accounts; covered once")
+test.skip(({ browserName }) => !process.env.QA_STAFF_FILE && browserName !== "chromium", "Shared demo TOTP accounts; isolated QA runs every browser")
 test.describe.configure({ mode: "parallel" })
 
 const ENDPOINTS: [string, Permission][] = [

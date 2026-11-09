@@ -46,8 +46,8 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: P
         {entries.map((entry) => (
           <li key={entry.id}>
             <details className="rounded-lg border border-border bg-background">
-              <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 px-4 py-3 text-16">
-                <span className="flex flex-wrap items-center gap-2">
+              <summary className="flex min-w-0 cursor-pointer flex-wrap items-center justify-between gap-2 px-4 py-3 text-16 break-all">
+                <span className="flex min-w-0 flex-wrap items-center gap-2">
                   <code className="font-semibold">{entry.action}</code>
                   <span className="text-subtle-foreground">
                     {entry.entity} {entry.entityId !== "*" ? entry.entityId : ""}

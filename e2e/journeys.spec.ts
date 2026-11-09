@@ -1,6 +1,8 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, type Page } from "@playwright/test"
+import { test } from "./support/test"
 
 import { waitForHydration } from "./support/panels"
+import { clientAddress } from "./support/admin"
 
 /**
  * End-to-end shopper journeys (E2), each at a phone and a desktop width, against the production
@@ -49,7 +51,7 @@ for (const viewport of VIEWPORTS) {
     // Each journey is a different shopper behind the one trusted proxy (TRUSTED_PROXY_HOPS=1), so
     // per-address rate limits apply per test exactly as they would per real visitor (BUG-015).
     test.beforeEach(async ({ page }) => {
-      await page.setExtraHTTPHeaders({ "x-forwarded-for": `198.51.100.7, shopper-${unique()}` })
+      await page.setExtraHTTPHeaders({ "x-forwarded-for": clientAddress() })
     })
 
     test("guest browses, adds a pair, checks out with cash on delivery and finds the order again", async ({ page }) => {

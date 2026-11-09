@@ -1,0 +1,8 @@
+{
+  "dataset": { "products": 100000, "variants": 300000, "orders": 500000 },
+  "poolMax": 5,
+  "warmups": 3,
+  "samples": 20,
+  "p95Ms": { "productListing": 500, "productSearch": 500, "orderListing": 300, "orderSearch": 500 },
+  "note": "Local data-layer acceptance budgets fixed before measurement. Hosted latency and HTTP/auth/rendering are measured separately."
+}

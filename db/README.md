@@ -29,10 +29,25 @@ tables/columns; no SQL source files or filesystem scan are required in the runti
 Startup fails if the database, selected store, storage or configured mail transport is unusable.
 `/api/health` is liveness; `/api/ready` returns 503 for readiness failures.
 
+Migrations 0014–0023 add covering listing/sort indexes, transactional `product_listing_sizes`,
+`product_list_prices`, field-aware vocabulary and order substring projections. After
+upgrading a database with existing orders from before 0021, load its private app DATABASE_URL
+and STORE_ID and run `pnpm db:reindex-orders` from a local/loopback SSH source runner. Repeat for
+each store. Batches lock the same store/order parents as live writes; reruns do not change order
+versions. Readiness rejects missing order projections. Fresh imports from this release already
+contain them. Canonical JS lowercasing and binary substring comparisons preserve accent,
+Unicode, literal wildcard and formatted-phone behavior. Shared normalized values have indexed
+one-, two- and three-character grams; candidate values undergo exact binary verification before
+linking to orders. Anonymisation removes obsolete links and unused values/grams in the same
+transaction. The backfill uses 100-order batches and marks each completed order's index version.
+
 Pool admission and queries default to 10 seconds, transactions to 30 seconds. Configure
 `DATABASE_ACQUIRE_TIMEOUT_MS`, `DATABASE_QUERY_TIMEOUT_MS` and
 `DATABASE_TRANSACTION_TIMEOUT_MS` within 100–120000 ms. Timed-out sockets are discarded;
 late queue admissions release immediately. Shutdown stops admission and drains active work.
+Connections also install engine-specific statement and lock-wait limits. The engine deadline has
+a 250 ms grace after the client query deadline; a disconnected socket cannot leave ordinary slow
+queries consuming database work indefinitely. Cancellation still depends on engine checkpoints.
 
 `db:demo-fixture` explicitly generates `db/seed/demo.json` from public fixtures with no staff,
 sessions, private tokens or merchant data. `db:seed-demo` imports it only into an empty, named
@@ -56,3 +71,19 @@ data snapshot and adjacent checksum manifest. Use `restore` with the same file o
 an empty schema from the matching forward bundle; existing merchant rows and corrupt snapshots
 are refused. Run with private DATABASE_URL configuration, never command-line credentials. The
 upload backup command and complete tested restore procedure are in the deployment runbook.
+
+## Large-dataset acceptance
+
+Forward migrations through 0025 add listing/search projections, committed catalogue revisions
+and covering sitemap indexes. Catalogue cache keys include the live revision, store, query,
+collection and ordered price lists; writes invalidate within their existing transaction.
+Sitemaps use bounded metadata projections and advertise 5,000-row shards through robots.txt.
+
+`pnpm db:perf-seed` provisions separate named loopback schemas/accounts using the ignored local
+engine configuration. It refuses existing datasets. These contain synthetic 100,000 products,
+300,000 variants and 500,000 orders; they contain no merchant data. `pnpm db:perf` checks exact
+dataset and query results, then runs the unchanged budgets from `db/tests/performance-budgets.json`
+with three warmups and 20 measured samples per representative case. Engines run sequentially.
+Reports under ignored `.data/performance` retain p50/p95, all samples and actual EXPLAIN plans;
+large physical table scans without indexes also fail acceptance. This measures repository work;
+HTTP authentication/rendering and browser Web Vitals remain separate checks.

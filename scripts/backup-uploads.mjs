@@ -2,6 +2,7 @@ import fs from "node:fs/promises"
 import path from "node:path"
 import { createHash } from "node:crypto"
 import { pathToFileURL } from "node:url"
+import { IMAGE_WIDTHS, LEGACY_IMAGE_WIDTHS } from "../lib/image-variants.mjs"
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex")
 
@@ -15,7 +16,7 @@ export async function backupUploads(sourceDirectory, targetDirectory, mediaPaths
   const files = []
   for (const key of new Set(mediaPaths)) {
     if (typeof key !== "string" || !key || key.length > 512 || /[\\\x00-\x1f]/.test(key) || path.isAbsolute(key) || key.split("/").some((part) => !part || part === "." || part === "..")) throw new Error("Invalid media key")
-    const keys = [key, ...[320, 640, 960, 1280, 1920, 2400].flatMap((width) => [key + ".v1.w" + width + ".webp", key + ".v1.w" + width + ".avif"])]
+    const keys = [key, ...[1, 2].flatMap((version) => (version === 1 ? LEGACY_IMAGE_WIDTHS : IMAGE_WIDTHS).flatMap((width) => [key + ".v" + version + ".w" + width + ".webp", key + ".v" + version + ".w" + width + ".avif"]))]
     for (const objectKey of keys) {
       const hash = sha256(objectKey), relative = hash.slice(0, 2) + "/" + hash, origin = path.join(source, relative), destination = path.join(target, relative)
       const parent = await fs.lstat(path.dirname(origin)), stat = await fs.lstat(origin)

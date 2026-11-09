@@ -1,6 +1,6 @@
 import type { ActorScoped } from "@/server/db/actor"
 import type { MediaItem } from "@/server/media/types"
-import type { ImageFormat } from "./variants"
+import type { ImageFormat, ImageVersion } from "./variants"
 
 /** The media library: an index row per file plus the file in object storage. */
 export interface MediaOperations {
@@ -15,7 +15,7 @@ export interface MediaOperations {
   updateAlt(storeId: string, id: string, alt: string): Promise<MediaItem>
   remove(storeId: string, id: string): Promise<void>
   read(path: string): Promise<Uint8Array | null>
-  readVariant(path: string, width: number, format: ImageFormat): Promise<Uint8Array | null>
+  readVariant(path: string, width: number, format: ImageFormat, version?: ImageVersion): Promise<Uint8Array | null>
   hasOrderUsage(storeId: string, url: string): Promise<boolean>
   /** Reference labels only, without granting access to product/customer records. */
   usage(storeId: string, url: string): Promise<string[]>

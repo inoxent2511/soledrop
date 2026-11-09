@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./support/test"
 
 // FAQs (D-066): the owner's 18 questions in five topics, with live contact details and delivery rate.
 

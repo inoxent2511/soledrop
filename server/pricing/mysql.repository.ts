@@ -9,6 +9,8 @@ import { database, withTransaction } from "@/server/db/client"
 import { exchangeRates, priceLists, prices, products, variants } from "@/server/db/schema"
 import { isoDate, jsonValue, nullableIsoDate } from "@/server/db/values"
 import { DomainError } from "@/server/shared/errors"
+import { lockStore } from "@/server/inventory/mysql.repository"
+import { syncCatalogueListing } from "@/server/catalog/listing-index.repository"
 
 export function createMysqlPricingRepository(): ActorScoped<PricingOperations> {
   return mysqlPolicy<PricingOperations>({
@@ -35,12 +37,16 @@ export function createMysqlPricingRepository(): ActorScoped<PricingOperations> {
     async upsertPrices(actor, rows) {
       requireGrant(actor, "pricing:write")
       return withTransaction(async (db) => {
+        await lockStore(db, actor)
+        const changedProducts = new Set<string>()
         for (const row of [...rows].sort((a, b) => a.variantId.localeCompare(b.variantId) || a.priceListId.localeCompare(b.priceListId))) {
           const [list] = await db.select({ id: priceLists.id }).from(priceLists).where(and(eq(priceLists.id, row.priceListId), eq(priceLists.storeId, actor.storeId))).for("update")
-          const [variant] = await db.select({ id: variants.id }).from(variants).innerJoin(products, eq(products.id, variants.productId)).where(and(eq(variants.id, row.variantId), eq(products.storeId, actor.storeId))).for("update")
+          const [variant] = await db.select({ id: variants.id, productId: variants.productId }).from(variants).innerJoin(products, eq(products.id, variants.productId)).where(and(eq(variants.id, row.variantId), eq(products.storeId, actor.storeId))).for("update")
           if (!list || !variant) throw new DomainError("not_found", "Price list or product not found.")
           await db.insert(prices).values(row).onDuplicateKeyUpdate({ set: { amount: row.amount, compareAt: row.compareAt } })
+          changedProducts.add(variant.productId)
         }
+        await syncCatalogueListing(db, actor, [...changedProducts], { sizes: false })
         return rows.length
       })
     },

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { createAdminService } from "@/server/admin/service"
+import type { StaffContext, StaffMember } from "@/server/admin/types"
 import { createFixturesAdminRepository } from "@/server/admin/fixtures.repository"
 import { createMysqlAdminRepository, rehashStaffPassword } from "@/server/admin/mysql.repository"
 import type { AdminOperations } from "@/server/admin/repository"
@@ -214,6 +215,25 @@ for (const [engine, configuration] of [["fixtures", null] as const, ...engines] 
     await expect(customerService.changeEmail(customer, password, "stale@example.test")).rejects.toMatchObject({ code: "unauthorized" })
     await expect(customerService.deleteAccount(customer, password)).rejects.toMatchObject({ code: "unauthorized" })
     expect((await customers.findById(customer.id))?.email).toBe(account.customer.email)
+  })
+
+  it("lists more staff than the pool queue limit without one role query per member", async () => {
+    const created: StaffMember[] = []
+    for (let index = 0; index < 251; index++) created.push(await staffRepo.createMember({ userId: uuidv7(), storeId, email: `directory-${index}@example.test`, displayName: `Directory ${index}`, status: "invited", passwordHash: null, totpSecret: null, totpEnabledAt: null, totpLastStep: null, recoveryCodes: [], failedLogins: 0, lockedUntil: null, lastSeenAt: null, createdAt: new Date(at).toISOString(), updatedAt: new Date(at).toISOString() }))
+    await staffRepo.setRoles(storeId, created[0].userId, ["support_agent", "read_only"])
+    const context: StaffContext = { member: created[0], session: { id: uuidv7(), aal: 2, mfaAt: new Date(at).toISOString(), createdAt: new Date(at).toISOString(), expiresAt: new Date(at + 60_000).toISOString() }, roles: [], permissions: ["staff:read"], refundLimit: 0 }
+    const summaries = await staff.listStaff(context), assigned = summaries.find((row) => row.userId === created[0].userId)!
+    expect(created.every((member) => summaries.some((row) => row.userId === member.userId))).toBe(true)
+    expect(assigned.roles).toEqual((await staffRepo.rolesOf(storeId, created[0].userId)).map(({ key, name }) => ({ key, name })))
+    expect(summaries.find((row) => row.userId === created[1].userId)?.roles).toEqual([])
+    expect(JSON.stringify(summaries)).not.toMatch(/passwordHash|totpSecret|recoveryCodes/)
+    const assignments = await staffRepo.listRoleAssignments(storeId)
+    for (const role of await staff.listRoles(context)) expect(role.members).toBe(assignments.filter((link) => link.roleId === role.id).length)
+    await expect(staff.listStaff({ ...context, permissions: [] })).rejects.toMatchObject({ code: "forbidden" })
+    await expect(staffRepo.listRoleAssignments(uuidv7())).rejects.toMatchObject({ code: "forbidden" })
+    await expect(staff.invite({ ...context, permissions: ALL_PERMISSIONS }, { email: created[0].email, roleKey: "read_only" }, meta)).rejects.toMatchObject({ code: "conflict" })
+    const invited = await staff.invite({ ...context, permissions: ALL_PERMISSIONS }, { email: "directory-invite@example.test", roleKey: "read_only" }, meta)
+    expect(invited.path).toMatch(/^\/admin\/invite\//)
   })
 
   it("keeps new security notifications durable alongside the credential change", async () => {

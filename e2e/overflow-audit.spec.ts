@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./support/test"
 
 import { AUDIT_ROUTES, AUDIT_WIDTHS, auditLayout } from "./support/layout-audit"
 import { openPanel, PANELS, panelApplies } from "./support/panels"

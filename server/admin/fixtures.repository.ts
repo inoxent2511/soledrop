@@ -38,6 +38,9 @@ export function createFixturesAdminRepository(clock: () => number = Date.now): A
     async findMemberByEmail(storeId, email) {
       return structuredClone(db().staffMembers.find((row) => row.storeId === storeId && row.email === email.toLowerCase()) ?? null)
     },
+    async emailInUse(storeId, email) {
+      return db().staffMembers.some((row) => row.storeId === storeId && row.email === email.trim().toLowerCase())
+    },
     async findMember(storeId, userId) {
       return structuredClone(db().staffMembers.find((row) => row.storeId === storeId && row.userId === userId) ?? null)
     },
@@ -122,6 +125,10 @@ export function createFixturesAdminRepository(clock: () => number = Date.now): A
       const tables = db()
       const ids = new Set(tables.staffRoleLinks.filter((link) => link.storeId === storeId && link.userId === userId).map((link) => link.roleId))
       return structuredClone(tables.adminRoles.filter((role): role is Role => ids.has(role.id)).map((role) => ({ ...role, permissions: role.permissions.filter(isPermission) })))
+    },
+    async listRoleAssignments(storeId) {
+      const tables = db(), order = new Map(tables.adminRoles.map((role, index) => [role.id, index]))
+      return structuredClone(tables.staffRoleLinks.filter((link) => link.storeId === storeId).sort((a, b) => (order.get(a.roleId) ?? 0) - (order.get(b.roleId) ?? 0)).map(({ userId, roleId }) => ({ userId, roleId })))
     },
     async setRoles(storeId, userId, roleKeys) {
       transaction((tables) =>

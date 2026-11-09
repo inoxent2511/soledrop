@@ -1,4 +1,5 @@
-import { expect, test, type APIRequestContext } from "@playwright/test"
+import { expect, type APIRequestContext } from "@playwright/test"
+import { test } from "./support/test"
 
 import { openingStock } from "../server/fixtures/seed"
 import { signInAs, staffHeaders } from "./support/admin"
@@ -8,7 +9,7 @@ import { signInAs, staffHeaders } from "./support/admin"
  * packing and shipping, cancel another with a typed confirmation, and see contact details only
  * when their role allows. Chromium only: each run signs demo accounts in with TOTP.
  */
-test.skip(({ browserName }) => browserName !== "chromium", "TOTP-limited demo accounts; covered once")
+test.skip(({ browserName }) => !process.env.QA_STAFF_FILE && browserName !== "chromium", "Shared demo TOTP accounts; isolated QA runs every browser")
 
 async function placeOrder(request: APIRequestContext, baseURL: string | undefined, fullName: string) {
   const headers = staffHeaders(baseURL)

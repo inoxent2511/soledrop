@@ -1,6 +1,6 @@
 import { mediaService } from "@/server/media"
 import { route } from "@/server/http/route"
-import { IMAGE_WIDTHS } from "@/server/media/variants"
+import { IMAGE_WIDTHS, LEGACY_IMAGE_WIDTHS } from "@/server/media/variants"
 import { createHash } from "node:crypto"
 
 type Context = { params: Promise<{ file: string }> }
@@ -13,10 +13,11 @@ type Context = { params: Promise<{ file: string }> }
 export const GET = route<Context>(async (request, { params }) => {
   const { file } = await params
   const match = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.webp$/.exec(file)
-  const requested = new URL(request.url).searchParams.get("w"), width = requested === null ? null : Number(requested)
-  if (width !== null && (!(IMAGE_WIDTHS as readonly number[]).includes(width) || String(width) !== requested)) return new Response("Invalid image width", { status: 400, headers: { "cache-control": "no-store" } })
+  const parameters = new URL(request.url).searchParams, requested = parameters.get("w"), width = requested === null ? null : Number(requested), version = parameters.get("v")
+  if (version !== null && version !== "1" && version !== "2") return new Response("Invalid image version", { status: 400, headers: { "cache-control": "no-store" } })
+  if (width !== null && (!(version === "2" ? IMAGE_WIDTHS : LEGACY_IMAGE_WIDTHS).includes(width) || String(width) !== requested)) return new Response("Invalid image width", { status: 400, headers: { "cache-control": "no-store" } })
   const avif = request.headers.get("accept")?.split(",").some((entry) => { const [type, ...options] = entry.trim().split(";"); return type === "image/avif" && !options.some((option) => /^\s*q\s*=\s*0(?:\.0*)?\s*$/.test(option)) })
-  const found = match ? await mediaService().file(match[1], width ? { width, format: avif ? "avif" : "webp" } : undefined) : null
+  const found = match ? await mediaService().file(match[1], width ? { width, format: avif ? "avif" : "webp", ...(version === "2" ? { version: 2 as const } : {}) } : undefined) : null
   if (!found) return new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } })
   const etag = '"' + createHash("sha256").update(found.data).digest("hex") + '"'
   const cache = { etag, vary: "Accept", "cache-control": "public, max-age=31536000, immutable" }

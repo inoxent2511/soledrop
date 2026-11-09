@@ -13,6 +13,8 @@ import { uuidv7 } from "./uuid"
 import { DomainError } from "@/server/shared/errors"
 import { serverEnv } from "@/lib/env.server"
 import { sealDeliveryPayload } from "@/server/platform/private-payload"
+import { syncCatalogueListing } from "@/server/catalog/listing-index.repository"
+import { syncOrderSearch } from "@/server/orders/search-index.repository"
 
 export type ImportCounts = Record<string, number>
 
@@ -111,6 +113,7 @@ export async function importSnapshot(actor: Actor, source: FixtureTables, digest
       }))
       if (promotionCodes.length) await db.insert(s.orderPromotionCodes).values(promotionCodes.map((value, position) => ({ id: row.id, value, position })))
       await db.insert(s.orderContacts).values({ orderId: row.id, storeId: store.id, recipientName: row.shippingAddress.fullName, phoneDigits: row.phone.replace(/\D/g, "") })
+      await syncOrderSearch(db, actor, row.id)
     }
     for (const row of source.promotionRedemptions) await db.insert(s.promotionRedemptions).values({ ...row, id: uuidv7(), at: sqlDate(row.at) })
     for (const row of source.payments) await db.insert(s.payments).values({ ...row, createdAt: sqlDate(row.createdAt) })
@@ -154,6 +157,7 @@ export async function importSnapshot(actor: Actor, source: FixtureTables, digest
       await db.insert(s.rateLimits).values({ key: createHash("sha256").update(store.id + ":" + key).digest("hex"), count: row.count, windowStart })
     }
     for (const [key, row] of source.idempotency) await db.insert(s.idempotencyKeys).values({ key: createHash("sha256").update(store.id + ":legacy:" + key).digest("hex"), status: row.status, body: row.body, createdAt: sqlDate(new Date(row.at).toISOString()), expiresAt: sqlDate(new Date(row.at + 86_400_000).toISOString()) })
+    await syncCatalogueListing(db, actor, source.products.map((product) => product.id))
     return counts
   })
 }

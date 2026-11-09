@@ -93,6 +93,10 @@ export function createFixturesInventoryRepository(): InventoryRepository {
       const wanted = new Set(variantIds)
       return structuredClone(db().inventory.filter((row) => wanted.has(row.variantId)))
     },
+    async catalogueLevels(variantIds) {
+      const wanted = new Set(variantIds)
+      return structuredClone(db().inventory.filter((row) => wanted.has(row.variantId)))
+    },
     async levels(variantIds) {
       const wanted = new Set(variantIds)
       return structuredClone(db().inventory.filter((row) => wanted.has(row.variantId)))

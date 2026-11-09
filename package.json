@@ -33,6 +33,9 @@
     "db:test": "node scripts/db-test.mjs",
     "db:lint": "node scripts/db-lint.mjs",
     "db:bundle": "node scripts/db-bundle.mjs",
+    "db:reindex-orders": "node --conditions=react-server --import ./scripts/register.mjs scripts/reindex-orders.ts",
+    "db:perf-seed": "node db/performance/seed.mjs",
+    "db:perf": "node --conditions=react-server --import ./scripts/register.mjs db/performance/run.mjs",
     "db:import-local": "node --conditions=react-server --import ./scripts/register.mjs scripts/import-local-store.ts",
     "db:verify-import": "node --conditions=react-server --import ./scripts/register.mjs scripts/verify-local-import.ts"
   },

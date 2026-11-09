@@ -24,4 +24,13 @@ describe("prepared public media HTTP contract", () => {
     await GET(new Request("http://127.0.0.1:3200/media/" + id + ".webp?w=640", { headers: { accept: "image/avif;q=0,image/webp" } }), params)
     expect(file).toHaveBeenLastCalledWith(id, { width: 640, format: "webp" })
   })
+  it("keeps legacy URLs separate from the exact-width v2 variants", async () => {
+    file.mockClear()
+    expect((await GET(new Request("http://127.0.0.1:3200/media/" + id + ".webp?w=828&v=1"), params)).status).toBe(400)
+    expect((await GET(new Request("http://127.0.0.1:3200/media/" + id + ".webp?w=640&v=3"), params)).status).toBe(400)
+    expect(file).not.toHaveBeenCalled()
+    file.mockResolvedValue({ item: { id }, data: new Uint8Array([4, 5, 6]), mime: "image/webp" })
+    expect((await GET(new Request("http://127.0.0.1:3200/media/" + id + ".webp?w=828&v=2", { headers: { accept: "image/webp" } }), params)).status).toBe(200)
+    expect(file).toHaveBeenLastCalledWith(id, { width: 828, format: "webp", version: 2 })
+  })
 })

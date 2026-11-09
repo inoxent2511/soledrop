@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./support/test"
 
 // Top Brands is a running strip, for show only (D-050).
 test.describe("top brands strip", () => {
@@ -6,8 +7,8 @@ test.describe("top brands strip", () => {
     await page.goto("/")
     const section = page.locator("section[aria-labelledby='brands-title']")
     await expect(section.getByRole("link")).toHaveCount(0)
-    // The isolated catalogue has ten managed brands; the strip uses the saved brand registry.
-    await expect(section.getByRole("listitem")).toHaveCount(10)
+    // Native QA imports the frozen merchant catalogue, including its QC brand.
+    await expect(section.getByRole("listitem")).toHaveCount(process.env.QA_STAFF_FILE ? 11 : 10)
     const nike = section.getByRole("listitem").filter({ hasText: "NIKE" })
     const before = await nike.evaluate((node) => getComputedStyle(node).color)
     await nike.hover()

@@ -51,5 +51,53 @@ export const expectedMigrations = [
   {
     "name": "0013_refund_intents.sql",
     "checksum": "5e573ea2e884d08a44ae29ce86976b199ae35395054bcd3b0aebb050f4c2da68"
+  },
+  {
+    "name": "0014_listing_covering_indexes.sql",
+    "checksum": "19c3f448e2f1a76e4ee353d068cfb6a3c91aebddb25b5f7c3af57cbcfdaf5c3d"
+  },
+  {
+    "name": "0015_listing_projections.sql",
+    "checksum": "de682e211be714ff6abfd52d75b285c3c1c53f41570d01a306fb71ff1c451df5"
+  },
+  {
+    "name": "0016_order_search_indexes.sql",
+    "checksum": "16351560b695d24b7b5c0b6b33a300dd43366b33b82b04b3203bbb49c588e16e"
+  },
+  {
+    "name": "0017_order_search_projection.sql",
+    "checksum": "dc44db3e1bd54ea909ef668ca7f7f57cc7fe2a670bfc061dbe97faa3f29e4b24"
+  },
+  {
+    "name": "0018_order_search_table_defaults.sql",
+    "checksum": "9f4bf173926a476638e70c4256b37e58981226032fa0cc894744aad0debe00b6"
+  },
+  {
+    "name": "0019_store_scoped_search_terms.sql",
+    "checksum": "9e920a54aec97662a4a34b6c2f241682aafbe50bd1e1e76ed4b97aa9302a19c2"
+  },
+  {
+    "name": "0020_search_field_vocabulary.sql",
+    "checksum": "1e1a3a8ec5b28b0249f4ebddffe67cd58bed082bce0468d3335fa1dec630b165"
+  },
+  {
+    "name": "0021_order_substring_lookup.sql",
+    "checksum": "ceb7cfcfe4af0aee141f37e7ad42c083eb4523f5ad8ad384669a92a20fa1d1fa"
+  },
+  {
+    "name": "0022_price_head_scope.sql",
+    "checksum": "401e14ec8a467f9ac7a2ff11b6218d55a17079ed8048aadfd32bd57e378bbfdd"
+  },
+  {
+    "name": "0023_product_brand_scope.sql",
+    "checksum": "fcd109be47f2d715b0a39386817ef1e1db803e2d7438b2c2b4ffab1b1bdb5082"
+  },
+  {
+    "name": "0024_catalogue_read_revisions.sql",
+    "checksum": "fa551073977601098dd3dd46248f8429f0701598dc7cdcdcdfdb5b2b2059d731"
+  },
+  {
+    "name": "0025_sitemap_indexes.sql",
+    "checksum": "e343aa4851224a123e5f670e34786eef7e150bedd1975df567f0ee9b2db082bb"
   }
 ] as const

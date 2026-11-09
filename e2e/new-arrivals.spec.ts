@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, type Page } from "@playwright/test"
+import { test } from "./support/test"
 
 import { waitForHydration } from "./support/panels"
 
@@ -15,7 +16,7 @@ test.describe("new arrivals", () => {
   test("has the banner, exactly two tabs and no filters", async ({ page }) => {
     await ready(page)
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(/new\s*arrivals/i)
-    await expect(page.getByText(/^Just dropped/)).toBeVisible()
+    await expect(page.getByText(/^Just dropped/i)).toHaveCount(0)
     const tabs = page.getByRole("tablist", { name: "New arrivals" }).getByRole("tab")
     await expect(tabs).toHaveCount(2)
     await expect(tabs.nth(0)).toHaveText(/^Brand New\s*\d+/)

@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./support/test"
 
 /**
  * Route and link crawl (E1). Starting from the home page and the sitemap, follows every same-origin

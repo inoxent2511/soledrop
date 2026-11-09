@@ -29,7 +29,7 @@ const audit = (
 
 export const reports = () =>
   staffService(createReports({
-    orders: orderService(),
+    orders: { search: (storeId, query) => orderService().searchSales(storeId, query) },
     products: async (storeId) => {
       const products = []
       for (let page = 1; ; page++) {

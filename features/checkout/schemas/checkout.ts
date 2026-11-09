@@ -1,5 +1,7 @@
 import "@/lib/validation"
 import { z } from "zod"
+import { emailSchema } from "./email"
+export { emailSchema } from "./email"
 
 /** Pakistani provinces and territories, as used by couriers. */
 export const PROVINCES = ["Sindh", "Punjab", "Khyber Pakhtunkhwa", "Balochistan", "Islamabad Capital Territory", "Gilgit-Baltistan", "Azad Kashmir"] as const
@@ -10,8 +12,6 @@ export const phoneSchema = z
   .trim()
   .transform((value) => value.replace(/[\s-]/g, ""))
   .refine((value) => /^(\+92|0)3\d{9}$/.test(value), "Enter a mobile number like 0300 1234567")
-
-export const emailSchema = z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address")).pipe(z.string().max(254))
 
 export const addressSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name").max(80),

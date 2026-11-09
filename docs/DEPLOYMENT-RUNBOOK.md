@@ -97,6 +97,12 @@ failed migration before retrying; never edit an applied file. The full schema bu
 empty database. Subsequent ALTER files require the ledger-aware runner or careful one-time
 phpMyAdmin application with matching ledger entries. Read `db/README.md` before upgrades.
 
+An upgrade from before migration 0021 also requires `pnpm db:reindex-orders`, with the private
+app DATABASE_URL and correct STORE_ID loaded, from a local/loopback SSH source runner. Repeat
+for every store in the database. This bounded, restartable step preserves order timestamps and
+builds exact Unicode search projections. Startup refuses an incomplete backfill. A complete
+merchant backup from this release already includes these rows; do not seed over that import.
+
 After import use the **app** DATABASE_URL in hPanel. URL-encode password characters such as
 `@`, `:`, `/`, `#` and `%`. Do not use migrator credentials in normal runtime when separate users
 are available. Keep `DATABASE_POOL_MAX=5` initially; account for every running deployment/process
@@ -112,9 +118,13 @@ account needs directory traversal/write rights; prefer directory 700 and file 60
 Verify ownership and restart/redeployment persistence with an admin test upload before launch.
 
 The media route serves prepared originals/variants; HTTP image reads do not encode images.
-Uploads generate six WebP/AVIF widths through Sharp. An unavailable encoder fails the upload
+Uploads generate the six legacy widths and nineteen exact responsive widths in WebP/AVIF.
+Version 2 matches the preserved optimizer's q=75 output, with four encoder threads for stable
+AVIF tiling. Existing v1 bytes remain immutable. An unavailable encoder fails the upload
 clearly. Prepare existing variants on a compatible trusted runner with `scripts/media-variants.ts`
-if needed; never silently substitute an incompatible native binary. For storage without persistent
+before serving a release that uses v2, including upgrades with existing uploads. The restartable
+backfill retains existing keys; v2 reads fail closed when their prepared object is absent.
+Never silently substitute an incompatible native binary. For storage without persistent
 disk, configure the S3-compatible reference adapter and copy objects through a trusted runner.
 
 Local QA and the private template use a private MIME file sink. Before accepting real orders or
@@ -228,7 +238,8 @@ node scripts/backup-uploads.mjs backup /private/live-uploads /private/new-upload
 Provide DATABASE_URL privately. The backup streams a consistent snapshot, uses hex literals for
 binary/text/date/JSON safety, omits generated columns and retains migration application timestamps.
 It creates files exclusively and refuses to overwrite a backup. The upload tool copies only media
-metadata-referenced originals and all twelve prepared variants, then verifies every checksum.
+metadata-referenced originals and all fifty prepared variants (twelve v1 and thirty-eight v2),
+then verifies every checksum.
 For additional private attachments outside that media library, back up their complete separate
 storage namespace too. The current store has no such attachment objects.
 
