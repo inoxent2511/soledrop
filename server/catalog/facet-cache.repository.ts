@@ -26,8 +26,8 @@ export async function bumpCatalogueRevision(db: Database, actor: Actor) {
   await db.insert(catalogueReadRevisions).values({ storeId: actor.storeId, revision: 1 }).onDuplicateKeyUpdate({ set: { revision: sql.fromList([catalogueReadRevisions.revision, sql.raw(" + 1")]) } })
 }
 
-/** Cache only committed, stable facets. Stock and page hydration are separate live reads. */
-export async function readFacetRows<T>(db: Database, actor: Actor, scope: unknown, revision: number | undefined, load: () => Promise<T>): Promise<T> {
+/** Bounded committed catalogue projections; stock and page hydration stay separate live reads. */
+export async function readCatalogueProjection<T>(db: Database, actor: Actor, scope: unknown, revision: number | undefined, load: () => Promise<T>): Promise<T> {
   if (revision === undefined || inDatabaseTransaction()) return load()
   let databaseScope = databaseScopes.get(db)
   if (databaseScope === undefined) { databaseScope = ++nextDatabaseScope; databaseScopes.set(db, databaseScope) }

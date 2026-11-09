@@ -8,7 +8,7 @@ import Link from "next/link"
 import { useId, useState, type FormEvent } from "react"
 
 import { BagIcon } from "@/components/icons"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { cartKeys, useCart } from "@/hooks/api/cart/queries"
 import { freeDeliveryProgress } from "@/features/cart/lib/free-delivery"
 import { useApplyCode, useOptimisticLine, useRemoveCode } from "@/hooks/api/cart/useCartMutations"

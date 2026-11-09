@@ -2,6 +2,8 @@ import "server-only"
 
 import { z } from "zod"
 import { adminNetworkPolicy } from "@/server/admin/network-policy"
+import { publicEnv } from "./env"
+import { publicSchema } from "./env.public-schema"
 
 const optionalSecret = z.string().min(1).optional()
 
@@ -92,6 +94,7 @@ const serverSchema = z
   })
 
 function readEnv() {
+  publicSchema.parse(publicEnv)
   const raw = Object.fromEntries(
     Object.keys(serverSchema.shape).map((key) => [key, process.env[key] || undefined]),
   )

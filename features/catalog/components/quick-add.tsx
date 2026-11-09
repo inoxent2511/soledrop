@@ -3,7 +3,7 @@
 import { useEffect, useId, useState } from "react"
 
 import { ApiError } from "@/api/http"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import type { CardProduct } from "@/features/catalog/types/card"
 import { useAddToCart } from "@/hooks/api/cart/useCartMutations"
 import { cn } from "@/lib/utils"

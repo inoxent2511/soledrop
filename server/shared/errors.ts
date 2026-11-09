@@ -26,16 +26,25 @@ const STATUS: Record<DomainErrorCode, number> = {
   unavailable: 503,
 }
 
+const DOMAIN_ERROR = Symbol.for("soledrop.domain-error.v1")
+
 /** An expected business failure (as opposed to a bug). */
 export class DomainError extends Error {
   readonly code: DomainErrorCode
   readonly details?: Record<string, unknown>
+
+  /** Next's API and RSC graphs can share a pool while loading separate class constructors. */
+  static [Symbol.hasInstance](value: unknown): boolean {
+    if (this !== DomainError) return Function.prototype[Symbol.hasInstance].call(this, value)
+    return value instanceof Error && Reflect.get(value, DOMAIN_ERROR) === true
+  }
 
   constructor(code: DomainErrorCode, message: string, details?: Record<string, unknown>) {
     super(message)
     this.name = "DomainError"
     this.code = code
     this.details = details
+    Object.defineProperty(this, DOMAIN_ERROR, { value: true })
   }
 
   get status() {

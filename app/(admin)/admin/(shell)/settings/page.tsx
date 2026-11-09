@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/admin/page-header"
 import { StatusPill } from "@/components/admin/status-pill"
 import { FlagSwitch, RunButton } from "@/features/admin/settings/components/settings-actions"
 import { siteConfig } from "@/lib/site"
+import { serverSiteUrl } from "@/lib/site-server"
 import { can, permissionPage } from "@/server/admin/dal"
 import { staffPlatform } from "@/server/reports"
 
@@ -187,7 +188,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
           </div>
           <div>
             <dt className="text-14 text-subtle-foreground">Address</dt>
-            <dd className="break-all">{siteConfig.url}</dd>
+            <dd className="break-all">{serverSiteUrl()}</dd>
           </div>
           <div>
             <dt className="text-14 text-subtle-foreground">Currency</dt>

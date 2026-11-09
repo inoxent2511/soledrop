@@ -16,6 +16,28 @@ async function ready(page: Page, route: string) {
 const titles = (page: Page) =>
   page.locator("main ul li article h2, main ul li article h3").allInnerTexts()
 
+for (const action of ["click", "Enter", "ArrowDown"] as const) test(`the first sort ${action} survives slow dropdown code`, async ({ page }) => {
+  await page.addInitScript(() => {
+    window.requestIdleCallback = () => 1
+    window.cancelIdleCallback = () => {}
+  })
+  await page.goto("/collections/brand-new", { waitUntil: "networkidle" })
+  let release!: () => void, held = 0
+  const pending = new Promise<void>((resolve) => { release = resolve })
+  await page.route("**/_next/static/chunks/*.js", async (route) => { held++; await pending; await route.continue() })
+  try {
+    if (action === "click") await sortBox(page).click()
+    else { await sortBox(page).focus(); await page.keyboard.press(action) }
+    await expect.poll(() => held).toBeGreaterThan(0)
+    await expect(page.getByRole("listbox")).toHaveCount(0)
+    release()
+    await expect(page.getByRole("listbox")).toBeVisible()
+    await page.getByRole("option", { name: "Title: A-Z", exact: true }).click()
+    await expect(page).toHaveURL(/sort=title-asc/)
+    await expect(sortBox(page)).toContainText("Title: A-Z")
+  } finally { release(); await page.unrouteAll({ behavior: "wait" }) }
+})
+
 test.describe("sort without JavaScript", () => {
   test.use({ javaScriptEnabled: false })
 

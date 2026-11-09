@@ -29,7 +29,7 @@ type Deps = {
   /** Merchant synonym groups for search (server/search); none when omitted. */
   synonyms?: (storeId: string) => Promise<SynonymMap>
   selectPage?: (query: ProductQuery, context: PricingContext) => Promise<StorefrontSelection>
-  indexedVocabulary?: (storeId: string) => Promise<string[]>
+  indexedVocabulary?: (storeId: string, spellingQuery?: string) => Promise<string[]>
   selectRelated?: (product: ProductView, context: PricingContext, limit: number) => Promise<Product[]>
 }
 
@@ -185,8 +185,8 @@ export function createCatalogService({ catalog, pricing, inventory, synonyms = a
     },
 
     /** Every word shoppers could mean: brand names, product titles and collection titles (for "did you mean"). */
-    async vocabulary(storeId: string): Promise<string[]> {
-      if (indexedVocabulary) return indexedVocabulary(storeId)
+    async vocabulary(storeId: string, spellingQuery?: string): Promise<string[]> {
+      if (indexedVocabulary) return indexedVocabulary(storeId, spellingQuery)
       const [products, brands, groups] = await Promise.all([catalog.listProducts(storeId), catalog.listBrands(storeId), collections(storeId)])
       return [...new Set([...products.flatMap((product) => terms(`${product.brand.name} ${product.title}`)), ...brands.flatMap((brand) => terms(brand.name)), ...groups.flatMap((group) => terms(group.title))])]
     },

@@ -17,7 +17,7 @@ import { returnsDocument, returnsExcerptSections } from "@/content/returns"
 import { shippingDocument, shippingExcerptSections } from "@/content/shipping"
 import { RecordView } from "@/features/search/components/record-view"
 import { conditionLabel, formatPrice } from "@/lib/format"
-import { siteConfig } from "@/lib/site"
+import { serverSiteUrl } from "@/lib/site-server"
 import { cn } from "@/lib/utils"
 import { galleryImages } from "@/server/catalog/types"
 import { getProduct, productPageData, toSuggestProduct } from "@/server/storefront"
@@ -111,7 +111,7 @@ export default async function ProductPage({ params }: Props) {
 
   const { slug: viewedSlug, title, brand, image, price } = toSuggestProduct(product)
   const viewed = { slug: viewedSlug, title, brand, image, price }
-  const url = `${siteConfig.url}/products/${product.slug}`
+  const siteUrl = serverSiteUrl(), url = new URL(`/products/${product.slug}`, siteUrl).toString()
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -119,7 +119,7 @@ export default async function ProductPage({ params }: Props) {
     description: product.description,
     sku: product.variants[0]?.sku,
     brand: { "@type": "Brand", name: product.brand.name },
-    image: product.images.map((image) => `${siteConfig.url}${image.url}`),
+    image: product.images.map((image) => new URL(image.url, siteUrl).toString()),
     url,
     offers: {
       "@type": "Offer",

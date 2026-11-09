@@ -7,7 +7,8 @@
   "engines": { "node": "24.x" },
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/package-standalone.mjs",
+    "build": "node scripts/generate-cn.mjs && next build && node scripts/package-standalone.mjs",
+    "cn:generate": "node scripts/generate-cn.mjs",
     "start": "node scripts/serve.mjs",
     "admin:migrate-catalogue": "node --conditions=react-server --import ./scripts/register.mjs scripts/migrate-catalogue.ts",
     "lint": "eslint . --max-warnings 0",

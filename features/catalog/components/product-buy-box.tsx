@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useId, useState } from "react"
 
 import { ApiError } from "@/api/http"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { ConditionDialog } from "@/features/catalog/components/condition-dialog"
 import { QuantityStepper } from "@/features/catalog/components/quantity-stepper"
 import { SizePicker } from "@/features/catalog/components/size-picker"

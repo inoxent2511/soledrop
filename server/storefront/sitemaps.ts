@@ -1,6 +1,6 @@
 import "server-only"
 import type { MetadataRoute } from "next"
-import { siteConfig } from "@/lib/site"
+import { serverSiteUrl } from "@/lib/site-server"
 import { anonymousActor } from "@/server/db/actor"
 import { currentStoreId, dataDriver } from "@/server/db/driver"
 import { catalog } from "@/server/catalog"
@@ -8,7 +8,7 @@ import { contentService } from "@/server/content"
 import { createMysqlSitemapRepository, SITEMAP_PAGE_SIZE, type SitemapCounts, type SitemapKind, type SitemapRow } from "./sitemap.repository"
 
 const repository = createMysqlSitemapRepository()
-const url = (path: string) => new URL(path, siteConfig.url).toString()
+const url = (path: string) => new URL(path, serverSiteUrl()).toString()
 const kinds: SitemapKind[] = ["collections", "products", "pages"]
 const dedicated = new Set(["pre-loved", "sale"])
 

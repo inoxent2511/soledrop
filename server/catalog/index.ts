@@ -35,7 +35,7 @@ export const catalog = () =>
         const [lists, groups, collections] = await Promise.all([pricing().priceLists(context.storeId), searchService().synonymMap(context.storeId), repository().listCollections(context.storeId)])
         return bindActor<StorefrontQueries>(createMysqlStorefrontRepository(), currentActor).selectPage(context.storeId, query, applicablePriceLists(lists, context).map((list) => list.id), collections.find((collection) => collection.slug === query.collection), groups)
       },
-      indexedVocabulary: (storeId) => bindActor<StorefrontQueries>(createMysqlStorefrontRepository(), currentActor).vocabulary(storeId),
+      indexedVocabulary: (storeId, spellingQuery) => bindActor<StorefrontQueries>(createMysqlStorefrontRepository(), currentActor).vocabulary(storeId, spellingQuery),
       selectRelated: (product, context, limit) => bindActor<StorefrontQueries>(createMysqlStorefrontRepository(), currentActor).related(context.storeId, product, limit),
     } : {}),
   })

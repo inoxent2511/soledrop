@@ -1,7 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { QuickAdd } from "@/features/catalog/components/quick-add"
 import type { CardProduct } from "@/features/catalog/types/card"
 import { conditionLabel, formatPrice } from "@/lib/format"

@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import { UserIcon } from "@/components/icons"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { useAccount, useLogout } from "@/hooks/api/account/queries"
 import { useRouteState } from "@/hooks/use-route-state"
 import { cn } from "@/lib/utils"

@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-09T15:10:08.186Z",
-  "base": "http://127.0.0.1:3202",
+  "generatedAt": "2026-11-09T19:56:00.083Z",
+  "base": "http://127.0.0.1:3201",
   "budget": {
     "lcp": 2500,
     "cls": 0.1,
@@ -12,59 +12,73 @@
   "results": [
     {
       "route": "/",
-      "lcp": 4260,
+      "lcp": 1480,
       "cls": 0,
       "inp": 120,
-      "jsKb": 303,
-      "pass": false
+      "jsBytes": 204727,
+      "jsKb": 200,
+      "jsAfterInteractionKb": 279,
+      "pass": true
     },
     {
       "route": "/collections/new-arrivals",
-      "lcp": 1288,
+      "lcp": 1176,
       "cls": 0.039,
       "inp": 88,
-      "jsKb": 317,
-      "pass": false
+      "jsBytes": 203300,
+      "jsKb": 199,
+      "jsAfterInteractionKb": 294,
+      "pass": true
     },
     {
       "route": "/products/asics-gel-kayano-30-black-silver",
-      "lcp": 1896,
+      "lcp": 1188,
       "cls": 0,
       "inp": 40,
-      "jsKb": 301,
-      "pass": false
+      "jsBytes": 202248,
+      "jsKb": 198,
+      "jsAfterInteractionKb": 277,
+      "pass": true
     },
     {
       "route": "/pre-loved",
-      "lcp": 1264,
+      "lcp": 1176,
       "cls": 0.04,
       "inp": 88,
-      "jsKb": 317,
-      "pass": false
+      "jsBytes": 203300,
+      "jsKb": 199,
+      "jsAfterInteractionKb": 294,
+      "pass": true
     },
     {
       "route": "/search?q=nike",
-      "lcp": 1280,
+      "lcp": 1172,
       "cls": 0,
-      "inp": 104,
-      "jsKb": 317,
-      "pass": false
+      "inp": 96,
+      "jsBytes": 203300,
+      "jsKb": 199,
+      "jsAfterInteractionKb": 294,
+      "pass": true
     },
     {
       "route": "/cart",
-      "lcp": 1136,
+      "lcp": 1084,
       "cls": 0.002,
       "inp": 144,
-      "jsKb": 302,
-      "pass": false
+      "jsBytes": 203423,
+      "jsKb": 199,
+      "jsAfterInteractionKb": 258,
+      "pass": true
     },
     {
       "route": "/contact",
-      "lcp": 1152,
+      "lcp": 1108,
       "cls": 0,
-      "inp": 64,
-      "jsKb": 298,
-      "pass": false
+      "inp": 48,
+      "jsBytes": 193823,
+      "jsKb": 189,
+      "jsAfterInteractionKb": 295,
+      "pass": true
     }
   ]
 }

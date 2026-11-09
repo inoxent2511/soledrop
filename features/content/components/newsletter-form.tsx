@@ -1,12 +1,13 @@
 "use client"
 
-import { useId, useState, type FormEvent } from "react"
+import { useId, useRef, useState, type FormEvent } from "react"
 
 import { ApiError } from "@/api/http"
-import { buttonVariants } from "@/components/ui/button"
-import { newsletterSchema } from "@/features/content/schemas/forms"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { useSubscribe } from "@/hooks/api/content/mutations"
 import { cn } from "@/lib/utils"
+
+const warmSchema = () => { void import("@/features/content/schemas/forms").catch(() => undefined) }
 
 /**
  * "Stay in the drop" sign-up. Validates on submit, then reports the result in place: the field
@@ -16,27 +17,38 @@ import { cn } from "@/lib/utils"
 export function NewsletterForm({ source = "footer" }: { source?: string }) {
   const id = useId()
   const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const submitting = useRef(false)
   const subscribe = useSubscribe()
   const done = subscribe.isSuccess
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (submitting.current) return
     const data = new FormData(event.currentTarget)
-    const parsed = newsletterSchema.safeParse({ email: data.get("email"), source, website: data.get("website") || undefined })
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Enter a valid email address")
-      return
+    submitting.current = true
+    setBusy(true)
+    try {
+      const { newsletterSchema } = await import("@/features/content/schemas/forms")
+      const parsed = newsletterSchema.safeParse({ email: data.get("email"), source, website: data.get("website") || undefined })
+      if (!parsed.success) {
+        setError(parsed.error.issues[0]?.message ?? "Enter a valid email address")
+        return
+      }
+      setError(null)
+      await subscribe.mutateAsync(parsed.data)
+    } catch (failure) {
+      setError(failure instanceof ApiError ? (failure.fields.email?.[0] ?? failure.message) : "Something went wrong. Please try again.")
+    } finally {
+      submitting.current = false
+      setBusy(false)
     }
-    setError(null)
-    subscribe.mutate(parsed.data, {
-      onError: (failure) => setError(failure instanceof ApiError ? (failure.fields.email?.[0] ?? failure.message) : "Something went wrong. Please try again."),
-    })
   }
 
   const message = error ?? (done ? (subscribe.data.created ? "You're in. Watch your inbox for the next drop." : "You're already on the list — see you at the next drop.") : null)
 
   return (
-    <form noValidate onSubmit={onSubmit} className="flex w-full max-w-178.5 flex-col items-center gap-3">
+    <form noValidate onFocusCapture={warmSchema} onSubmit={onSubmit} className="flex w-full max-w-178.5 flex-col items-center gap-3">
       <div className="flex w-full flex-col gap-3 sm:flex-row sm:gap-3.5">
         <label htmlFor={`${id}-email`} className="sr-only">
           Email address
@@ -56,10 +68,10 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
         <input name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" className="sr-only" />
         <button
           type="submit"
-          disabled={subscribe.isPending || done}
+          disabled={busy || subscribe.isPending || done}
           className={cn(buttonVariants({ tone: "brand-on-ink", size: "md" }), "h-14 md:h-17 sm:w-40")}
         >
-          {subscribe.isPending ? "Joining…" : done ? "Joined" : "Join now"}
+          {busy || subscribe.isPending ? "Joining…" : done ? "Joined" : "Join now"}
         </button>
       </div>
       <p id={`${id}-status`} role="status" aria-live="polite" className={cn("min-h-5.5 text-16 font-medium", error ? "text-background" : "text-brand")}>

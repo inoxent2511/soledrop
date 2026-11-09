@@ -4,7 +4,7 @@ import Link from "next/link"
 import { CheckIcon } from "@/components/icons"
 import { Container } from "@/components/shared/container"
 import { PageBand } from "@/components/shared/page-band"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { gradingSteps, listingPromises } from "@/content/condition-guide"
 import {
   CONDITION_GUIDE_NOTE,

@@ -9,7 +9,7 @@ import {
 } from "@/components/icons"
 import { Container } from "@/components/shared/container"
 import { SectionTitle } from "@/components/shared/section-title"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { ProductRow } from "@/features/catalog/components/product-row"
 import { BrandMarquee } from "@/features/home/components/brand-marquee"
 import { NewArrivalSwitch } from "@/features/home/components/new-arrival-switch"

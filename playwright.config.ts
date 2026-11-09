@@ -7,12 +7,12 @@ import { defineConfig, devices } from "@playwright/test"
  */
 export default defineConfig({
   testDir: "e2e",
-  outputDir: "qa/out/e2e",
+  outputDir: process.env.QA_ARTIFACT_DIR ?? "qa/out/e2e",
   fullyParallel: true,
   workers: 4,
   retries: 0,
   timeout: 120_000,
-  reporter: [["list"], ["json", { outputFile: "qa/out/e2e-results.json" }]],
+  reporter: [["list"], ["json", { outputFile: process.env.QA_REPORT_FILE ?? "qa/out/e2e-results.json" }]],
   use: {
     baseURL: process.env.QA_BASE_URL ?? "http://127.0.0.1:3200",
     reducedMotion: "reduce",

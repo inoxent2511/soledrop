@@ -11,6 +11,32 @@ import { clientAddress } from "./support/admin"
 const shopperAddress = clientAddress
 const unique = () => `${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`
 
+test("document policies protect HTML and workers without repeating them on script/style transfers", async ({ request }) => {
+  const home = await request.get("/")
+  expect(home.status()).toBe(200)
+  expect(home.headers()["content-security-policy"]).toContain("frame-ancestors 'none'")
+  expect(home.headers()["x-frame-options"]).toBe("DENY")
+  expect(home.headers()["cross-origin-opener-policy"]).toBe("same-origin")
+  const script = (await home.text()).match(/src="([^\"]*\/_next\/static\/chunks\/[^\"]+\.js)"/)?.[1]
+  expect(script).toBeTruthy()
+  for (const destination of ["script", "style", "worker", "document", ""] as const) {
+    const response = await request.get(script!, { headers: { "sec-fetch-dest": destination } })
+    expect(response.status()).toBe(200)
+    const headers = response.headers()
+    expect(headers["x-content-type-options"]).toBe("nosniff")
+    expect(headers["strict-transport-security"]).toContain("max-age=")
+    expect(headers.vary.toLowerCase()).toContain("sec-fetch-dest")
+    if (destination === "script" || destination === "style") {
+      expect(headers["content-security-policy"]).toBeUndefined()
+      expect(headers["x-frame-options"]).toBeUndefined()
+    } else {
+      expect(headers["content-security-policy"]).toContain("object-src 'none'")
+      expect(headers["x-frame-options"]).toBe("DENY")
+      expect(headers["permissions-policy"]).toContain("camera=()")
+    }
+  }
+})
+
 test("anonymous callers get 401 from account, operator and job endpoints", async ({ request }) => {
   // The header reads /api/account on every page, so a guest gets an empty answer rather than an error.
   expect(await (await request.get("/api/account")).json()).toEqual({ customer: null, orders: [], addresses: [] })

@@ -1,12 +1,13 @@
 "use client"
 
-import { useId, useState, type FormEvent } from "react"
+import { useId, useRef, useState, type FormEvent } from "react"
 
 import { ApiError } from "@/api/http"
-import { buttonVariants } from "@/components/ui/button"
-import { contactSchema } from "@/features/content/schemas/forms"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { useContact } from "@/hooks/api/content/mutations"
 import { cn } from "@/lib/utils"
+
+const warmSchema = () => { void import("@/features/content/schemas/forms").catch(() => undefined) }
 
 type Field = "name" | "email" | "orderNumber" | "message"
 
@@ -30,32 +31,38 @@ export function ContactForm() {
   const contact = useContact()
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
   const [formError, setFormError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const submitting = useRef(false)
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (submitting.current) return
     const form = event.currentTarget
     const data = Object.fromEntries(new FormData(form)) as Record<string, string>
-    const parsed = contactSchema.safeParse({ ...data, website: data.website || undefined })
-    if (!parsed.success) {
-      const next: Partial<Record<Field, string>> = {}
-      for (const issue of parsed.error.issues) {
-        const key = issue.path[0] as Field
-        next[key] ??= issue.message
+    submitting.current = true
+    setBusy(true)
+    try {
+      const { contactSchema } = await import("@/features/content/schemas/forms")
+      const parsed = contactSchema.safeParse({ ...data, website: data.website || undefined })
+      if (!parsed.success) {
+        const next: Partial<Record<Field, string>> = {}
+        for (const issue of parsed.error.issues) {
+          const key = issue.path[0] as Field
+          next[key] ??= issue.message
+        }
+        setErrors(next)
+        const first = fields.find((field) => next[field.name])
+        if (first) form.querySelector<HTMLElement>(`[name="${first.name}"]`)?.focus()
+        return
       }
-      setErrors(next)
-      const first = fields.find((field) => next[field.name])
-      if (first) form.querySelector<HTMLElement>(`[name="${first.name}"]`)?.focus()
-      return
-    }
-    setErrors({})
-    setFormError(null)
-    contact.mutate(parsed.data, {
-      onError: (failure) => {
-        if (failure instanceof ApiError && Object.keys(failure.fields).length) {
-          setErrors(Object.fromEntries(Object.entries(failure.fields).map(([key, messages]) => [key, messages?.[0]])) as Partial<Record<Field, string>>)
-        } else setFormError(failure instanceof ApiError ? failure.message : "Something went wrong. Please try again.")
-      },
-    })
+      setErrors({})
+      setFormError(null)
+      await contact.mutateAsync(parsed.data)
+    } catch (failure) {
+      if (failure instanceof ApiError && Object.keys(failure.fields).length) {
+        setErrors(Object.fromEntries(Object.entries(failure.fields).map(([key, messages]) => [key, messages?.[0]])) as Partial<Record<Field, string>>)
+      } else setFormError(failure instanceof ApiError ? failure.message : "Something went wrong. Please try again.")
+    } finally { submitting.current = false; setBusy(false) }
   }
 
   if (contact.isSuccess) {
@@ -68,7 +75,7 @@ export function ContactForm() {
   }
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-busy={contact.isPending} className="flex flex-col gap-6 md:gap-10.5">
+    <form noValidate onFocusCapture={warmSchema} onSubmit={onSubmit} aria-busy={busy || contact.isPending} className="flex flex-col gap-6 md:gap-10.5">
       {fields.map((field) => {
         const inputId = `${id}-${field.name}`
         const error = errors[field.name]
@@ -102,8 +109,8 @@ export function ContactForm() {
         <input id={`${id}-website`} name="website" tabIndex={-1} autoComplete="off" />
       </div>
       <div className="flex flex-col gap-3 md:pt-0.5">
-        <button type="submit" disabled={contact.isPending} className={cn(buttonVariants({ tone: "brand", size: "xl" }), "w-full rounded-lg border-2 border-stroke-soft md:h-19 3xl:h-19")}>
-          {contact.isPending ? "Sending…" : "Send message"}
+        <button type="submit" disabled={busy || contact.isPending} className={cn(buttonVariants({ tone: "brand", size: "xl" }), "w-full rounded-lg border-2 border-stroke-soft md:h-19 3xl:h-19")}>
+          {busy || contact.isPending ? "Sending…" : "Send message"}
         </button>
         {formError ? (
           <p role="alert" className="text-16 font-medium text-destructive">

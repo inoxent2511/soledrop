@@ -6,6 +6,16 @@ import { waitForHydration } from "./support/panels"
 // The owner's revised grades, best first (D-069).
 const GRADES = ["Like New", "Premium", "Excellent", "Very Good", "Minor Issue"]
 
+async function sortTop(page: import("@playwright/test").Page) {
+  await page.evaluate(() => document.fonts.ready)
+  let top: number | undefined
+  await expect.poll(async () => {
+    top = (await page.getByRole("combobox").first().boundingBox())?.y
+    return top
+  }).toBeGreaterThan(0)
+  return top
+}
+
 /** Condition Guide (D-046): footer entry, the self-playing grade explorer and its no-JavaScript list. */
 test.describe("condition guide", () => {
   test("the footer links to it right below Size Guide", async ({ page }) => {
@@ -34,10 +44,10 @@ test.describe("condition guide", () => {
     await expect(
       page.getByRole("heading", { name: /sneaker condition guide/i })
     ).toHaveCount(0)
-    const preLoved = await page.getByRole("combobox").first().boundingBox()
+    const preLoved = await sortTop(page)
     await page.goto("/collections/men")
-    const collection = await page.getByRole("combobox").first().boundingBox()
-    expect(preLoved?.y).toBe(collection?.y)
+    const collection = await sortTop(page)
+    expect(preLoved).toBe(collection)
     await page.goto("/pre-loved")
     await waitForHydration(page)
     const chip = page

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 
-import { siteConfig } from "@/lib/site"
+import { serverSiteUrl } from "@/lib/site-server"
 import { sitemapLocations } from "@/server/storefront/sitemaps"
 
 export const dynamic = "force-dynamic"
@@ -10,6 +10,6 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
   return {
     rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/cart", "/checkout", "/account", "/orders/", "/search", "/newsletter/"] },
     sitemap: await sitemapLocations(),
-    host: siteConfig.url,
+    host: serverSiteUrl(),
   }
 }

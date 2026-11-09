@@ -10,7 +10,7 @@ import {
 import { Container } from "@/components/shared/container"
 import { JsonLd } from "@/components/shared/json-ld"
 import { PageBand } from "@/components/shared/page-band"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import {
   FaqAnswer,
   faqAnswerText,

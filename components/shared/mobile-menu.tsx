@@ -8,6 +8,7 @@ import { useEffect, useRef, type PointerEvent } from "react"
 import { flushSync } from "react-dom"
 
 import { SearchIcon } from "@/components/icons"
+import { mobileMenuTrigger } from "./mobile-menu-styles"
 import { shortcutNav } from "@/content/navigation"
 import type { MenuSection } from "@/features/navigation/types"
 import { useRouteState } from "@/hooks/use-route-state"
@@ -94,7 +95,7 @@ export function MobileMenu({ sections }: { sections: MenuSection[] }) {
 
   return (
     <Dialog.Root open={open} onOpenChange={changeOpen}>
-      <Dialog.Trigger aria-label="Open menu" className="relative flex size-11 shrink-0 items-center justify-center text-background lg:hidden">
+      <Dialog.Trigger aria-label="Open menu" className={mobileMenuTrigger}>
         <MenuIcon aria-hidden="true" className="size-6" />
       </Dialog.Trigger>
       <Dialog.Portal>

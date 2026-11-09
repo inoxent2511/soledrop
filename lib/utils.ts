@@ -5,6 +5,6 @@ import tables from "@/lib/cn-tables"
 /**
  * Tailwind class merger fitted to our theme: the generated tables know the token scales
  * (font sizes, colours, radii), so a size like `text-30` never knocks out a colour like
- * `text-brand`. Regenerate after token changes: `node node_modules/cn/bin/cn.mjs build --full -o lib/cn-tables.ts`.
+ * `text-brand`. The build regenerates the fitted tables; run `pnpm cn:generate` after editing classes or tokens.
  */
 export const cn = createCn(tables)

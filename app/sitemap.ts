@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next"
 
-import { siteConfig } from "@/lib/site"
+import { serverSiteUrl } from "@/lib/site-server"
 import { entitySitemap, sitemapCounts, SITEMAP_PAGE_SIZE } from "@/server/storefront/sitemaps"
 
 /** Read committed catalogue metadata on every crawl. */
 export const dynamic = "force-dynamic"
 
-const url = (path: string) => new URL(path, siteConfig.url).toString()
+const url = (path: string) => new URL(path, serverSiteUrl()).toString()
 
 /** Every indexable page: fixed pages, collections, active products and content pages not marked noindex. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

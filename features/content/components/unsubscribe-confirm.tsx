@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useMutation } from "@tanstack/react-query"
 
 import { request } from "@/api/http"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { cn } from "@/lib/utils"
 
 /**

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { useId, useState, type FormEvent } from "react"
 
 import { ApiError } from "@/api/http"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { orderLookupSchema } from "@/features/checkout/schemas/checkout"
 import { useOrderLookup } from "@/hooks/api/checkout/mutations"
 import { cn } from "@/lib/utils"

@@ -2,7 +2,7 @@ import Link from "next/link"
 
 import { FacebookIcon, InstagramIcon, LogoMonoIcon, TiktokIcon } from "@/components/icons"
 import { Container } from "@/components/shared/container"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { footerColumns, promoBar } from "@/content/navigation"
 import { NewsletterForm } from "@/features/content/components/newsletter-form"
 import { siteConfig } from "@/lib/site"

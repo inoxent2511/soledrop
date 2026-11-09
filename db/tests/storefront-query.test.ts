@@ -22,6 +22,7 @@ import { uuidv7, uuidToBytes } from "@/server/db/uuid"
 import { db, resetFixtures } from "@/server/fixtures/store"
 import { connect, engines } from "./connections"
 import { catalogueRevision } from "@/server/catalog/facet-cache.repository"
+import { suggestSpelling } from "@/server/search/match"
 
 for (const [engine, config] of engines) describe(engine + " indexed storefront parity", () => {
   const storeId = uuidv7(), worker = systemActor(storeId, "migration", ALL_PERMISSIONS), visitor = anonymousActor(storeId)
@@ -84,6 +85,30 @@ for (const [engine, config] of engines) describe(engine + " indexed storefront p
     expect({ total: selected.total, page: selected.page, pageCount: selected.pageCount, facets: selected.facets }).toEqual({ total: expected.total, page: expected.page, pageCount: expected.pageCount, facets: expected.facets })
     const withoutVersion = (items: typeof expected.items) => items.map(({ updatedAt: _updated, ...item }) => item)
     expect(withoutVersion(await resolved.enrich(selected.products, context))).toEqual(withoutVersion(expected.items))
+  })
+  it("retains full-vocabulary spelling choices while narrowing native candidates", async () => {
+    const full = await native.vocabulary(visitor, storeId)
+    for (const query of ["nkie air mx", "dukn low", "new balnace", "ai", "nike", "!!!", "unfindablezzzz", "strase", "𠮷𠮷𠮷", "x".repeat(149)]) {
+      const narrowed = await native.vocabulary(visitor, storeId, query)
+      expect(suggestSpelling(query, narrowed), query).toBe(suggestSpelling(query, full))
+    }
+    expect((await native.vocabulary(visitor, storeId, "unfindablezzzz")).length).toBeLessThan(full.length)
+  })
+  it("invalidates cached spelling candidates on commit without publishing rolled-back words", async () => {
+    const query = "incandescant", read = async () => suggestSpelling(query, await native.vocabulary(visitor, storeId, query))
+    const original = (await mysqlCatalog.listProducts(storeId)).find(product => product.id === samples[0].id)!
+    expect(await read()).toBeNull()
+    try {
+      await expect(withTransaction(async () => {
+        await mysqlCatalog.saveProduct(storeId, { ...original, title: "Incandescent" }, null)
+        expect(await read()).toBe("incandescent")
+        throw Error("Rollback spelling candidate")
+      })).rejects.toThrow("Rollback spelling candidate")
+      expect(await read()).toBeNull()
+      await mysqlCatalog.saveProduct(storeId, { ...original, title: "Incandescent" }, null)
+      expect(await read()).toBe("incandescent")
+    } finally { await mysqlCatalog.saveProduct(storeId, original, null) }
+    expect(await read()).toBeNull()
   })
   it("preserves vocabulary order and rebuilds projections without changing product versions", async () => {
     expect(await native.vocabulary(visitor, storeId)).toEqual(await reference.vocabulary(storeId))

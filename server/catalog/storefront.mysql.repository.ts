@@ -8,12 +8,12 @@ import { hydrateProducts } from "./mysql.repository"
 import { requireStore } from "@/server/db/actor"
 import { database, inDatabaseTransaction } from "@/server/db/client"
 import { mysqlPolicy } from "@/server/db/policy.repository"
-import { brands, collectionProducts, collections, inventoryLevels, priceLists, prices, productListingSizes, productListPrices, products, productTags, searchFieldTerms, variants } from "@/server/db/schema"
+import { brands, collectionProducts, collections, inventoryLevels, priceLists, prices, productListingSizes, productListPrices, products, productTags, searchFieldTerms, searchFieldVocabulary, variants } from "@/server/db/schema"
 import { sqlDate } from "@/server/db/values"
-import { terms } from "@/server/search/match"
+import { editDistance, terms } from "@/server/search/match"
 import { scoredCatalogueCandidates } from "@/server/search/scored-candidates.repository"
 import { DomainError } from "@/server/shared/errors"
-import { catalogueRevision, readFacetRows } from "./facet-cache.repository"
+import { catalogueRevision, readCatalogueProjection } from "./facet-cache.repository"
 
 const value = (input: unknown) => new SQL([new Param(input)])
 const choose = (condition: SQL | undefined, yes: SQL | number, no: SQL | number) => sql.fromList([sql.raw("CASE WHEN "), condition ?? value(false), sql.raw(" THEN "), typeof yes === "number" ? value(yes) : yes, sql.raw(" ELSE "), typeof no === "number" ? value(no) : no, sql.raw(" END")])
@@ -111,7 +111,7 @@ export function createMysqlStorefrontRepository(): StorefrontRepository {
       const firstPage = (query.page ?? 1) <= 1 && (query.q || query.sort && query.sort !== "featured") ? selectPageIds(0) : undefined
       const sizesQuery = joinSources(db.select({ value: sizeValue, count: count() }).from(root, facetHints).$dynamic(), scopeNeedsPrice, false, false).innerJoin(uniqueSizes, and(eq(uniqueSizes.productId, products.id), eq(uniqueSizes.storeId, actor.storeId))).where(scope).groupBy(uniqueSizes.size).orderBy(sql.fromList([sql.raw("CAST("), uniqueSizes.size, sql.raw(" AS DECIMAL(10,2))")]))
       const facetScope = { listIds, collection: collection ? { id: collection.id, kind: collection.kind, rules: collection.rules } : null, kind: query.kind, excludeIds: query.excludeIds, q: query.q, synonyms: [...synonyms] }
-      const facetRows = () => readFacetRows(db, actor, facetScope, cacheRevision, async () => {
+      const facetRows = () => readCatalogueProjection(db, actor, facetScope, cacheRevision, async () => {
         const [groups, sizes] = await Promise.all([
           joinSources(db.select({ gender: groupGender, brandId: products.brandId, condition: products.conditionGrade, count: count(), min: min(headline), max: max(headline) }).from(root, facetHints).$dynamic(), true, false, false).where(scope).groupBy(products.gender, products.brandId, products.conditionGrade).orderBy(min(products.position)),
           sizesQuery,
@@ -166,11 +166,23 @@ export function createMysqlStorefrontRepository(): StorefrontRepository {
       const facets: Facets = { genders: [...genders.values()] as Facets["genders"], sizes, brands: [...brandRows.values()], conditions: [...conditions.values()] as Facets["conditions"], price: { min: groups.length ? priceMin : 0, max: groups.length ? priceMax : 0 } }
       return { products: ids.flatMap((row) => hydrated.find((product) => product.id === row.id) ?? []), total, page, pageCount, facets }
     },
-    async vocabulary(actor, storeId) {
+    async vocabulary(actor, storeId, spellingQuery) {
       requireStore(actor, storeId)
       const db = await database()
+      let candidates: string[] | undefined
+      if (spellingQuery !== undefined) {
+        const queryTerms = terms(spellingQuery)
+        const revision = inDatabaseTransaction() ? undefined : await catalogueRevision(db, actor)
+        // Two edits cannot change a word's UTF-16 length by more than two. Resolve
+        // possible spellings before visiting postings; retain their original source order below.
+        candidates = await readCatalogueProjection(db, actor, ["spelling-title-candidates", queryTerms], revision, async () => {
+          const lengths = [...new Set(queryTerms.flatMap((term) => Array.from({ length: 5 }, (_, index) => term.length - 2 + index).filter((length) => length >= 3)))]
+          const dictionary = lengths.length ? await db.select({ term: searchFieldVocabulary.term }).from(searchFieldVocabulary).where(and(eq(searchFieldVocabulary.storeId, actor.storeId), eq(searchFieldVocabulary.field, "title"), gt(searchFieldVocabulary.documentFrequency, 0), inArray(searchFieldVocabulary.length, lengths))) : []
+          return dictionary.map((row) => row.term).filter((word) => queryTerms.some((term) => editDistance(term, word, 2) <= 2))
+        })
+      }
       const [words, brandRows, groupRows] = await Promise.all([
-        db.select({ term: searchFieldTerms.term }).from(searchFieldTerms).innerJoin(products, eq(products.id, searchFieldTerms.productId)).where(and(eq(products.storeId, actor.storeId), eq(products.status, "active"), eq(searchFieldTerms.field, "title"))).groupBy(searchFieldTerms.term).orderBy(min(sql.fromList([products.position, sql.raw(" * 10000 + "), searchFieldTerms.position]))),
+        candidates?.length === 0 ? [] : db.select({ term: searchFieldTerms.term }).from(searchFieldTerms).innerJoin(products, eq(products.id, searchFieldTerms.productId)).where(and(eq(searchFieldTerms.storeId, actor.storeId), eq(products.storeId, actor.storeId), eq(products.status, "active"), eq(searchFieldTerms.field, "title"), candidates ? inArray(searchFieldTerms.term, candidates) : undefined)).groupBy(searchFieldTerms.term).orderBy(min(sql.fromList([products.position, sql.raw(" * 10000 + "), searchFieldTerms.position]))),
         db.select({ name: brands.name }).from(brands).where(eq(brands.storeId, actor.storeId)).orderBy(asc(brands.position)),
         db.select({ title: collections.title }).from(collections).where(eq(collections.storeId, actor.storeId)).orderBy(asc(collections.position)),
       ])

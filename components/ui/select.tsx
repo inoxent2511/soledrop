@@ -6,6 +6,7 @@ import type { ComponentProps } from "react"
 
 import { ChevronDownIcon } from "@/components/icons"
 import { cn } from "@/lib/utils"
+import { selectTriggerClasses } from "./select-classes"
 
 /**
  * The site's dropdown (D-064), on Base UI's Select: a combobox trigger and a listbox the site can
@@ -36,7 +37,7 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border-2 border-foreground bg-background text-start font-bold transition-colors outline-none hover:border-foreground focus-visible:ring-[3px] focus-visible:ring-ring data-[popup-open]:ring-[3px] data-[popup-open]:ring-ring/40",
+        selectTriggerClasses,
         className
       )}
       {...props}

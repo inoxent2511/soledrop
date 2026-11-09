@@ -7,6 +7,7 @@
  *   CLS  layout-shift session windows (max window, excluding shifts after input)
  *   INP  event-timing duration of a real tap on the route's main control
  *   JS   compressed bytes of every script loaded before `load` (first-load JS)
+ *   The report also records all script bytes through interaction, including deferred panels.
  * Budgets: Core Web Vitals "good" (LCP ≤ 2500 ms, CLS ≤ 0.1, INP ≤ 200 ms) and JS ≤ 200 KB.
  * Usage: node qa/perf.mjs [--base=http://127.0.0.1:3200]   Writes qa/out/perf.json; exits 1 over budget.
  */
@@ -62,12 +63,15 @@ async function measure(browser, { route, tap }) {
   await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 150, downloadThroughput: (1.6 * 1024 * 1024) / 8, uploadThroughput: (750 * 1024) / 8 })
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 })
   const scripts = new Map()
+  const allScripts = new Map()
   let loaded = false
   cdp.on("Network.responseReceived", (event) => {
+    if (event.type === "Script") allScripts.set(event.requestId, 0)
     if (!loaded && event.type === "Script") scripts.set(event.requestId, 0)
   })
   cdp.on("Network.loadingFinished", (event) => {
     if (scripts.has(event.requestId)) scripts.set(event.requestId, event.encodedDataLength)
+    if (allScripts.has(event.requestId)) allScripts.set(event.requestId, event.encodedDataLength)
   })
   await page.addInitScript(observe)
   await page.goto(base + route, { waitUntil: "load" })
@@ -83,7 +87,7 @@ async function measure(browser, { route, tap }) {
   await page.waitForTimeout(1000)
   const after = await page.evaluate(() => ({ ...window.__perf }))
   await context.close()
-  return { lcp: before.lcp, cls: before.cls, inp: after.inp, js }
+  return { lcp: before.lcp, cls: before.cls, inp: after.inp, js, totalJs: [...allScripts.values()].reduce((sum, bytes) => sum + bytes, 0) }
 }
 
 const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)]
@@ -98,9 +102,11 @@ for (const target of ROUTES) {
     lcp: Math.round(median(runs.map((run) => run.lcp))),
     cls: Number(median(runs.map((run) => run.cls)).toFixed(3)),
     inp: Math.round(median(runs.map((run) => run.inp))),
+    jsBytes: median(runs.map((run) => run.js)),
     jsKb: Math.round(median(runs.map((run) => run.js)) / 1024),
+    jsAfterInteractionKb: Math.round(median(runs.map((run) => run.totalJs)) / 1024),
   }
-  result.pass = result.lcp <= BUDGET.lcp && result.cls <= BUDGET.cls && result.inp <= BUDGET.inp && result.jsKb * 1024 <= BUDGET.js
+  result.pass = result.lcp <= BUDGET.lcp && result.cls <= BUDGET.cls && result.inp <= BUDGET.inp && result.jsBytes <= BUDGET.js
   results.push(result)
   console.log(`${result.pass ? "PASS" : "OVER"} ${target.route.padEnd(44)} LCP ${result.lcp} ms · CLS ${result.cls} · INP ${result.inp} ms · JS ${result.jsKb} KB`)
 }

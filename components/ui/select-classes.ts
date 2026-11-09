@@ -1,0 +1,1 @@
+export const selectTriggerClasses = "group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border-2 border-foreground bg-background text-start font-bold transition-colors outline-none hover:border-foreground focus-visible:ring-[3px] focus-visible:ring-ring data-[popup-open]:ring-[3px] data-[popup-open]:ring-ring/40"

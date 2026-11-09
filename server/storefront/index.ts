@@ -249,7 +249,7 @@ export async function searchSuggest(rawQuery: string): Promise<SuggestResponse> 
   const result: SuggestResponse = { ...empty, total: page.total, suggestions, collections: collectionLinks, brands: brandLinks, products: page.items.map(toSuggestProduct) }
   if (page.total > 0 || collectionLinks.length > 0 || brandLinks.length > 0) return result
 
-  const [vocabulary, popular] = await Promise.all([service.vocabulary(storeId), service.queryProducts({ collection: "new-arrivals", pageSize: 4 }, retailContext())])
+  const [vocabulary, popular] = await Promise.all([service.vocabulary(storeId, query), service.queryProducts({ collection: "new-arrivals", pageSize: 4 }, retailContext())])
   return { ...result, didYouMean: suggestSpelling(query, vocabulary), trending, popular: popular.items.map(toSuggestProduct) }
 }
 
@@ -257,7 +257,7 @@ export async function searchSuggest(rawQuery: string): Promise<SuggestResponse> 
 export async function noResultsHelp(query: string) {
   const service = catalog()
   const [vocabulary, popular, trending] = await Promise.all([
-    service.vocabulary(currentStoreId()),
+    service.vocabulary(currentStoreId(), query),
     service.queryProducts({ collection: "new-arrivals", pageSize: 4 }, retailContext()),
     searchService().trending(currentStoreId(), popularSearches),
   ])

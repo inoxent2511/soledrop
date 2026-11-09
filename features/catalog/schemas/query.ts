@@ -5,20 +5,10 @@ import {
   CONDITION_GRADES,
   type ConditionGrade,
   type ProductQuery,
-  type SortKey,
 } from "@/server/catalog/types"
+import { SORT_OPTIONS } from "@/features/catalog/lib/sort-options"
 
-/** The listing's sort choices, in menu order (D-064). "featured" is the default and stays out of the URL. */
-export const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: "featured", label: "Featured" },
-  { value: "title-asc", label: "Title: A-Z" },
-  { value: "title-desc", label: "Title: Z-A" },
-  { value: "newest", label: "Date: New to Old" },
-  { value: "oldest", label: "Date: Old to New" },
-  { value: "price-asc", label: "Price: Low to High" },
-  { value: "price-desc", label: "Price: High to Low" },
-  { value: "discount-desc", label: "Discount: High to Low" },
-]
+export { SORT_OPTIONS }
 
 type Params = Record<string, string | string[] | undefined> | URLSearchParams
 

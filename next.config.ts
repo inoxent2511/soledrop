@@ -26,14 +26,17 @@ const csp = [
 const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+]
+
+const documentHeaders = [
+  { key: "X-Frame-Options", value: "DENY" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=()" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
 ]
 
-/** Every path except /admin and below. */
-export const STOREFRONT = "/:path((?!admin(?:/|$)).*)"
+/** Storefront documents; scripts/styles use their embedding document's protections. */
+export const STOREFRONT = "/:path((?!admin(?:/|$)|_next/static/chunks(?:/|$)).*)"
 
 const nextConfig: NextConfig = {
   // Self-contained server bundle for the Dockerfile (docs/DEPLOYMENT-RUNBOOK.md).
@@ -57,8 +60,13 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
+      { source: "/:path((?!_next/static/chunks(?:/|$)).*)", headers: documentHeaders },
       // The admin gets a stricter per-request nonce CSP from proxy.ts instead (admin-design.md).
       { source: STOREFRONT, headers: [{ key: "Content-Security-Policy", value: csp }] },
+      { source: "/_next/static/chunks/:path*", headers: [{ key: "Vary", value: "Sec-Fetch-Dest" }] },
+      // Avoid repeating document-only headers on each JS/CSS transfer. A chunk opened as a
+      // document or worker still gets the complete policy; unknown clients get it by default.
+      { source: "/_next/static/chunks/:path*", missing: [{ type: "header", key: "sec-fetch-dest", value: "(?:script|style)" }], headers: [...documentHeaders, { key: "Content-Security-Policy", value: csp }] },
       // Personal and transactional responses are never cached by browsers or CDNs.
       { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] },
     ]

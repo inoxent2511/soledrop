@@ -386,7 +386,7 @@ process-list checks prove slow-query cleanup and safe subsequent reads. Backfill
 Unicode/accents, literal wildcard/NUL search, formatted phones, price ties, duplicate sizes,
 projection rollback, vocabulary edits/reindex/deletion and unused-PII erasure have regressions.
 
-The application suite passes **1,709/1,709** and the complete native suite **1,459/1,459**, zero
+The application suite passes **1,721/1,721** and the complete native suite **1,463/1,463**, zero
 pending. Both large gram indexes are seeded. The fixed repository matrix passes all 22 cases
 across both engines: product listing/search p95 4.2–53.22 ms, order listing 26.23–73.16 ms and
 order search 9.94–23.74 ms. Reports retain every sample, cold/warm plans and cold timings.
@@ -415,8 +415,37 @@ Private sidebar/table/breadcrumb links now fetch on navigation instead of specul
 other admin pages. The browser sweep exposed aborted background prefetches during navigation;
 the full rerun checks this change without filtering console failures.
 
-Still required: remaining load/recovery and large-data HTTP checks, two complete clean production
+The next production HTTP matrix passes all 26 listing/search/order cases across both engines,
+with three warmups and 20 measured requests per case. A no-result suggestion previously took
+1.4–2.5 seconds: indexed length candidates, an equivalent banded OSA implementation and bounded
+revision-scoped candidate caching reduce the measured cases to 13–370 ms. Full-vocabulary ordering,
+Unicode and commit/rollback parity pass; exhaustive short-word comparisons retain the scorer.
+All 100,000 product URLs are served once across twenty 5,000-URL shards on each engine, using the
+runtime canonical origin. Root metadata, robots and product structured data also use that origin.
+
+The mobile production profile now passes all seven routes without changing the budgets:
+LCP 1,084–1,480 ms, CLS 0–0.04, INP 40–144 ms and initial script transfers 193,823–204,727 bytes.
+The runner compares exact bytes and separately reports scripts loaded through interaction.
+Admin initial scripts pass the 250 KiB limit at 246–248 KiB. Shared styles no longer pull interactive
+components into every route; form schemas and optional header/sort panels load when needed.
+Slow-code mouse/keyboard/hover checks pass in all three browsers. The header keeps a pressed
+trigger until click completes and restores queued intent after panel handlers attach.
+Document-only policies are omitted from normal JS/CSS transfers; documents, workers and unknown
+clients retain full policies. Static responses vary by destination to keep those cache entries distinct.
+The class-merger generator now retains used groups and runs before builds; its new production
+artifact is in the complete browser/visual rerun. The previous exact-byte profile above predates
+that final data reduction.
+
+Known error identities now survive independently bundled API/RSC class constructors. The complete
+public browser sweep is running on both engines with independent report/artifact directories.
+It exposed a geometry harness reading a replaced sort node; it now waits for an actual measured
+box and loaded fonts while retaining the exact equality assertion. A separate large-catalogue
+audit found the inventory page hydrating the first 10,000 products before pagination; an isolated
+request exceeded 30 seconds. That path still requires a bounded replacement and regression proof.
+
+Still required: inventory correction, remaining load/recovery checks, two complete clean production
 browser/visual/accessibility/performance passes per engine, refreshed private backup/restore
-handoff and a clean verified release commit. Mobile JS and first-home LCP remain over their
-unchanged budgets. The ready-release GitHub push remains pending; its remote main is still the
-owner's `b1cd1bf`. No deployment or remote database action has occurred.
+handoff and a clean verified release commit. The inherited design-export gate remains blocked
+because the source has no Theme collection; generated theme/contrast checks pass. The ready-release
+GitHub push remains pending; its remote main is still the owner's `b1cd1bf`. No deployment or remote
+database action has occurred.

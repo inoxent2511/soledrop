@@ -25,16 +25,27 @@ export function terms(text: string): string[] {
 /** Optimal-string-alignment distance (Damerau–Levenshtein with adjacent swaps), capped at `max + 1`. */
 export function editDistance(a: string, b: string, max = 2): number {
   if (Math.abs(a.length - b.length) > max) return max + 1
-  const rows: number[][] = Array.from({ length: a.length + 1 }, (_, i) => Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)))
+  const cap = max + 1, width = Math.ceil(max)
+  let twoBack = Array<number>(b.length + 1).fill(cap)
+  let previous = Array.from({ length: b.length + 1 }, (_, j) => Math.min(j, cap))
+  let current = Array<number>(b.length + 1).fill(cap)
   for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
+    current.fill(cap)
+    current[0] = Math.min(i, cap)
+    let minimum = current[0]
+    // A path within the cap stays in this diagonal band. Three rows retain adjacent swaps.
+    for (let j = Math.max(1, i - width); j <= Math.min(b.length, i + width); j++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1
-      let value = Math.min(rows[i - 1][j] + 1, rows[i][j - 1] + 1, rows[i - 1][j - 1] + cost)
-      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) value = Math.min(value, rows[i - 2][j - 2] + 1)
-      rows[i][j] = value
+      let value = Math.min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + cost)
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) value = Math.min(value, twoBack[j - 2] + 1)
+      current[j] = Math.min(value, cap)
+      minimum = Math.min(minimum, current[j])
     }
+    if (minimum >= cap) return cap
+    const reusable = twoBack
+    twoBack = previous; previous = current; current = reusable
   }
-  return Math.min(rows[a.length][b.length], max + 1)
+  return Math.min(previous[b.length], cap)
 }
 
 /** Edits a typed word may contain and still match: none below 4 letters, so "nb" never matches "nike". */

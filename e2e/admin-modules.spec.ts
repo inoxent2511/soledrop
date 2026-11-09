@@ -58,16 +58,16 @@ test("the Owner can open every module, and the simulator and rate tester answer"
     await expect(page.getByRole("heading", { level: 1, name: heading }), path).toBeVisible()
   }
 
-  await page.goto("/admin/promotions/new")
+  await page.goto("/admin/promotions/new", { waitUntil: "networkidle" })
   await page.getByLabel("Title").fill("E2E ten percent")
   await page.getByRole("button", { name: "Run test" }).click()
   await expect(page.getByText("It applies.", { exact: true })).toBeVisible()
 
-  await page.goto("/admin/shipping")
+  await page.goto("/admin/shipping", { waitUntil: "networkidle" })
   await page.getByRole("button", { name: "Test", exact: true }).click()
   await expect(page.getByText(/^Zone: /)).toBeVisible()
 
-  await page.goto("/admin/dev/gallery")
+  await page.goto("/admin/dev/gallery", { waitUntil: "networkidle" })
   const writes: string[] = []
   page.on("request", (request) => {
     if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method())) writes.push(request.url())

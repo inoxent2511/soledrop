@@ -3,11 +3,8 @@ import Link from "next/link"
 import { LogoIcon } from "@/components/icons"
 import { CartLink } from "@/components/shared/cart-link"
 import { Container } from "@/components/shared/container"
-import { MobileMenu } from "@/components/shared/mobile-menu"
-import { AccountMenu } from "@/features/account/components/account-menu"
-import { MiniCart } from "@/features/cart/components/mini-cart"
+import { HeaderMobileMenu, HeaderAccount, HeaderCart, HeaderSearch } from "@/components/shared/header-controls"
 import { NavMenu } from "@/features/navigation/components/nav-menu"
-import { SearchOverlay } from "@/features/search/components/search-overlay"
 import { cn } from "@/lib/utils"
 import { navigationData } from "@/server/storefront"
 
@@ -32,7 +29,7 @@ export async function SiteHeader({ variant = "full" }: SiteHeaderProps) {
       {/* Below lg a flex row whose logo cell may shrink (BUG-001: two equal grid columns were narrower than menu + logo at 390). */}
       <Container className="flex h-14 items-center justify-between gap-3 lg:grid lg:grid-cols-header lg:h-21.5 3xl:items-start">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3 3xl:pt-6.75">
-          {variant === "full" ? <MobileMenu sections={sections} /> : null}
+          {variant === "full" ? <HeaderMobileMenu sections={sections} /> : null}
           <Link href="/" aria-label="Sole Drop — home" className="flex min-w-0">
             <LogoIcon className="h-auto w-36 max-w-full sm:w-44 lg:w-60" />
           </Link>
@@ -41,9 +38,9 @@ export async function SiteHeader({ variant = "full" }: SiteHeaderProps) {
         {variant === "full" ? <NavMenu sections={sections} /> : <span className="hidden lg:block" />}
 
         <div className="flex shrink-0 items-center gap-4 justify-self-end sm:gap-7.5 3xl:items-start 3xl:pt-7.25">
-          <SearchOverlay className={cn(iconLink, "3xl:pt-0.5")} />
-          <AccountMenu className={cn(iconLink, "3xl:pt-0.75")} />
-          {variant === "full" ? <MiniCart className={iconLink} /> : <CartLink className={iconLink} />}
+          <HeaderSearch className={cn(iconLink, "3xl:pt-0.5")} />
+          <HeaderAccount className={cn(iconLink, "3xl:pt-0.75")} />
+          {variant === "full" ? <HeaderCart className={iconLink} /> : <CartLink className={iconLink} />}
         </div>
       </Container>
     </header>

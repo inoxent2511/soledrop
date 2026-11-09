@@ -4,19 +4,15 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { ChevronDownIcon } from "@/components/icons"
+import { DeferredControl } from "@/components/shared/deferred-control"
+import { selectTriggerClasses } from "@/components/ui/select-classes"
+import type { ListingSortProps } from "./listing-sort"
 import {
   listingHref,
   type ListingState,
 } from "@/features/catalog/lib/listing-url"
-import { SORT_OPTIONS } from "@/features/catalog/schemas/query"
+import { SORT_OPTIONS } from "@/features/catalog/lib/sort-options"
 import { cn } from "@/lib/utils"
 
 export type ListingView = "grid" | "list"
@@ -25,6 +21,8 @@ export type ListingView = "grid" | "list"
 const sortLabels = Object.fromEntries(
   SORT_OPTIONS.map((option) => [option.value, option.label])
 )
+const loadSort = () => import("./listing-sort").then((module) => module.ListingSort)
+const sortOpenKeys = ["ArrowDown", "ArrowUp", "Enter", " "]
 
 function GridGlyph() {
   return (
@@ -80,10 +78,10 @@ export function ListingToolbar({
     >
       {/* The site's dropdown (D-063, D-064): white list, lime on hover, the lime offset shadow kept. */}
       <div className="w-full max-w-90 min-w-0 rounded-lg shadow-offset-brand-sm">
-        <Select
-          items={sortLabels}
-          value={sort}
-          onValueChange={(value) => {
+        <DeferredControl<ListingSortProps>
+          load={loadSort}
+          openKeys={sortOpenKeys}
+          props={{ value: sort, onValueChange: (value) => {
             if (!value || value === sort) return
             startTransition(() =>
               router.push(
@@ -93,24 +91,17 @@ export function ListingToolbar({
                 { scroll: false }
               )
             )
-          }}
-        >
-          <SelectTrigger aria-label="Sort by" className="h-14 ps-4 pe-4 md:h-18 md:ps-5 md:pe-5">
+          } }}
+          fallback={<button data-slot="select-trigger" type="button" role="combobox" aria-label="Sort by" aria-controls={undefined} aria-expanded="false" aria-haspopup="listbox" className={cn(selectTriggerClasses, "h-14 ps-4 pe-4 md:h-18 md:ps-5 md:pe-5")}>
             <span className="flex min-w-0 items-center gap-3">
-              <SelectLabel className="sr-only shrink-0 text-14 font-bold tracking-wide-2 text-subtle-foreground uppercase sm:not-sr-only md:text-16">
+              <span data-slot="select-label" className="sr-only shrink-0 text-14 font-bold tracking-wide-2 text-subtle-foreground uppercase sm:not-sr-only md:text-16">
                 Sort by
-              </SelectLabel>
-              <SelectValue className="text-18 md:text-20" />
+              </span>
+              <span data-slot="select-value" className="min-w-0 truncate text-18 md:text-20">{sortLabels[sort]}</span>
             </span>
-          </SelectTrigger>
-          <SelectContent>
-            {SORT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            <span data-slot="select-icon" className="flex shrink-0"><ChevronDownIcon aria-hidden="true" className="h-auto w-4 transition-transform duration-200 group-data-[popup-open]:rotate-180 md:w-4.5" /></span>
+          </button>}
+        />
       </div>
       <div className="flex pt-0 md:pt-2.75">
         <ul

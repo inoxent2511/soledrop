@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useId, useState, type FormEvent } from "react"
 
 import { authApi } from "@/api/account"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { FormError, FormField, useSchemaForm } from "@/features/account/components/form-field"
 import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from "@/features/account/schemas/auth"
 import { useLogin, useRegister } from "@/hooks/api/account/queries"

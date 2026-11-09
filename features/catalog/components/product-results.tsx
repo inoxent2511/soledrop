@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { ProductCard } from "@/features/catalog/components/product-card"
 import type { ListingView } from "@/features/catalog/components/listing-toolbar"
 import { listingHref, type ListingState } from "@/features/catalog/lib/listing-url"

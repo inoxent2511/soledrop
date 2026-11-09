@@ -7,7 +7,7 @@ import {
   EmailIcon,
   WhatsappIcon,
 } from "@/components/icons"
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
 import { gradeDetails } from "@/content/condition-guide"
 import {
   legalOwnerDetails,

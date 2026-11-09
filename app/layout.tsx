@@ -7,6 +7,7 @@ import { Providers } from "@/components/providers"
 import { ThemeProvider } from "@/components/theme-provider"
 import tokens from "@/docs/app/design-tokens.json"
 import { siteConfig } from "@/lib/site"
+import { serverSiteUrl } from "@/lib/site-server"
 import { cn } from "@/lib/utils"
 
 // Inter 3.19 (OFL, app/fonts/inter-LICENSE.txt): the build Figma sets the design in. Google's Inter 4
@@ -20,7 +21,7 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
+  metadataBase: new URL(serverSiteUrl()),
   title: { default: `${siteConfig.name} — ${siteConfig.tagline}`, template: `%s · ${siteConfig.name}` },
   description: siteConfig.description,
   openGraph: { type: "website", siteName: siteConfig.name, locale: "en_PK" },
