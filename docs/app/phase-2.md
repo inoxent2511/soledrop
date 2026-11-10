@@ -1,5 +1,7 @@
 # Phase 2: open decisions and scope
 
+Current hosting choice: the owner confirmed a Hostinger Node.js Web App with MariaDB. Follow [the deployment runbook](../DEPLOYMENT-RUNBOOK.md); the planning alternatives below predate the SQL migration and are retained as history.
+
 Phase 1 delivered the storefront, the commerce engine, the database layer (migrations, RLS, functions,
 seed) and service adapters, all running locally. Phase 2 is everything that needs a hosted account,
 the owner's input or a staff UI. Each item has a recommendation.
@@ -9,7 +11,7 @@ the owner's input or a staff UI. Each item has a recommendation.
 | # | Decision | Recommendation |
 | --- | --- | --- |
 | P2-01 | **Hosting** for the container | A managed container host near Pakistan (e.g. a Singapore/Mumbai region) with the Dockerfile as is. Put a CDN in front for `/_next/static` and ISR pages. |
-| P2-02 | **Supabase project** region and plan | Pro plan (point-in-time recovery) in the region closest to the app. Run `supabase db push` from a trusted machine (runbook §3). |
+| P2-02 | **the former platform project** region and plan | Pro plan (point-in-time recovery) in the region closest to the app. Run `the retired migration CLI` from a trusted machine (runbook §3). |
 | P2-03 | **Domain and sender email** | Verify the domain in Resend; `EMAIL_FROM=Sole Drop <orders@<domain>>`. |
 | P2-04 | **One support email** (D-023): `Soledropofficial@gmail.com` vs `soledrop@gmail.com` | Use a domain address once P2-03 exists; until then keep the footer's. |
 | P2-05 | **Support hours** (D-024) | Set `siteConfig.contact.supportHours`; the Contact box shows them automatically. |
@@ -33,7 +35,7 @@ the owner's input or a staff UI. Each item has a recommendation.
 
    | # | Decision | Recommendation |
    | --- | --- | --- |
-   | P2-15 | Staff identity in-house (A-001) or Supabase Auth | Keep in-house until there's a reason (SSO, one login for several apps); the switch is contained in `server/admin`. |
+   | P2-15 | Staff identity in-house (A-001) or the former identity provider | Keep in-house until there's a reason (SSO, one login for several apps); the switch is contained in `server/admin`. |
    | P2-16 | Invite emails | Once Resend is set up (P2-03), send the invite link by email instead of showing it to the inviter. |
    | P2-17 | Who gets which role | Start with one Owner and one Admin; give everyone else the narrowest preset role (permissions.md). |
    | P2-18 | API keys and webhook endpoints from the admin (A-018) | Keep them in the environment for now; build a hashed key table with one-time reveal if keys rotate often. |

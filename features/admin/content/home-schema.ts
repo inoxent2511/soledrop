@@ -3,7 +3,7 @@ import { z } from "zod"
 
 const internalLink = z.string().trim().max(300).regex(/^\/(?!\/)[^\s\\]*$/, "Use a link on this site, starting with /")
 // Legacy image paths allow editing the explicit QA fixtures. The server requires existing media
-// records for saved local and Supabase stores, including same-store ownership.
+// records for saved local and SQL stores, including same-store ownership.
 const image = z.object({ src: z.string().regex(/^\/(?:media\/[0-9a-f-]+\.webp|images\/[\w./-]+)$/, "Choose an uploaded image"), alt: z.string().trim().max(300) })
 export const homeInput = z.object({
   announcement: z.string().trim().max(300),

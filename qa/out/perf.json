@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-09T19:56:00.083Z",
-  "base": "http://127.0.0.1:3201",
+  "generatedAt": "2026-11-10T04:24:07.530Z",
+  "base": "http://127.0.0.1:3202",
   "budget": {
     "lcp": 2500,
     "cls": 0.1,
@@ -15,9 +15,9 @@
       "lcp": 1480,
       "cls": 0,
       "inp": 120,
-      "jsBytes": 204727,
-      "jsKb": 200,
-      "jsAfterInteractionKb": 279,
+      "jsBytes": 202824,
+      "jsKb": 198,
+      "jsAfterInteractionKb": 277,
       "pass": true
     },
     {
@@ -25,49 +25,49 @@
       "lcp": 1176,
       "cls": 0.039,
       "inp": 88,
-      "jsBytes": 203300,
-      "jsKb": 199,
-      "jsAfterInteractionKb": 294,
+      "jsBytes": 201397,
+      "jsKb": 197,
+      "jsAfterInteractionKb": 292,
       "pass": true
     },
     {
       "route": "/products/asics-gel-kayano-30-black-silver",
-      "lcp": 1188,
+      "lcp": 1180,
       "cls": 0,
       "inp": 40,
-      "jsBytes": 202248,
-      "jsKb": 198,
-      "jsAfterInteractionKb": 277,
+      "jsBytes": 200345,
+      "jsKb": 196,
+      "jsAfterInteractionKb": 275,
       "pass": true
     },
     {
       "route": "/pre-loved",
-      "lcp": 1176,
+      "lcp": 1180,
       "cls": 0.04,
       "inp": 88,
-      "jsBytes": 203300,
-      "jsKb": 199,
-      "jsAfterInteractionKb": 294,
+      "jsBytes": 201397,
+      "jsKb": 197,
+      "jsAfterInteractionKb": 292,
       "pass": true
     },
     {
       "route": "/search?q=nike",
-      "lcp": 1172,
+      "lcp": 1156,
       "cls": 0,
-      "inp": 96,
-      "jsBytes": 203300,
-      "jsKb": 199,
-      "jsAfterInteractionKb": 294,
+      "inp": 104,
+      "jsBytes": 201397,
+      "jsKb": 197,
+      "jsAfterInteractionKb": 292,
       "pass": true
     },
     {
       "route": "/cart",
-      "lcp": 1084,
+      "lcp": 1092,
       "cls": 0.002,
       "inp": 144,
-      "jsBytes": 203423,
-      "jsKb": 199,
-      "jsAfterInteractionKb": 258,
+      "jsBytes": 201520,
+      "jsKb": 197,
+      "jsAfterInteractionKb": 256,
       "pass": true
     },
     {
@@ -75,9 +75,9 @@
       "lcp": 1108,
       "cls": 0,
       "inp": 48,
-      "jsBytes": 193823,
-      "jsKb": 189,
-      "jsAfterInteractionKb": 295,
+      "jsBytes": 191920,
+      "jsKb": 187,
+      "jsAfterInteractionKb": 293,
       "pass": true
     }
   ]

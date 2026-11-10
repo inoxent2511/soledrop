@@ -1,88 +1,36 @@
-# Admin verification — A12/A13
+# Admin verification
 
-## 2026-11-07: saved catalogue and banner controls
+Current migration evidence is maintained here and in [the build log](../build-log.md). The [deployment runbook](../../DEPLOYMENT-RUNBOOK.md) covers hosted acceptance and the private handoff. Historical PostgreSQL/PGlite and shared-demo measurements do not establish acceptance of this release.
 
-The current continuation adds a saved local store, imports the live preview catalogue and exposes **Banners & images** in the Content sidebar. Operational details and scope are in [catalogue-and-banners.md](catalogue-and-banners.md). This does not close the older strict A12 performance, hosted integration and design requirements below.
+## Automated evidence (2026-11-10)
 
-- Typecheck and zero-warning lint passed. All **200 tests in 25 files** passed, including migration metadata recovery, saved uploads, publishing, deletion, failed-write rollback, locking/corruption handling and the homepage SQL/RLS checks.
-- **12 dedicated banner executions passed** in Chromium, Firefox and WebKit: homepage replacement/category creation, all dedicated/collection page banner paths, media pagination beyond 40 records, reader restrictions, stale-save rejection, long merchant text, and axe/overflow checks at 320/390/1440.
-- The private-copy persistence test passed through hard server restarts: uploaded bytes, staff session, prices, stock, homepage/page banners, existing orders, renaming, unpublishing and deletion. Empty catalogue pages remained usable and never refilled from fixtures. It also checked purchased-photo retention.
-- The import comparison verified all 20 product IDs/variants/prices/on-hand balances, all seven prior uploads byte for byte, the existing order/payments/return, the saved express-delivery flag and the recovered audited stock adjustment. The final library has 36 media records and eight collections.
-- The first broad browser pass had 2,867 passes, 48 existing skips and one ambiguous text-selector failure. The selector was corrected without weakening the simulator assertion. A separate stress test reproduced excessive width from long banner text; wrapping fixed it and the cross-browser banner regressions passed.
-- The fresh broad regression run passed: **2,868 passed / 48 existing skips / 0 failed**, 17.8 minutes, no runner errors or reported flaky cases. Closing changes to the local storage label, category text sizing and media hydration were rebuilt and checked with the dedicated banner suite and saved-store smoke checks; the entire broad suite was not repeated after those targeted fixes.
-- A closing WebKit Media-library check reproduced search text being lost before React attached its handlers. Upload/search controls now stay disabled until hydration completes. The rebuilt 12-case cross-browser banner suite passed with Media usage shown and used-photo deletion disabled; the affected WebKit flow then passed **two consecutive repetitions**.
-- The final saved preview passed readiness and live catalogue/order/banner/settings checks. An older development server on port 3000 was identified as another holder of the same data directory and stopped; the verified preview runs alone on 3200. The exclusive lock prevented simultaneous writers throughout.
-
-Local evidence: `.data/unit-final.json`, `.data/banners-final.json`, `.data/local-qa-result.json`, `.data/import-verification.json`, `.data/catalogue-regression-pass1.json`, `.data/catalogue-regression-final.json`, `.data/banners-media-before-fix.json`, and ignored `qa/out/banners-*.png` screenshots. Secrets, exported private data and generated reports are not committed.
-
-## Earlier A12/A13 checkpoint
-
-Continuation date: 2026-11-06. This records the shipped core admin and the remaining requirements from the original brief. Earlier stage dates in `../build-log.md` are preserved as written.
-
-## Checks
-
-| Check | Result |
+| Check | Current result |
 | --- | --- |
-| `pnpm.cmd verify` | Passed on the final code: strict typecheck, ESLint with zero warnings, all 191 Vitest tests (23 files, including PGlite database tests), production build |
-| `node scripts/generate-theme.mjs --check` | Passed: generated theme matches and declared contrast pairs pass |
-| `node scripts/check-design.mjs --json` | Fails G3: the supplied Figma export has no Theme collection (P2-12); no source design was invented or changed |
-| Full configured Playwright suite, two repetitions | Both passed on source commit `8777e34`: 2,868 passed / 48 existing skips / 0 failed per pass; no runner errors or reported flaky cases |
-| Focused cross-browser regressions | 18/18 passed (CSP, populated bag/checkout, mini-cart); the intermittent WebKit sort-hover case also passed 20/20 repetitions |
-| Gallery visual review | Reviewed production screenshots at 390 and 1440 px; sample dialogs/editors are included in the module smoke check and gallery is included in phone/desktop axe coverage |
+| Application suite | 1,728/1,728 passed, zero pending |
+| Native MySQL/MariaDB suite | 1,473/1,473 passed, zero pending |
+| Typecheck, lint, portable SQL and production package | Pass; 26 forward migrations |
+| Independent clean install/build | Frozen offline install and production package pass on Node 24, without private environment/database credentials |
+| Merchant restore | Both engines match all 87 table fingerprints and 3,758 preservation checks; 44 originals and all 2,244 storage objects verify |
+| Frozen visual reference | 40/40 comparisons pass: ten screens at 1920/390 px, light/dark; zero measured mismatched pixels and equal heights, no masks or threshold relaxation |
+| Cold menu/sort interactions | After the queued-publication fix, three consecutive runs per engine: 162/162 each across Chromium, Firefox and WebKit |
+| Admin browsers | Diagnostic MySQL sweep passes 90/90; MariaDB passes 89/90 before the final notification fix. Its subsequent three-browser module audit passes 3/3. Complete fresh passes remain pending; a later public sweep was interrupted after exposing the queued-control race, which now has a deterministic regression. |
+| Queue and recovery | Eight HTTP reads finish through five app connections on each engine. Actual engine shutdown returns 503/unavailable, followed by 200 reads with all 500,000 synthetic orders after restart. |
 
-Browser reports and screenshots are generated locally under `qa/out/a12-*` and are gitignored. The Windows sandbox prevented Firefox from launching; both full browser passes ran successfully outside it. `pnpm.cmd verify` passed before each pass, with a restarted fixtures server between passes.
+Native tests cover live stored permissions, store isolation, financial/PII projections, stock/reservations, refunds/returns, idempotency, concurrency, rollback/audit atomicity, generated columns, fresh installs and backups. Separately loaded server graphs share transaction/request carriers and session initialization while retaining concurrent identity isolation. Self-revocation is admitted only within its existing transaction.
 
-| Pass | Chromium | Firefox | WebKit | Duration |
-| --- | --- | --- | --- | --- |
-| 1 | 972 passed | 948 passed, 24 skipped | 948 passed, 24 skipped | 17.7 min |
-| 2 | 972 passed | 948 passed, 24 skipped | 948 passed, 24 skipped | 17.5 min |
-
-Reports: local `qa/out/a12-full-pass1.json` and `qa/out/a12-full-pass2.json`. Together they contain 5,736 passing executions and 96 existing skipped executions, with zero unexpected results.
-
-## Historical A12 coverage and limits
-
-The following records the original pre-migration A12 checkpoint. Current native database,
-authorization and audit evidence supersedes its backend-specific limits; see the migration update
-at the end of this document. Unresolved design/performance/manual limits remain explicit.
-
-- The permission-matrix suite checks all ten preset roles against 24 read APIs and 17 module pages. Architecture tests require a declared access check on every admin handler/page; integration tests cover selected write permissions, refund ceilings, PII masking and sensitive actions. This is not an exhaustive every-mutation × every-role test matrix.
-- The admin permission matrix, accessibility sweeps and several module suites run in Chromium only and skip duplicate executions in the other projects, because they share TOTP-limited demo accounts. Core auth/CSP checks also run in Firefox and WebKit. The existing skips have not been removed or expanded to make a failing test pass.
-- Database tests apply migrations and check RPCs/RLS in PGlite. Real Postgres parallel-connection contention, hosted Supabase and Storage integration remain unverified.
-- Staff wrappers append their staff-context audit entry after the domain operation. Atomicity of that extra audit write together with the domain transaction has not been proven by these checks.
-- Order and sales-report CSV exports currently check their export permission without step-up; customer/subscriber exports require step-up. The original broad export re-authentication requirement is therefore not fully implemented.
-- The gallery was visually reviewed; a committed screenshot-baseline matrix for every admin screen at 390/768/1440 and every theme has not been produced. The admin currently uses the light theme (A-012).
-- Real devices, screen readers, MFA with a real authenticator and provider email/payment delivery still require manual checks. No remote database, email, payment, push or deployment was used during this continuation.
+Browser runs use isolated databases, per-test/per-role accounts and private report paths, exercising every browser without shared-demo TOTP skips. Ordinary shared-demo mode still skips duplicate scenarios to respect its account limits. Earlier failures remain recorded; targeted reruns are not counted as complete clean passes.
 
 ## Performance
 
-The A12 script-size check used a Read-only demo account on the production build and summed gzip-compressed response bodies for each page's `script[src]` files after document load. It excludes response headers and later interactions.
+The release runner checks exact initial script-transfer bytes, with a 200 KiB storefront budget and 250 KiB admin budget. It reports scripts loaded after interaction separately. Mobile runs use 390 px, 4x CPU slowdown, 150 ms RTT and 1.6 Mbps, with three runs per route; LCP/CLS/INP budgets remain 2,500 ms / 0.1 / 200 ms. Both engines pass all seven mobile routes: LCP 1,092-1,480 ms, CLS at most 0.04, INP at most 144 ms and exact initial scripts 191,920-202,824 bytes. All three measured admin routes pass 250 KiB at 245-247 KiB on both engines.
 
-| Page | Compressed JavaScript |
-| --- | ---: |
-| `/admin` | 338.5 KiB |
-| `/admin/orders` | 339.9 KiB |
-| `/admin/products` | 339.9 KiB |
-| `/admin/dev/gallery` | 343.2 KiB |
+The fixed large-data matrix uses 100,000 products, 300,000 variants and 500,000 orders per engine, three warmups and twenty samples. Repository/HTTP listing and search budgets are in `db/tests/performance-budgets.json`; all 22 repository cases and all 26 production HTTP cases pass; actual samples and EXPLAIN plans are retained privately. HTTP p95 ranges from 27.98 to 414.41 ms on MySQL and 13.63 to 354.29 ms on MariaDB, each under its unchanged category budget. Each engine serves all 100,000 product URLs once across twenty sitemap shards with the runtime origin. Inventory probes remain diagnostic (about 1.3 seconds on MariaDB and 2.7 seconds on MySQL), rather than being relabelled as passing a new latency budget.
 
-All four exceed the brief's 250 KiB budget (PERF-03). The 10,000-row interaction budget and list p95 on 100,000 products / 500,000 orders have not been measured. Existing storefront PERF-01/PERF-02, GEO-01 and pixel-QA findings remain in `qa/bugs.md` and `qa/defects.md`.
+## Hosted and manual checks
 
-## Scope status
+- Confirm the actual Hostinger database version, account grants, proxy/HTTPS behavior, canonical domain and persistent storage across redeployment. Local restoration does not verify those account facts.
+- Configure real SMTP and verify delivery, SPF/DKIM/DMARC and provider limits. Local QA uses a private file sink and sends no real mail or payment.
+- Verify provider callbacks, real payment/refund handling, real devices, screen readers and the enrolled authenticator before opening customer traffic.
+- The source design export lacks a Theme collection, so its export gate remains incomplete. Frozen-reference light/dark equivalence does not replace that source artifact. Admin remains in its existing light-theme design; a screenshot baseline for every admin screen/width/theme is not claimed.
 
-The core modules and recorded decisions A-001…A-020 are implemented. The original brief also requested capabilities beyond this core: advanced table controls/bulk workflows, automatic draft recovery and a shortcuts sheet, among others. The implemented shared components and UX gaps are described in `admin-design.md`; code-managed policies/integrations and absent storefront features are described in `admin-decisions.md`.
-
-The original A12 requirement of two full passes with zero open findings has not been met while these performance, design and verification gaps remain. Passing automated regressions must be reported separately from that final sign-off.
-
-## Native database migration update (2026-11-09)
-
-Production now uses actor-scoped MySQL/MariaDB repositories; the retired emulator and backend SDKs
-are removed. M3 exercised 1,000 real multi-connection races, M5 verified repository permissions and
-least-privilege accounts, and M7 proved mandatory staff audit rollback and durable provider refund
-recovery. The M8 full native suite passes 1,434 checks with zero pending. Twelve original banner
-browser journeys pass on isolated MariaDB across Chromium, Firefox and WebKit with private
-per-test staff identities, without enabling demo staff or changing the merchant Owner.
-
-The M9 Node 24.22.2 production build and all 1,702 application tests pass. The private transfer
-restores all 79 tables with equal content on fresh MySQL and MariaDB; 3,758 original preservation
-checks pass per engine. All 44 original images and 528 prepared variants verify. Native backup
-tests reject corruption/overwriting and roll back failed data imports. These checks do not stand
-in for the remaining M10 complete production passes, large-data performance or hosted/manual QA.
+Code publication and the owner GitHub import are pending until the remaining complete browser and performance passes finish. No remote deployment or database action has occurred.

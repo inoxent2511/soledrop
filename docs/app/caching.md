@@ -28,11 +28,11 @@ that 404s or redirects would commit status 200 first, and search must work witho
 - `/api/*`: `no-store` (from `next.config.ts`, plus `private, no-store` in `server/http/route.ts`).
   Headless `/api/v1/*` defaults to `no-store`.
 - `/_next/static/*`: immutable, hashed file names (Next default).
-- Images: `/_next/image` serves AVIF/WebP sized to the layout. Product/banner originals are immutable `/media/{id}.webp` files; a replacement gets a new ID. Explanatory and brand assets remain in `public/images`; sample product/merchandising assets exist only in the isolated QA preview.
+- Images: uploaded photos use prepared immutable WebP/AVIF variants matched to responsive widths. Product/banner originals use `/media/{id}.webp`; a replacement gets a new ID. HTTP reads do not encode images. Explanatory/brand assets remain in `public/images`, and sample merchandising assets belong to isolated QA.
 
 ## Data
 
-- No application-level cache sits in front of the database. `DATA_DRIVER=local` reads the saved local store through a serialized repository queue; `fixtures` is in-process QA data; `supabase` queries Postgres through the server's service role.
+- `DATA_DRIVER=mysql` uses the bounded MySQL/MariaDB pool. Only bounded catalogue projections use committed-revision caches scoped by database, store and query; transaction-local reads bypass them. Stock, prices and private data remain live reads. `local` is the serialized offline file store and `fixtures` is ephemeral QA.
 - Prices, promotions, shipping and tax are always computed fresh on the server (`server/pricing`,
   `server/promotions`, `server/shipping`). The client never sends a price.
 - Exchange rates (`exchange_rates`) are display-only and carry `updated_at`; orders are charged in PKR.
@@ -41,4 +41,6 @@ that 404s or redirects would commit status 200 first, and search must work witho
 
 Admin catalogue, stock, collection and content writes call `refreshStorefront()`
 (`server/shared/revalidate.ts`), which runs `revalidatePath('/', 'layout')` in a request (A-016).
-This invalidates relevant client navigation caches; dynamic server requests already read current data. Tests and jobs can call the same services outside a Next.js request. Dynamic rendering trades the previous ISR cache for immediate admin freshness; hosted performance remains a separate verification item.
+Invalidation runs after the successful outer unit of work; rollback emits none, including across separately bundled server modules. This invalidates relevant client navigation caches; dynamic server requests already read current data. Tests and jobs can call the same services outside a Next.js request. Dynamic rendering trades the previous ISR cache for immediate admin freshness; hosted performance remains a separate verification item.
+
+Sitemaps use bounded 5,000-row metadata projections, with large product catalogues split into shards advertised by robots.txt. Canonical URLs are resolved from the configured runtime origin.

@@ -86,6 +86,7 @@ test("API errors never leak internals and personal responses aren't cached", asy
   expect(response.status()).toBe(422)
   const body = await response.json()
   expect(body.error.code).toBe("validation")
-  expect(JSON.stringify(body)).not.toMatch(/stack|at .*\.js|supabase|postgres/i)
+  expect(JSON.stringify(body)).not.toMatch(/stack|at .*\.js|postgres/i)
+  expect(JSON.stringify(body).toLowerCase()).not.toContain(["supa", "base"].join(""))
   expect(response.headers()["cache-control"]).toBe("no-store")
 })

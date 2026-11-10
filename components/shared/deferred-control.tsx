@@ -119,7 +119,13 @@ export function DeferredControl<Props extends object>({ load, props, fallback, m
   }, [Component, hoverOnUpgrade])
 
   return <span ref={root} className="contents" onPointerEnter={(event) => { pointer.current = { x: event.clientX, y: event.clientY, type: event.pointerType }; void start() }} onPointerDownCapture={(event) => {
-    if (!Component && event.button === 0) { pointerDown.current = true; void start() }
+    if (!Component && event.button === 0) {
+      pointerDown.current = true
+      // A hover/idle publication may already be queued at a lower render priority.
+      // Supersede it before it can replace this gesture's original target.
+      setComponent(null)
+      void start()
+    }
   }} onFocusCapture={() => { void start() }} onKeyDownCapture={(event) => {
     if (Component || !(openKeys ?? ["Enter", " "]).includes(event.key) || event.metaKey || event.ctrlKey || event.altKey) return
     event.preventDefault(); event.stopPropagation(); requestedOpen.current = true

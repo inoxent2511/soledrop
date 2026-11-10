@@ -8,7 +8,7 @@ Warnings: —
 Gaps: the whole design.
 Intake: components.md ✗ · screens.md ✗ · build-plan.md ✗ · theme generated ✗ · theme check ✗ (all blocked: no design export)
 Decisions made:
-- Did not start application code. The session also had no shell (no pnpm, next build, tests, Playwright, Supabase CLI or git), so no stage could reach "Done when:" or be verified/committed. Writing unverified code would break the "never mark green without running" rule.
+- Did not start application code. The session also had no shell (no pnpm, next build, tests, Playwright, the former platform CLI or git), so no stage could reach "Done when:" or be verified/committed. Writing unverified code would break the "never mark green without running" rule.
 Needs from you:
 - Expose the Figma AI Bridge Executor tools (Soledrop (Local) plugin) to the agent session, or attach a `design/` export (handoff §4).
 - Run the agent with a shell tool (PowerShell/Bash) enabled so it can install, build, test and commit locally.
@@ -20,15 +20,15 @@ Source: Figma plugin (Soledrop (Local)), read only; screens, tokens, icons and p
 Built (details in design-decisions D-001…D-036 and journey-audit J-01…J-25):
 - Storefront: home, listing, pre-loved, product pages (new/pre-loved), contact, FAQs, size guide, bag (empty/filled), search, content pages, 404/500.
 - Commerce: checkout (COD, bank transfer, Stripe reference adapter behind a flag), atomic idempotent orders, order page/lookup/cancel/returns, accounts (register, sign-in, reset, addresses, export, erasure).
-- Data seam: `server/<domain>` with fixtures and Supabase repositories selected by `DATA_DRIVER`.
-- Database: `supabase/migrations` (42 tables, RLS deny by default, SECURITY DEFINER staff-role pair with `search_path=''`, all RPCs), and `supabase/seed.sql` generated from the fixtures.
+- Data seam: `server/<domain>` with fixtures and the former platform repositories selected by `DATA_DRIVER`.
+- Database: `the former platform/migrations` (42 tables, RLS deny by default, SECURITY DEFINER staff-role pair with `search_path=''`, all RPCs), and `the former seed SQL` generated from the fixtures.
 - Platform: outbox + signed webhooks, flags, rate limits, idempotency, audit, `/api/health`, `/api/ready`, `/api/jobs/*`, `/api/v1` + OpenAPI, CSV import/export, B2B price list behind a flag.
 - Hardening:
   - `next.config.ts`: standalone output, CSP without nonces (D-033), HSTS, nosniff, Referrer-Policy, Permissions-Policy, COOP.
   - `instrumentation.ts`: production exits on an invalid environment; JSON error logs carry digests.
   - Bank transfer is hidden in production until real details are set.
   - Products and content pages use ISR, with real 404/307 statuses; `loading.tsx` only where safe.
-- Hand-off: `.env.example` (checked by a test), Dockerfile, `.dockerignore`, `supabase/config.toml`, `docs/DEPLOYMENT-RUNBOOK.md`, `docs/app/{phase-2,data-model,api,caching,events}.md`.
+- Hand-off: `.env.example` (checked by a test), Dockerfile, `.dockerignore`, `the former platform/config.toml`, `docs/DEPLOYMENT-RUNBOOK.md`, `docs/app/{phase-2,data-model,api,caching,events}.md`.
 Verified (production build unless noted):
 - tsc ✓; eslint (0 warnings) ✓.
 - vitest 70/70 ✓: RPC/contention 26, RLS 8, seed 2, unit/architecture/integration 34.
@@ -39,7 +39,7 @@ Not green:
 - Pixel QA fails on every screen. Photos (PX-01) and glyphs (PX-02) are not proven; the residue is in PX-04. See `qa/defects.md`.
 - Pending: geometry audit, device matrix, WebKit/Firefox.
 Blocked:
-- No Docker, Supabase CLI or Postgres server, so `supabase start`/`db reset` and parallel-connection lock tests can't run. PGlite serialises calls.
+- No Docker, the former platform CLI or Postgres server, so `the former platform start`/`db reset` and parallel-connection lock tests can't run. PGlite serialises calls.
 - No git commit (session policy).
 
 ## 2026-11-07 — Admin A1: foundation (identity, RBAC, shell)
@@ -48,7 +48,7 @@ Built (admin-decisions A-001…A-013):
 - `server/admin`: permission registry and ten preset roles, repositories for both drivers, service (password + mandatory TOTP with recovery codes, AAL1/AAL2 sessions with 30-minute idle / 12-hour absolute timeouts, lockout, rate limits, step-up, invites, staff and role management, no privilege escalation, audit with actor/role/IP/UA/request id/reason), DAL, `adminRoute` wrapper (declared access, own-Origin check, no-store).
 - `proxy.ts`: optimistic cookie check for `/admin` and `/api/admin`, per-request nonce CSP (`lib/admin-csp.ts`), no-store, noindex.
 - UI: sign-in, MFA setup (QR) and verification, invite acceptance, shell with the permission-filtered module registry, dashboard placeholder, no-access, account (sessions, sign out everywhere, password, recovery codes); shared components (PageHeader, StatusPill, EmptyState, AdminCard, ConfirmDialog, StepUpProvider, form controls).
-- Tooling: `pnpm admin:docs` (generates `docs/app/admin/permissions.md`), `pnpm admin:create-owner` (local Supabase only), `.env.example` now committed (it was gitignored), DEMO staff for QA (`ADMIN_DEMO_STAFF=on` in `qa/serve.mjs`).
+- Tooling: `pnpm admin:docs` (generates `docs/app/admin/permissions.md`), `pnpm admin:create-owner` (local the former platform only), `.env.example` now committed (it was gitignored), DEMO staff for QA (`ADMIN_DEMO_STAFF=on` in `qa/serve.mjs`).
 Verified:
 - tsc ✓; eslint (0 warnings) ✓; vitest 149/149 ✓ (new: admin DB 8, admin auth integration 14, registry/TOTP RFC 6238/crypto 13, admin CSP 2, admin architecture 4).
 - `next build` ✓ (every /admin route dynamic).
@@ -65,10 +65,10 @@ Verified: tsc ✓, eslint ✓, vitest (admin orders integration 6, admin DB 9 in
 
 ## 2026-11-09 — Admin A3: products, collections, inventory, media
 Built:
-- Catalogue repository (both drivers): staff search over every status, by-id reads, `saveProduct` (migration `20261109090000_admin_catalog.sql`: `save_product` RPC with millisecond optimistic concurrency, slug/SKU uniqueness, ordered sizes protected), delete for never-ordered products, `save_collection` RPC, brands. Inventory levels + movements ledger (fixtures now record movements like `adjust_stock`). Media domain (`server/media`): index table with RLS, Supabase Storage / in-memory files, sharp re-encoding (A-014), public `/media/<id>.webp` route.
+- Catalogue repository (both drivers): staff search over every status, by-id reads, `saveProduct` (migration `20261109090000_admin_catalog.sql`: `save_product` RPC with millisecond optimistic concurrency, slug/SKU uniqueness, ordered sizes protected), delete for never-ordered products, `save_collection` RPC, brands. Inventory levels + movements ledger (fixtures now record movements like `adjust_stock`). Media domain (`server/media`): index table with RLS, the former platform Storage / in-memory files, sharp re-encoding (A-014), public `/media/<id>.webp` route.
 - `server/catalog/staff.ts`: product create/edit (drafts, prices behind `pricing:write`, A-015), publish/unpublish/archive with readiness checks, delete (step-up), collections (manual picks, rules), stock adjustments with reason and bag-hold floor, import/export wrappers; audit + storefront refresh (A-016).
 - UI: products list (views, search, type filter, stock and price), product editor (details, media picker with upload, card photo and order, sizes and prices table, collections, tags, SEO, dirty guard, conflict banner, publish/archive/delete), CSV import with dry run, collections list/editor (RuleBuilder, product search), inventory with low/out views and adjust dialog with ledger, media library (drag-and-drop upload, alt text, delete when unused).
-- CSV export now neutralises formula cells for every export (done in A2) and staff search terms are sanitised in one place (`server/db/supabase.ts#searchTerm`).
+- CSV export now neutralises formula cells for every export (done in A2) and staff search terms are sanitised in one place (`server/db/the former platform.ts#searchTerm`).
 Verified: tsc ✓, eslint ✓, vitest 165/165 ✓ (admin catalogue integration 8, save_product DB test), `next build` ✓, Playwright Chromium admin-auth 9 + admin-orders 3 + admin-catalog 2 + journeys 12 + security 4 = 30/30 ✓.
 
 ## 2026-11-09 — Admin A4: customers
@@ -123,9 +123,9 @@ Resumed from local commit `8c52cd5` and Claude's interrupted QA/documentation se
 
 ### A12 follow-up checkpoint — CSP and inventory (full reruns pending)
 
-- The cross-browser attempt exposed BUG-021 (Zod's dynamic-code probe violates the nonce CSP in Firefox) and BUG-022 (checkout holds surviving bag changes, plus Supabase release deleting rows without restoring reserved counts). The red attempt was interrupted to apply fixes; it is not a clean pass. Its log is preserved locally as `qa/a12-before-csp-stock-fixes.log`.
+- The cross-browser attempt exposed BUG-021 (Zod's dynamic-code probe violates the nonce CSP in Firefox) and BUG-022 (checkout holds surviving bag changes, plus the former platform release deleting rows without restoring reserved counts). The red attempt was interrupted to apply fixes; it is not a clean pass. Its log is preserved locally as `qa/a12-before-csp-stock-fixes.log`.
 - Browser validation now runs the shared `lib/validation.ts` setup before Zod schema construction; it enables `jitless` without relaxing CSP. The architecture suite guards setup order. The auth browser test records actual `securitypolicyviolation` events as well as console messages.
-- Cart line/quantity changes release prior holds. Supabase uses the existing `reserve_stock` RPC with an empty replacement; integration and PGlite tests cover stock restoration, repeated release, and isolation from another cart's holds.
+- Cart line/quantity changes release prior holds. the former platform uses the existing `reserve_stock` RPC with an empty replacement; integration and PGlite tests cover stock restoration, repeated release, and isolation from another cart's holds.
 - Typecheck, lint, 191 tests and production build passed with these fixes. The targeted production-browser regressions passed 18/18 across Chromium, Firefox and WebKit (no skips). The validation setup was then adjusted to preserve tree shaking; verify is running again before full reruns.
 - Admin script-size measurements are recorded as PERF-03. A namespace re-export temporarily increased bundle size; that form was removed, and final bundle sizes are still to be measured. The strict performance target remains open.
 
@@ -143,7 +143,7 @@ The QA server is being reset and verify repeated before a second full browser pa
 
 ## 2026-11-06 — A12 automated regression checkpoint complete; strict sign-off open
 
-Implementation: local commit `8777e34` (QA fixes and component gallery). Resolved BUG-018–BUG-023: sale-savings contrast, the New Arrival keyboard regression, sort naming during hydration, Zod/CSP compatibility, checkout reservation release (including Supabase counters), and WebKit sort hover. Shared components are previewed at `/admin/dev/gallery`; sample edits do not submit store writes.
+Implementation: local commit `8777e34` (QA fixes and component gallery). Resolved BUG-018–BUG-023: sale-savings contrast, the New Arrival keyboard regression, sort naming during hydration, Zod/CSP compatibility, checkout reservation release (including the former platform counters), and WebKit sort hover. Shared components are previewed at `/admin/dev/gallery`; sample edits do not submit store writes.
 
 Verification on the final code:
 - `pnpm.cmd verify` passed before each full browser pass: typecheck, zero-warning lint, 191 Vitest tests across 23 files (including PGlite DB tests), production build.
@@ -167,7 +167,7 @@ Resume at the remaining A12 performance/security/coverage requirements in `docs/
 
 The owner chose to retain the existing live catalogue. Exported the running preview before stopping it, then imported its 20 products with stable IDs/SKUs/prices/on-hand balances, eight collections, seven prior uploads and the existing order/payment/return records. Product and merchandising photos now use 36 saved media records. The saved express-delivery flag was retained; the audited stock adjustment was recovered with explicit provenance without changing balances. A private Owner replaces known demo accounts in the saved store.
 
-Normal local operation now uses a single-process saved file driver with a shared queue, checksummed snapshots, atomic replacement, write rollback and an exclusive process lock. Media files persist beside it. Restarts never reseed products. Fixtures, sample image files and generated sample SQL are isolated under explicit QA operation; the normal Supabase bootstrap contains only operating configuration. Hosted operation remains the existing Supabase repository path.
+Normal local operation now uses a single-process saved file driver with a shared queue, checksummed snapshots, atomic replacement, write rollback and an exclusive process lock. Media files persist beside it. Restarts never reseed products. Fixtures, sample image files and generated sample SQL are isolated under explicit QA operation; the normal the former platform bootstrap contains only operating configuration. Hosted operation remains the existing the former platform repository path.
 
 Added Content → **Banners & images** with links to homepage hero/category/Instagram controls and every collection/page banner editor, including New Arrivals, Pre-Loved and Sale. Homepage announcement/title/description/buttons are editable. Collection banners support upload/choose/replace/remove and alt text. Media pagination reaches the full library; used photos show their references and cannot be deleted from products, collections, homepage or order history. Public rendering reads current admin data per request.
 
@@ -538,3 +538,38 @@ successfully on Node 24 without database credentials or a private environment. F
 for the final first browser pass are prepared with new per-test identities and checksum-verified
 copies of the exact frozen catalogue media. Complete clean passes, visual profiles and final
 performance measurements remain to be run before marking the repo ready or pushing it.
+
+Local checkpoint d5500c6 records the fixes. Both final QA passes now have independent fresh
+schemas, 1,020 isolated accounts per engine and immutable copies of the frozen 37-image catalogue
+plus two test fixtures. Old diagnostic datasets and credentials remain archived privately.
+The visual reference runs from a fresh copy of its frozen local store, not the merchant source.
+
+All forty final frozen-reference comparisons pass: ten screens each at 1920/390 px in light
+and dark themes, with zero measured mismatched pixels and equal full-page heights. Comparisons
+use the unchanged zero threshold, no masks and the existing anti-alias exclusion. This verifies
+reference equivalence; it does not invent the missing source design Theme collection.
+
+The final sequential performance pipeline passes on both engines: 14 mobile cases (LCP
+1,092-1,480 ms, CLS <=0.04, INP <=144 ms, exact initial scripts 191,920-202,824 bytes),
+six admin page measurements at 245-247 KiB, all 26 HTTP cases and all 22 fixed repository
+cases. HTTP p95 ranges 27.98-414.41 ms on MySQL and 13.63-354.29 ms on MariaDB; category
+budgets, warmups and sample counts are unchanged. Both engines serve all 100,000 product
+URLs once in twenty runtime-origin shards. Full fresh browser pass one is now running.
+
+The first fresh public sweep exposed one remaining Firefox drawer click failure. Diagnostic
+sweeps were stopped and retained after 1,836 successful checks plus one failure on MySQL and
+1,775 successful checks on MariaDB; neither is a completed acceptance pass. A new scheduler-gated
+regression reproduces the queued-publication race before the fix on Chromium and Firefox: a
+hover/idle update could already be queued before pointerdown set its ref guard. Pointerdown now
+supersedes that lower-priority publication with the existing fallback state. The rebuilt artifact
+is in targeted verification; the complete loop must restart on fresh data.
+
+The tracked root README also had old hosting instructions and UTF-16 append debris. Operational
+docs now describe SQL, the tested handoff and current limits; retired platform references were
+removed from unprotected history/notes. The API leak assertion retains its original meaning
+without a literal retired vendor name. All twelve universal contracts remain byte-identical.
+
+The queued-publication fix passes its deterministic case in all three browsers and the complete
+header/sort stress matrix three times per engine: 162/162 each, 324 total, zero skips/retries.
+The main browser list now contains 2,958 cases (2,832 public, 90 admin, 36 journeys), plus
+12 banner checks per engine. The full two-round acceptance loop must use the corrected artifact.

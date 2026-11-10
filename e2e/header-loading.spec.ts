@@ -4,6 +4,43 @@ import { waitForHydration } from "./support/panels"
 
 test.use({ viewport: { width: 390, height: 844 } })
 
+test("cancels an already queued menu upgrade while its fallback is pressed", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.requestIdleCallback = () => 1
+    window.cancelIdleCallback = () => {}
+    const original = MessagePort.prototype.postMessage
+    const state = window as typeof window & { holdControlTasks?: boolean; controlTasks?: (() => void)[] }
+    state.controlTasks = []
+    MessagePort.prototype.postMessage = function (...args: unknown[]) {
+      const publish = () => Reflect.apply(original, this, args)
+      if (state.holdControlTasks) state.controlTasks!.push(publish)
+      else publish()
+    }
+  })
+  await page.goto("/", { waitUntil: "networkidle" })
+  await waitForHydration(page)
+  const trigger = page.locator("header").getByRole("button", { name: "Open menu", exact: true })
+  await trigger.evaluate(node => node.setAttribute("data-qa-pressed", "true"))
+  await page.evaluate(() => { (window as typeof window & { holdControlTasks?: boolean }).holdControlTasks = true })
+  const release = () => page.evaluate(() => {
+    const state = window as typeof window & { holdControlTasks?: boolean; controlTasks?: (() => void)[] }
+    state.holdControlTasks = false
+    for (const task of state.controlTasks!.splice(0)) task()
+  })
+  try {
+    await trigger.hover()
+    await page.waitForLoadState("networkidle")
+    await page.waitForFunction(() => (window as typeof window & { controlTasks?: unknown[] }).controlTasks!.length > 0)
+    await page.mouse.down()
+    await release()
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+    await page.waitForLoadState("networkidle")
+    await expect(trigger).toHaveAttribute("data-qa-pressed", "true")
+    await page.mouse.up()
+    await expect(page.getByRole("dialog", { name: "Menu", exact: true })).toBeVisible()
+  } finally { await release() }
+})
+
 test("keeps the pressed menu trigger through a delayed click after pointerup", async ({ page }) => {
   await page.addInitScript(() => {
     window.requestIdleCallback = () => 1
