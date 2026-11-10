@@ -622,3 +622,18 @@ the successful matrix runs outside that sandbox.
 The current manifest requires 2,838 public, 36 commerce, 90 admin and 12 banner cases per
 database: 5,952 browser checks per round. Two fresh complete rounds of this source are still
 required; no interrupted or failed round is combined with an earlier passing one.
+
+### First nav hover under WebKit load (2026-11-11)
+
+A new full round passes verify (1,729 tests), all 1,473 native cases, independent clean build,
+80 frozen-reference comparisons and the fixed performance pipeline. MySQL then passes all
+2,838 public browser cases. MariaDB passes 2,837/2,838; one WebKit desktop nav hover leaves
+`aria-expanded=false` after the unchanged five-second assertion. The round is failed and the
+automatic second round correctly does not start. The case passes 30/30 in isolation before
+the change, showing that this failure depends on timing under the complete browser load.
+
+The nav's route effect could cancel a pending hover on initial mount. It now cancels only
+when the pathname actually changes, preserving the first hover while retaining route-change
+cleanup. Verify rebuilds and passes. The exact WebKit case passes 60/60 on MySQL and 60/60 on
+MariaDB with two workers per engine, zero failures/skips/retries. Two consecutive complete
+fresh rounds of this source remain required; the failed round is retained as diagnostic evidence.

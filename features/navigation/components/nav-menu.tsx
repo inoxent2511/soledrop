@@ -40,9 +40,15 @@ export function NavMenu({ sections }: { sections: MenuSection[] }) {
   const pointerType = useRef<string>("mouse")
   const intent = useHoverIntent({ openDelay: OPEN_DELAY, closeDelay: CLOSE_DELAY })
   const cancelIntent = intent.cancel
+  const intentPathname = useRef(pathname)
 
   // Navigation closes the dropdown (route-scoped state); a pending hover must not reopen it.
-  useEffect(() => cancelIntent(), [pathname, cancelIntent])
+  // The mount effect must not cancel a hover that arrived just after hydration.
+  useEffect(() => {
+    if (intentPathname.current === pathname) return
+    intentPathname.current = pathname
+    cancelIntent()
+  }, [pathname, cancelIntent])
 
   useEffect(() => {
     if (open === null) return

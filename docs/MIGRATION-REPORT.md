@@ -9,8 +9,10 @@ A previous complete round passed 5,940 browser checks, 80 frozen-reference compa
 Later rounds exposed browser resource limits and a form hydration race, so that earlier pass
 does not establish acceptance of the current source. The runner now uses bounded workers and
 four sequential public shards. Forms wait for their own submission handlers; delayed-code
-regressions pass 60/60 across both databases and all three browsers. Two fresh complete rounds
-of the corrected source remain required.
+regressions pass 60/60 across both databases and all three browsers. A subsequent full sweep
+found one WebKit first-hover timing failure; its route-effect cancellation has been corrected,
+and the exact case passes 120/120 targeted repetitions across both engines. Two fresh complete
+rounds of the corrected source remain required.
 
 ## Stages and checkpoints
 

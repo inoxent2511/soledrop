@@ -186,6 +186,16 @@ and passed outside it. The successful journey matrix uses the unrestricted local
 the browser launch failures are retained separately from application findings. Complete fresh
 acceptance rounds remain required and include the original navigation assertion.
 
+### MIG-054: First navigation hover (2026-11-11)
+
+Under the full four-worker browser load, WebKit's first desktop nav hover once left
+`aria-expanded=false` after five seconds; the same case passed 30/30 in isolation. The nav's
+route effect called `cancelIntent()` on initial mount as well as on real pathname changes, leaving
+a narrow window where it could erase the first scheduled hover. The effect now cancels only when
+the pathname actually changes. The rebuilt case passes 60/60 repetitions per database (120
+total) with two workers each, zero failures, skips or retries. The failed full-round report
+remains evidence. Two complete fresh rounds are required before closure.
+
 ### Acceptance environment interruption (2026-11-10)
 
 The first corrected-build round passed verify, all 1,473 native checks, the independent clean
