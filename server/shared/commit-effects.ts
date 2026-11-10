@@ -2,7 +2,8 @@ import "server-only"
 
 import { AsyncLocalStorage } from "node:async_hooks"
 
-const effects = new AsyncLocalStorage<(() => void)[]>()
+const globals = globalThis as typeof globalThis & { __soledropCommitEffects?: AsyncLocalStorage<(() => void)[]> }
+const effects = globals.__soledropCommitEffects ??= new AsyncLocalStorage<(() => void)[]>()
 
 /** Invalidation follows a successful outer unit of work; rolled-back changes emit nothing. */
 export function afterCommit(effect: () => void): void {

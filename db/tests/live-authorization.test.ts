@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 import { ALL_PERMISSIONS, PERMISSIONS, PRESET_ROLES } from "@/server/admin/permissions"
 import { hashToken, newToken } from "@/server/admin/crypto"
 import { createMysqlAdminRepository } from "@/server/admin/mysql.repository"
@@ -109,8 +109,13 @@ for (const [engine, config] of engines) describe(engine + " live repository auth
 
   it("keeps a self-revoking write and its required audit in one admitted transaction", async () => {
     const current = actor()
-    await withTransaction(async () => {
+    vi.resetModules()
+    const alternate = await import("@/server/db/policy.repository")
+    expect(alternate.currentStaffActor).not.toBe(currentStaffActor)
+    await withTransaction(async db => {
+      const admitted = await currentStaffActor(db, current)
       await admin.revokeSessions(current, storeId, memberId)
+      expect(await alternate.currentStaffActor(db, current)).toEqual(admitted)
       await platform.audit(current, { storeId, actor: memberId, action: "staff.signed_out_everywhere", entity: "staff", entityId: memberId, before: null, after: null })
       await expect(media.list({ ...current, permissions: [] }, storeId, { page: 1, pageSize: 10 })).rejects.toMatchObject({ code: "forbidden" })
     })
@@ -131,6 +136,7 @@ for (const [engine, config] of engines) describe(engine + " live repository auth
     { permission: "content:read", label: "draft pages", run: (a) => createMysqlContentRepository().staffPages(a, storeId) },
     { permission: "customers:read", label: "customers", run: (a) => createMysqlCustomerRepository().search(a, storeId, { page: 1, pageSize: 10 }) },
     { permission: "inventory:read", label: "stock", run: (a) => createMysqlInventoryRepository().levels(a, []) },
+    { permission: "inventory:read", label: "stock page", run: (a) => createMysqlInventoryRepository().search(a, storeId, { page: 1, pageSize: 10 }) },
     { permission: "products:read", label: "product stock projection", run: (a) => createMysqlInventoryRepository().catalogueLevels(a, []) },
     { permission: "reports:read", label: "sales projection", run: (a) => createMysqlOrderRepository().searchSales(a, storeId, { page: 1, pageSize: 10 }) },
     { permission: "reports:read", label: "report stock", run: (a) => createMysqlInventoryRepository().reportLevels(a, []) },

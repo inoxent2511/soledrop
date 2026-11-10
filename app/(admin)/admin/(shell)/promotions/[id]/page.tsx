@@ -38,7 +38,7 @@ export default async function PromotionPage({ params }: Props) {
             <li key={index} className="flex flex-wrap justify-between gap-2 py-2">
               <span>
                 {row.order ? (
-                  <Link href={`/admin/orders/${row.order}`} className="font-semibold underline underline-offset-4">
+                  <Link prefetch={false} href={`/admin/orders/${row.order}`} className="font-semibold underline underline-offset-4">
                     {row.order}
                   </Link>
                 ) : (

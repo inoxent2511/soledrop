@@ -2,6 +2,7 @@ import { expect } from "@playwright/test"
 import { test } from "./support/test"
 
 import { signInAs } from "./support/admin"
+import { waitForHydration } from "./support/panels"
 
 /**
  * Every admin module page renders for the Owner without errors or CSP violations, and the
@@ -52,10 +53,16 @@ test("the Owner can open every module, and the simulator and rate tester answer"
   })
   page.on("pageerror", (error) => problems.push(`${page.url()}: ${error.message}`))
   page.on("response", (response) => { if (response.status() >= 400) problems.push(`${new URL(response.url()).pathname}: HTTP ${response.status()}`) })
+  // The first full navigation also leaves the page reached by sign-in. Its
+  // header effects must settle under the same audit as the subsequent pages.
+  await waitForHydration(page)
+  await page.waitForLoadState("networkidle")
   for (const [path, heading] of PAGES) {
     const response = await page.goto(path, { waitUntil: "networkidle" })
     expect(response?.status(), path).toBe(200)
     await expect(page.getByRole("heading", { level: 1, name: heading }), path).toBeVisible()
+    await waitForHydration(page)
+    await page.waitForLoadState("networkidle")
   }
 
   await page.goto("/admin/promotions/new", { waitUntil: "networkidle" })

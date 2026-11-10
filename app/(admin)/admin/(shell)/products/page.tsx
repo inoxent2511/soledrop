@@ -46,12 +46,12 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
               </a>
             ) : null}
             {can(staff, "products:import") ? (
-              <Link href="/admin/products/import" className={adminButton({ tone: "secondary", size: "sm" })}>
+              <Link prefetch={false} href="/admin/products/import" className={adminButton({ tone: "secondary", size: "sm" })}>
                 <Upload aria-hidden /> Import
               </Link>
             ) : null}
             {can(staff, "products:write") ? (
-              <Link href="/admin/products/new" className={adminButton({ tone: "primary", size: "sm" })}>
+              <Link prefetch={false} href="/admin/products/new" className={adminButton({ tone: "primary", size: "sm" })}>
                 <Plus aria-hidden /> New product
               </Link>
             ) : null}

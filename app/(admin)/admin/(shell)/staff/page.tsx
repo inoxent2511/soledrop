@@ -29,7 +29,7 @@ export default async function AdminStaffPage() {
         description="Who can sign in to the admin and what each person can do. Everyone uses two-step verification."
         actions={
           <>
-            <Link href="/admin/staff/roles" className={adminButton({ tone: "secondary", size: "sm" })}>
+            <Link prefetch={false} href="/admin/staff/roles" className={adminButton({ tone: "secondary", size: "sm" })}>
               <ShieldCheck aria-hidden /> Roles
             </Link>
             {canManage ? <InviteStaff roles={roles.map((role) => ({ key: role.key, name: role.name }))} /> : null}

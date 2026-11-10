@@ -103,7 +103,7 @@ export function FilterBar({
             const query = merged.toString()
             const selected = currentView === view.key
             return (
-              <Link
+              <Link prefetch={false}
                 key={view.key}
                 href={query ? `${pathname}?${query}` : pathname}
                 aria-current={selected ? "page" : undefined}

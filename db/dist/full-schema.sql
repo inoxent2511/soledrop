@@ -1518,3 +1518,13 @@ CREATE INDEX product_images_sitemap ON product_images(product_id,position,id,url
 CREATE INDEX pages_sitemap ON pages(store_id,published,slug,updated_at);
 
 INSERT INTO schema_migrations (name, checksum) VALUES ('0025_sitemap_indexes.sql', 'e343aa4851224a123e5f670e34786eef7e150bedd1975df567f0ee9b2db082bb') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0026_inventory_available_index.sql / SHA256 52d7ccb1b77c6a7d21ee4201e2c767cad29e0bcf231d44741fd12b3cc9f1441b
+-- Ordered, narrow stock reads avoid hydrating a capped product catalogue.
+-- The stored value changes atomically with physical stock and reservations.
+ALTER TABLE inventory_levels
+  ADD COLUMN available INT GENERATED ALWAYS AS (on_hand - reserved) STORED,
+  ADD INDEX inventory_available_lookup(available,variant_id);
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0026_inventory_available_index.sql', '52d7ccb1b77c6a7d21ee4201e2c767cad29e0bcf231d44741fd12b3cc9f1441b') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);

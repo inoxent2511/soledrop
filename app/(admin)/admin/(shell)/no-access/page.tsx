@@ -16,7 +16,7 @@ export default async function AdminNoAccessPage({ searchParams }: { searchParams
   const permission = isPermission(need) ? need : null
   const area = permission ? ADMIN_MODULES.find((entry) => entry.permission === permission) : undefined
   return (
-    <EmptyState title="You don't have access to this page" action={<Link href="/admin" className={adminButton({ tone: "secondary" })}>Back to the dashboard</Link>}>
+    <EmptyState title="You don't have access to this page" action={<Link prefetch={false} href="/admin" className={adminButton({ tone: "secondary" })}>Back to the dashboard</Link>}>
       {permission ? (
         <p>
           {area ? `${area.label} needs` : "This needs"} the <strong className="text-foreground">{PERMISSIONS[permission].label}</strong> permission (<code>{permission}</code>). Ask an Owner or Admin to add it to one of your roles.

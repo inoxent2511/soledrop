@@ -1,5 +1,6 @@
 import { expect, type APIRequestContext } from "@playwright/test"
 import { test } from "./support/test"
+import { waitForHydration } from "./support/panels"
 
 import { PRESET_ROLES, type Permission } from "../server/admin/permissions"
 import { codeFor, DEMO_PASSWORD, demoEmail, staffHeaders } from "./support/admin"
@@ -88,6 +89,8 @@ for (const role of PRESET_ROLES) {
     }
     for (const [path, permission] of PAGES) {
       const response = await page.goto(path)
+      await waitForHydration(page)
+      await page.waitForLoadState("networkidle")
       const deniedTo = page.url().includes("/admin/no-access")
       const allowed = holds.has(permission)
       if (allowed && (deniedTo || response?.status() !== 200)) mismatches.push(`${path}: refused but ${permission} is held`)

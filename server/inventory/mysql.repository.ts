@@ -9,6 +9,7 @@ import { auditLog, carts, inventoryLevels, inventoryMovements, inventoryReservat
 import { isoDate, sqlDate, sqlNow } from "@/server/db/values"
 import { uuidv7 } from "@/server/db/uuid"
 import { DomainError } from "@/server/shared/errors"
+import { stockPage } from "./stock-page.repository"
 
 export async function lockStore(db: Database, actor: Actor) {
   const [row] = await db.select({ id: stores.id }).from(stores).where(eq(stores.id, actor.storeId)).for("update")
@@ -71,6 +72,7 @@ function stockItems(items: StockRequest[]): StockRequest[] {
 
 export function createMysqlInventoryRepository(): ActorScoped<InventoryOperations> {
   return mysqlPolicy<InventoryOperations>({
+    search: stockPage,
     async availability(actor, variantIds, forCartId) {
       if (!variantIds.length) return new Map()
       const db = await database()

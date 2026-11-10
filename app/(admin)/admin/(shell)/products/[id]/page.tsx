@@ -32,7 +32,7 @@ export default async function EditProductPage({ params }: Props) {
         crumbs={[{ label: "Products", href: "/admin/products" }]}
         actions={
           detail.product.status === "active" ? (
-            <Link href={`/products/${detail.product.slug}`} target="_blank" className={adminButton({ tone: "ghost", size: "sm" })}>
+            <Link prefetch={false} href={`/products/${detail.product.slug}`} target="_blank" className={adminButton({ tone: "ghost", size: "sm" })}>
               <ExternalLink aria-hidden /> View in store
             </Link>
           ) : null

@@ -32,7 +32,9 @@ test("a Store Manager creates, prices, photographs and publishes a pair, then ad
   await page.getByRole("button", { name: "Add photos" }).click()
   const png = await sharp({ create: { width: 1200, height: 800, channels: 3, background: { r: 30, g: 30, b: 30 } } }).png().toBuffer()
   const filename = `e2e-shoe-${suffix}.png`
+  const uploaded = page.waitForResponse(response => new URL(response.url()).pathname === "/api/admin/media" && response.request().method() === "POST")
   await page.getByLabel("Choose photos to upload").setInputFiles({ name: filename, mimeType: "image/png", buffer: png })
+  expect((await uploaded).status()).toBe(201)
   await expect(page.getByRole("dialog").getByText(filename, { exact: true })).toBeVisible()
   await page.getByRole("dialog").getByRole("button", { name: "Done" }).click()
   await expect(page.getByLabel("Alt text").first()).toBeVisible()

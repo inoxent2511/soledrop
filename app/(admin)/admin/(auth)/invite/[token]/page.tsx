@@ -14,7 +14,7 @@ export default async function AdminInvitePage({ params }: { params: Promise<{ to
       <>
         <h1 className="text-24 font-extrabold">This invite has expired</h1>
         <p className="text-16 text-subtle-foreground">Invite links work once and expire after a few days. Ask the person who invited you for a new one.</p>
-        <Link href="/admin/login" className="text-16 font-semibold underline underline-offset-4">
+        <Link prefetch={false} href="/admin/login" className="text-16 font-semibold underline underline-offset-4">
           Go to staff sign in
         </Link>
       </>

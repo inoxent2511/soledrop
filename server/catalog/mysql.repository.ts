@@ -1,18 +1,19 @@
 import "server-only"
 import { mysqlPolicy } from "@/server/db/policy.repository"
 
-import { and, asc, count, desc, eq, exists, getTableColumns, gt, inArray, like, or } from "drizzle-orm"
+import { and, asc, count, desc, eq, getTableColumns, gt, inArray } from "drizzle-orm"
 import type { CatalogOperations } from "./repository"
 import type { AttributeDefinition, AttributeValue, Collection, CustomFieldDefinition, Product } from "./types"
 import { type Actor, type ActorScoped, requireGrant, requireStore, requireSystem } from "@/server/db/actor"
 import { database, type Database, withTransaction } from "@/server/db/client"
 import { attributeDefinitions, brands, collectionProducts, collections, customFieldDefinitions, inventoryLevels, orderLines, productAttributeValues, productImages, products, productTags, stores, variantAttributeValues, variants } from "@/server/db/schema"
 import { uuidv7 } from "@/server/db/uuid"
-import { escapeLike, isoDate, jsonValue, sqlDate } from "@/server/db/values"
+import { isoDate, jsonValue, sqlDate } from "@/server/db/values"
 import { DomainError } from "@/server/shared/errors"
 import { removeCatalogueSearch, syncCatalogueSearch } from "@/server/search/catalogue-index.repository"
 import { syncCatalogueListing } from "./listing-index.repository"
 import { bumpCatalogueRevision } from "./facet-cache.repository"
+import { staffProductScope } from "./staff-search.repository"
 
 export async function hydrateProducts(db: Database, actor: Actor, rows: (typeof products.$inferSelect)[]): Promise<Product[]> {
   if (!rows.length) return []
@@ -123,9 +124,7 @@ export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
     async searchProducts(actor, storeId, query) {
       requireStore(actor, storeId); requireGrant(actor, "products:read")
       const db = await database()
-      const term = query.q?.trim() ? "%" + escapeLike(query.q.trim()) + "%" : null
-      const where = and(eq(products.storeId, actor.storeId), query.status?.length ? inArray(products.status, query.status) : undefined, query.kind ? eq(products.kind, query.kind) : undefined, query.brandId ? eq(products.brandId, query.brandId) : undefined,
-        term ? or(like(products.title, term), like(products.slug, term), exists(db.select({ id: variants.id }).from(variants).where(and(eq(variants.productId, products.id), like(variants.sku, term)))), exists(db.select({ id: brands.id }).from(brands).where(and(eq(brands.id, products.brandId), eq(brands.storeId, actor.storeId), like(brands.name, term))))) : undefined)
+      const where = staffProductScope(db, actor.storeId, query)
       const [rows, [total]] = await Promise.all([db.select().from(products).where(where).orderBy(desc(products.updatedAt), asc(products.id)).limit(query.pageSize).offset((query.page - 1) * query.pageSize), db.select({ count: count() }).from(products).where(where)])
       return { products: await hydrateProducts(db, actor, rows), total: total.count }
     },

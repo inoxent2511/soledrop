@@ -99,5 +99,9 @@ export const expectedMigrations = [
   {
     "name": "0025_sitemap_indexes.sql",
     "checksum": "e343aa4851224a123e5f670e34786eef7e150bedd1975df567f0ee9b2db082bb"
+  },
+  {
+    "name": "0026_inventory_available_index.sql",
+    "checksum": "52d7ccb1b77c6a7d21ee4201e2c767cad29e0bcf231d44741fd12b3cc9f1441b"
   }
 ] as const

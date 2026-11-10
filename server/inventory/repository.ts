@@ -1,10 +1,15 @@
 import type { ActorScoped } from "@/server/db/actor"
+import type { Product, ProductStatus } from "@/server/catalog/types"
 export type StockRequest = { variantId: string; quantity: number }
 
 export type StockLevelRow = { variantId: string; onHand: number; reserved: number }
 export type StockMovement = { id: string; variantId: string; delta: number; reason: string; actor: string; at: string }
+export type StockPageQuery = { q?: string; low?: number; page: number; pageSize: number }
+export type StockPageRow = { variantId: string; productId: string; title: string; status: ProductStatus; sku: string; size: Product["variants"][number]["size"]; onHand: number; reserved: number; available: number }
 
 export interface InventoryOperations {
+  /** Complete staff inventory, paginated without hydrating product graphs. */
+  search(storeId: string, query: StockPageQuery): Promise<{ rows: StockPageRow[]; total: number }>
   /** Available = on hand − reserved by other carts (a cart's own reservation counts as available to it). */
   availability(variantIds: string[], forCartId?: string): Promise<Map<string, number>>
   /** reserve_stock: replaces the cart's reservations atomically; throws out_of_stock if any line can't be held. */

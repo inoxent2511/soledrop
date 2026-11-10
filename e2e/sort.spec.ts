@@ -32,6 +32,14 @@ for (const action of ["click", "Enter", "ArrowDown"] as const) test(`the first s
     await expect(page.getByRole("listbox")).toHaveCount(0)
     release()
     await expect(page.getByRole("listbox")).toBeVisible()
+    if (action === "Enter") {
+      await expect(page.getByRole("option", { name: "Featured", exact: true })).toBeFocused()
+      await page.keyboard.press("ArrowDown")
+      await page.keyboard.press("Enter")
+      await expect(page).toHaveURL(/sort=title-asc/)
+      await expect(sortBox(page)).toContainText("Title: A-Z")
+      return
+    }
     await page.getByRole("option", { name: "Title: A-Z", exact: true }).click()
     await expect(page).toHaveURL(/sort=title-asc/)
     await expect(sortBox(page)).toContainText("Title: A-Z")
@@ -113,6 +121,7 @@ test.describe("listing sort", () => {
     await sortBox(page).focus()
     await page.keyboard.press("Enter")
     await expect(page.getByRole("listbox")).toBeVisible()
+    await expect(page.getByRole("option", { name: "Featured", exact: true })).toBeFocused()
     await page.keyboard.press("ArrowDown")
     await page.keyboard.press("Enter")
     await expect(page).toHaveURL(/\/pre-loved\?sort=/)

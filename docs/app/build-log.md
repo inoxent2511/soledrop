@@ -449,3 +449,92 @@ handoff and a clean verified release commit. The inherited design-export gate re
 because the source has no Theme collection; generated theme/contrast checks pass. The ready-release
 GitHub push remains pending; its remote main is still the owner's `b1cd1bf`. No deployment or remote
 database action has occurred.
+
+
+### M11 continuation ? inventory boundaries and cold interactions (2026-11-10)
+
+Migration 0026 adds indexed generated stock availability. Staff inventory now delegates to an
+inventory-scoped repository instead of hydrating the first 10,000 products. Native reads retain
+exact JavaScript title ordering over narrow 5,000-row batches and hydrate only selected sizes;
+the fixture adapter retains matching pagination and zero-stock fallback. Existing internal
+500-row callers remain supported; the HTTP endpoint retains its 200-row limit. Boundary tests
+cover 10,001 extra products, both ends of pagination, SKU matching and absent stock rows.
+
+The application suite passed 1,723/1,723 before the additional inventory-only service regression;
+that regression and the selection tests pass separately (11/11). Typecheck, lint, the production
+build, standalone privacy packaging and 26-file portable migration lint pass. One complete native
+run passed 1,468/1,469: a MariaDB inventory boundary request hit the unchanged query deadline while
+browser QA was active. An isolated complete rerun is required; this is not accepted as a pass.
+Large synthetic stock probes remain diagnostic at roughly 1.4 seconds on MariaDB and 2.2 seconds
+on MySQL; no inventory latency acceptance is claimed.
+
+The MySQL header/sort/geometry run passed 66/66. A MariaDB focused run passed 47/48 and exposed
+Firefox replacing a pressed fallback between pointerup and click. The trigger now remains until
+click or pointer cancellation; a controlled delayed-click regression covers this event gap.
+Keyboard sorting waits for the selected option to receive focus before the next key, retaining
+the actual navigation assertion. The new artifact still needs the complete rerun.
+
+The MariaDB admin sweep passed 88/90: one banners permission page timed out at the database and
+WebKit logged an aborted notification fetch during full-document navigation. Both remain open.
+Earlier public sweeps passed 2,812/2,817 on MySQL and 2,814/2,817 on MariaDB, with no skips.
+These are diagnostic runs, not clean release passes. Merchant source, Owner credentials and
+the remote repository remain unchanged; final handoff, recovery/load checks and release push
+are still pending.
+
+The cold-control fix subsequently passed three consecutive runs per engine: 153/153 on each,
+306 checks total, with no skips or retries. All 1,724 application tests passed before the new
+cross-module context regressions. Further full admin sweeps remain diagnostic at 88/90;
+remaining prefetches are now disabled consistently across admin links. Navigation audits wait
+for header hydration before network-idle, and catalogue upload checks await the real 201 response
+before checking the photo. Neither change filters console failures or raises a timeout.
+
+A new real-engine regression reproduced a separate server-graph defect on both databases:
+module-local transaction carriers did not recognize an outer transaction created by another
+copy of the module, despite sharing one process-wide pool. Transaction/request/effect carriers,
+RSC cache-function identity, session initializers and transaction-scoped staff admissions now
+share the appropriate process lifetime while retaining per-request values. Tests cover nested
+rollback, concurrent connections/identities, session initialization, self-revocation admissions
+and commit/rollback invalidation. Complete suite and production reruns remain required.
+
+The inventory boundary timeout also exposed a join-plan hazard: forcing only the availability
+index can produce repeated scans per variant. Broad stock batches explicitly retain the indexed
+level-first join order; selective scopes use normal optimizer choice. Removing the hint alone
+passed the 192 parity checks but slowed the large MariaDB probe to 11.3 seconds; that diagnostic
+is retained. The corrected broad plan measures about 1.3 seconds, with EXPLAIN retained.
+Both preserved merchant copies are now on migration 0026 and still pass all 3,758 preservation
+checks with zero differences. The original snapshot digest and all protected contracts match.
+
+After the join-order and shared-context corrections, the complete native suite passes
+1,473/1,473 and the complete application suite passes 1,728/1,728, with zero pending tests.
+The new native cases verify cross-graph rollback and five concurrent initialized connections;
+request tests verify twenty concurrent actors, nested scope restoration and failed requests.
+Cross-graph self-revocation retains only the already admitted transaction; subsequent reads
+remain unauthorized. Commit effects are discarded on rollback and deduplicated after commit.
+The production artifact and full browser sweeps still require final verification.
+
+The rebuilt production artifact and standalone privacy packaging pass. The refreshed private
+migration-0026 handoff contains 87 tables, 44 originals and all 2,244 referenced storage objects.
+Fresh restores on MySQL and MariaDB match every table fingerprint and all 3,758 merchant
+preservation checks, with zero differences; all media checksums verify. This remains a private
+candidate until final browser/load/visual acceptance and release publication are complete.
+
+Production HTTP drills pass on both synthetic engines: eight simultaneous reads are observed
+behind exactly five active app connections, then all complete with correct 500,000-order totals.
+Actual engine shutdown during an in-flight request returns controlled 503/unavailable (22-37 ms);
+new reads return 200 with the same totals after restart. The initial runner exposed a local
+startup race by reopening data files before the old engine exited; failed reports are retained.
+Waiting for the owned engine PID to exit resolves it without changing application deadlines.
+
+The full MySQL admin sweep passes 90/90. MariaDB passes 89/90, with only Safari logging an
+aborted notification read during full-document navigation. Readiness alone did not eliminate
+that periodic-read cancellation. The small shared notification GET now completes across
+navigation with keepalive, and its cache is scoped to staff identity and permissions. The
+updated artifact still requires the console, complete browser and final performance reruns.
+
+The final notification transport correction passes the three-browser module audit (3/3),
+including Safari, without console filters. All 1,728 application tests pass on this artifact.
+An independent source copy installs offline from the frozen lockfile and builds/packages
+successfully on Node 24 without database credentials or a private environment. Fresh datasets
+for the final first browser pass are prepared with new per-test identities and checksum-verified
+copies of the exact frozen catalogue media. Complete clean passes, visual profiles and final
+performance measurements remain to be run before marking the repo ready or pushing it.

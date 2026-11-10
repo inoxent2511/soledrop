@@ -108,7 +108,7 @@ export default async function AdminCustomerPage({ params }: Props) {
                 </div>
               </dl>
               {canOrders && stats.lastOrderAt ? (
-                <Link href={`/admin/orders?q=${encodeURIComponent(detail.piiMasked ? customer.fullName : customer.email)}`} className="text-14 font-semibold underline underline-offset-4">
+                <Link prefetch={false} href={`/admin/orders?q=${encodeURIComponent(detail.piiMasked ? customer.fullName : customer.email)}`} className="text-14 font-semibold underline underline-offset-4">
                   Search their orders
                 </Link>
               ) : null}

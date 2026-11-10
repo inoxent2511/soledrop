@@ -23,7 +23,7 @@ export default async function AdminRolesPage() {
         crumbs={[{ label: "Staff & roles", href: "/admin/staff" }]}
         actions={
           can(staff, "roles:manage") ? (
-            <Link href="/admin/staff/roles/new" className={adminButton({ tone: "primary", size: "sm" })}>
+            <Link prefetch={false} href="/admin/staff/roles/new" className={adminButton({ tone: "primary", size: "sm" })}>
               <Plus aria-hidden /> New role
             </Link>
           ) : null

@@ -22,7 +22,7 @@ export default async function AdminCollectionsPage() {
         description="Groups of products with their own page: picked by hand, or matched by rules."
         actions={
           can(staff, "collections:write") ? (
-            <Link href="/admin/collections/new" className={adminButton({ tone: "primary", size: "sm" })}>
+            <Link prefetch={false} href="/admin/collections/new" className={adminButton({ tone: "primary", size: "sm" })}>
               <Plus aria-hidden /> New collection
             </Link>
           ) : null

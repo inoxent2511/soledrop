@@ -77,6 +77,7 @@ export const mediaGuards: FixtureGuards<MediaOperations> = {
   commitPrepared(actor, item) { mediaGuards.create(actor, item, new Uint8Array()) },
 }
 export const inventoryGuards: FixtureGuards<InventoryOperations> = {
+  search: storeGrant("inventory:read"),
   availability(actor, _ids, cartId) { if (cartId) fixtureCartOwner(actor, cartId) },
   reserve(actor, cartId) { fixtureCartOwner(actor, cartId) }, release(actor, cartId) { fixtureCartOwner(actor, cartId) },
   onHand: grant("inventory:read"), releaseExpired: jobGrant,

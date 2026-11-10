@@ -13,7 +13,7 @@ export function panelApplies(state: PanelState, width: number): boolean {
   return true
 }
 
-/** Header controls are links until React hydrates them; acting earlier would navigate instead. */
+/** Wait for React to attach the shared header before acting or measuring a settled page. */
 export async function waitForHydration(page: Page): Promise<void> {
   await page.waitForFunction(() => {
     const header = document.querySelector("header")

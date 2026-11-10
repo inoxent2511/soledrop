@@ -7,6 +7,7 @@ import type { FixtureTables } from "@/server/fixtures/tables"
 import type { InventoryOperations, InventoryRepository } from "@/server/inventory/repository"
 import { DomainError } from "@/server/shared/errors"
 import { newId, now } from "@/server/shared/ids"
+import { validateStockPage } from "./stock-page"
 
 /** Drops expired reservations and gives their quantity back. Called inside a transaction. */
 export function releaseExpiredIn(tables: FixtureTables, at = Date.now(), limit = Infinity, requestedVariants?: string[]): number {
@@ -39,6 +40,17 @@ export function assertInventoryInvariants(tables: FixtureTables): void {
 
 export function createFixturesInventoryRepository(): InventoryRepository {
   const operations: InventoryOperations = {
+    async search(storeId, query) {
+      validateStockPage(query)
+      const tables = db(), term = query.q?.trim().toLowerCase(), levels = new Map(tables.inventory.map(row => [row.variantId, row]))
+      const products = tables.products.filter(product => product.storeId === storeId && ["active", "draft"].includes(product.status) && (!term || [product.title, product.slug, product.brand.name, ...product.variants.map(variant => variant.sku)].some(value => value.toLowerCase().includes(term)))).sort((a, b) => (b.updatedAt ?? b.publishedAt).localeCompare(a.updatedAt ?? a.publishedAt))
+      const rows = products.flatMap(product => product.variants.map(variant => {
+        const level = levels.get(variant.id) ?? { onHand: 0, reserved: 0 }
+        return { variantId: variant.id, productId: product.id, title: `${product.brand.name} ${product.title}`, status: product.status, sku: variant.sku, size: variant.size, onHand: level.onHand, reserved: level.reserved, available: level.onHand - level.reserved }
+      })).filter(row => query.low === undefined || row.available <= query.low).sort((a, b) => a.available - b.available || a.title.localeCompare(b.title))
+      const start = (query.page - 1) * query.pageSize
+      return { total: rows.length, rows: rows.slice(start, start + query.pageSize) }
+    },
     async availability(variantIds, forCartId) {
       const tables = db()
       const result = new Map<string, number>()

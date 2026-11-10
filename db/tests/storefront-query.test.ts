@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { and, eq, inArray } from "drizzle-orm"
 import { ALL_PERMISSIONS } from "@/server/admin/permissions"
 import { createFixturesCatalogRepository } from "@/server/catalog/fixtures.repository"
 import { createMysqlCatalogRepository, reindexCatalogueSearch } from "@/server/catalog/mysql.repository"
@@ -17,7 +18,7 @@ import type { PriceList } from "@/server/pricing/types"
 import { anonymousActor, systemActor } from "@/server/db/actor"
 import { bindActor } from "@/server/db/bind"
 import { closeDatabase, database, withTransaction } from "@/server/db/client"
-import { priceLists, stores } from "@/server/db/schema"
+import { priceLists, stores, products as productRows, variants as variantRows, inventoryLevels as levelRows } from "@/server/db/schema"
 import { uuidv7, uuidToBytes } from "@/server/db/uuid"
 import { db, resetFixtures } from "@/server/fixtures/store"
 import { connect, engines } from "./connections"
@@ -93,6 +94,52 @@ for (const [engine, config] of engines) describe(engine + " indexed storefront p
       expect(suggestSpelling(query, narrowed), query).toBe(suggestSpelling(query, full))
     }
     expect((await native.vocabulary(visitor, storeId, "unfindablezzzz")).length).toBeLessThan(full.length)
+  })
+  it("retains exact JS inventory ordering, filters and both ends of pagination", async () => {
+    for (const query of [
+      { page: 1, pageSize: 5 }, { page: 4, pageSize: 5 }, { page: 9999, pageSize: 5 },
+      { page: 1, pageSize: 200, low: 0 }, { page: 1, pageSize: 5, q: "Nike" },
+      { page: 1, pageSize: 5, q: samples[0].variants[0].sku }, { page: 1, pageSize: 5, q: "missing" },
+    ]) expect(await mysqlInventory.search(storeId, query)).toEqual(await fixtureInventory.search(storeId, query))
+  })
+  it("preserves zero stock for missing legacy level rows", async () => {
+    const id = samples[0].variants[0].id, original = (await mysqlInventory.levels([id]))[0]
+    const fixture = structuredClone(db().inventory)
+    try {
+      await (await database()).delete(levelRows).where(eq(levelRows.variantId, id))
+      db().inventory = db().inventory.filter(row => row.variantId !== id)
+      for (const query of [{ page: 1, pageSize: 200 }, { page: 1, pageSize: 5, low: 0 }, { page: 1, pageSize: 5, q: samples[0].variants[0].sku }]) expect(await mysqlInventory.search(storeId, query)).toEqual(await fixtureInventory.search(storeId, query))
+    } finally {
+      await (await database()).insert(levelRows).values(original)
+      db().inventory = fixture
+    }
+  })
+  it("includes sizes beyond 10,000 products without hydrating the catalogue", async () => {
+    const extra: Product[] = Array.from({ length: 10001 }, (_, index) => ({
+      ...structuredClone(samples[0]), id: uuidv7(), slug: "stock-boundary-" + index, title: "Stock Boundary " + String(index).padStart(5, "0"), position: 100 + index, updatedAt: at,
+      variants: [{ ...structuredClone(samples[0].variants[0]), id: uuidv7(), sku: "STOCK-BOUNDARY-" + index, position: 0 }],
+    }))
+    const ids = new Set(extra.map(product => product.id)), variantIds = new Set(extra.flatMap(product => product.variants.map(variant => variant.id))), nativeDb = await database()
+    db().products.push(...extra)
+    db().inventory.push(...extra.map((product, index) => ({ variantId: product.variants[0].id, onHand: index % 3, reserved: 0 })))
+    try {
+      for (let start = 0; start < extra.length; start += 500) {
+        const batch = extra.slice(start, start + 500)
+        await nativeDb.insert(productRows).values(batch.map(product => ({ id: product.id, storeId, brandId: product.brand.id, slug: product.slug, title: product.title, kind: product.kind, gender: product.gender, status: product.status, position: product.position, publishedAt: at.replace("T", " ").replace("Z", ""), updatedAt: at.replace("T", " ").replace("Z", "") })))
+        await nativeDb.insert(variantRows).values(batch.map(product => { const variant = product.variants[0]; return { id: variant.id, productId: product.id, sku: variant.sku, sizeEu: variant.size.eu, sizeUk: variant.size.uk, sizeUs: variant.size.us, sizeCm: variant.size.cm, position: 0, weightGrams: 900 } }))
+        await nativeDb.insert(levelRows).values(batch.map((product, index) => ({ variantId: product.variants[0].id, onHand: (start + index) % 3, reserved: 0 })))
+      }
+      for (const query of [{ page: 1, pageSize: 200 }, { page: 51, pageSize: 200 }, { page: 1, pageSize: 200, low: 0 }]) {
+        const expected = await fixtureInventory.search(storeId, query)
+        expect(expected.total).toBeGreaterThan(3000)
+        expect(await mysqlInventory.search(storeId, query)).toEqual(expected)
+      }
+      expect((await mysqlInventory.search(storeId, { page: 1, pageSize: 1 })).total).toBe(10001 + samples.reduce((total, product) => total + product.variants.length, 0))
+    } finally {
+      for (let start = 0; start < extra.length; start += 500) await nativeDb.delete(productRows).where(and(eq(productRows.storeId, storeId), inArray(productRows.id, extra.slice(start, start + 500).map(product => product.id))))
+      db().products = db().products.filter(product => !ids.has(product.id))
+      db().inventory = db().inventory.filter(row => !variantIds.has(row.variantId))
+    }
   })
   it("invalidates cached spelling candidates on commit without publishing rolled-back words", async () => {
     const query = "incandescant", read = async () => suggestSpelling(query, await native.vocabulary(visitor, storeId, query))

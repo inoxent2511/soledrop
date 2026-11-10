@@ -74,10 +74,16 @@ upload backup command and complete tested restore procedure are in the deploymen
 
 ## Large-dataset acceptance
 
-Forward migrations through 0025 add listing/search projections, committed catalogue revisions
+Forward migrations through 0026 add listing/search projections, committed catalogue revisions
 and covering sitemap indexes. Catalogue cache keys include the live revision, store, query,
 collection and ordered price lists; writes invalidate within their existing transaction.
 Sitemaps use bounded metadata projections and advertise 5,000-row shards through robots.txt.
+
+Migration 0026 adds the stored `inventory_levels.available` expression and its lookup index.
+Stock writes continue to set only `on_hand` and `reserved`; the database maintains availability.
+Backups omit generated columns and restore their source quantities. The staff stock page reads
+narrow batches and hydrates only the selected sizes, preserving JavaScript title ordering and
+zero-stock fallback for legacy variants without a level row. It has no 10,000-product cutoff.
 
 `pnpm db:perf-seed` provisions separate named loopback schemas/accounts using the ignored local
 engine configuration. It refuses existing datasets. These contain synthetic 100,000 products,

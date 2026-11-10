@@ -88,7 +88,7 @@ export default async function AdminPaymentsPage({ searchParams }: { searchParams
         empty={<p className="text-16 text-subtle-foreground">Nothing yet.</p>}
         columns={[
           { key: "at", header: "When", render: (row) => when(row.at) },
-          { key: "order", header: "Order", render: (row) => (canOrders ? <Link href={`/admin/orders/${row.orderNumber}`} className="font-semibold underline-offset-4 hover:underline">{row.orderNumber}</Link> : row.orderNumber) },
+          { key: "order", header: "Order", render: (row) => (canOrders ? <Link prefetch={false} href={`/admin/orders/${row.orderNumber}`} className="font-semibold underline-offset-4 hover:underline">{row.orderNumber}</Link> : row.orderNumber) },
           { key: "method", header: "Method", hideBelow: "sm", render: (row) => (row.provider ? (PROVIDER[row.provider] ?? row.provider) : "—") },
           { key: "status", header: "Status", render: (row) => <StatusPill tone={row.status === "captured" ? "success" : row.status === "failed" ? "danger" : row.status === "refunded" ? "neutral" : "pending"}>{row.status.replace("_", " ")}</StatusPill> },
           { key: "detail", header: query.view === "refunds" ? "Reason" : "Reference", hideBelow: "md", render: (row) => row.reason ?? row.reference ?? "—" },

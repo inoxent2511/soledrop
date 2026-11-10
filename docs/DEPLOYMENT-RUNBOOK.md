@@ -103,6 +103,12 @@ for every store in the database. This bounded, restartable step preserves order 
 builds exact Unicode search projections. Startup refuses an incomplete backfill. A complete
 merchant backup from this release already includes these rows; do not seed over that import.
 
+Apply all forward migrations through 0026 before starting this release. Migration 0026 adds
+an indexed generated availability column; it does not change physical stock or reservations.
+Use this release's backup/restore tools, which omit generated columns from data INSERTs.
+The database recreates those values from the preserved quantities. No inventory seed or stock
+reset is required for this upgrade.
+
 After import use the **app** DATABASE_URL in hPanel. URL-encode password characters such as
 `@`, `:`, `/`, `#` and `%`. Do not use migrator credentials in normal runtime when separate users
 are available. Keep `DATABASE_POOL_MAX=5` initially; account for every running deployment/process

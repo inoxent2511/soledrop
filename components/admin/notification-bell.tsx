@@ -12,8 +12,10 @@ import { cn } from "@/lib/utils"
 import type { AttentionItem } from "@/server/reports/insights"
 
 /** The notification centre: what needs doing now, refreshed every minute. */
-export function NotificationBell() {
-  const items = useQuery({ queryKey: ["admin", "notifications"], queryFn: ({ signal }) => request<{ items: AttentionItem[] }>("/api/admin/notifications", { signal }), refetchInterval: 60_000 })
+export function NotificationBell({ identity, permissions }: { identity: string; permissions: string[] }) {
+  // This small shared count read remains useful across navigation. Let it finish
+  // instead of aborting it as its document/observer is replaced (notably in Safari).
+  const items = useQuery({ queryKey: ["admin", "notifications", identity, permissions], queryFn: () => request<{ items: AttentionItem[] }>("/api/admin/notifications", { keepalive: true }), staleTime: 60_000, refetchInterval: 60_000 })
   const list = items.data?.items ?? []
   const total = list.reduce((sum, item) => sum + item.count, 0)
   return (
@@ -30,7 +32,7 @@ export function NotificationBell() {
             <ul className="flex flex-col">
               {list.map((item) => (
                 <li key={item.key}>
-                  <Link href={item.href} className="flex items-center justify-between gap-3 rounded-md px-2 py-2 text-16 hover:bg-surface">
+                  <Link prefetch={false} href={item.href} className="flex items-center justify-between gap-3 rounded-md px-2 py-2 text-16 hover:bg-surface">
                     <span>{item.label}</span>
                     <StatusPill tone={item.tone}>{item.count}</StatusPill>
                   </Link>

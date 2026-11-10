@@ -1,4 +1,5 @@
 import { mysqlTable, varchar, char, text, int, tinyint, datetime, decimal } from "drizzle-orm/mysql-core"
+import { sql } from "drizzle-orm"
 import { uuid } from "./uuid"
 import { portableJson, safeBigint, searchDigest, searchGram } from "./columns"
 import { sqlDate, sqlNow } from "./values"
@@ -593,6 +594,7 @@ export const inventoryLevels = mysqlTable("inventory_levels", {
   variantId: uuid("variant_id").notNull(),
   onHand: int("on_hand").notNull().default(0),
   reserved: int("reserved").notNull().default(0),
+  available: int("available").generatedAlwaysAs(sql.fromList([sql.raw("on_hand - reserved")]), { mode: "stored" }),
   updatedAt: datetime("updated_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 

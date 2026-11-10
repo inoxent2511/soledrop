@@ -18,13 +18,13 @@ export function Pagination({ basePath, params, page, pageSize, total }: { basePa
     <nav aria-label="Pages" className="flex flex-wrap items-center justify-between gap-3 text-14 text-subtle-foreground">
       <p aria-live="polite">{total === 0 ? "No results" : `Showing ${first.toLocaleString("en-US")}–${last.toLocaleString("en-US")} of ${total.toLocaleString("en-US")}`}</p>
       <div className="flex items-center gap-2">
-        <Link href={link(page - 1)} aria-disabled={page <= 1} tabIndex={page <= 1 ? -1 : undefined} className={cn(adminButton({ tone: "secondary", size: "sm" }))}>
+        <Link prefetch={false} href={link(page - 1)} aria-disabled={page <= 1} tabIndex={page <= 1 ? -1 : undefined} className={cn(adminButton({ tone: "secondary", size: "sm" }))}>
           <ChevronLeft aria-hidden className="rtl:rotate-180" /> Previous
         </Link>
         <span>
           Page {page} of {pages}
         </span>
-        <Link href={link(page + 1)} aria-disabled={page >= pages} tabIndex={page >= pages ? -1 : undefined} className={cn(adminButton({ tone: "secondary", size: "sm" }))}>
+        <Link prefetch={false} href={link(page + 1)} aria-disabled={page >= pages} tabIndex={page >= pages ? -1 : undefined} className={cn(adminButton({ tone: "secondary", size: "sm" }))}>
           Next <ChevronRight aria-hidden className="rtl:rotate-180" />
         </Link>
       </div>

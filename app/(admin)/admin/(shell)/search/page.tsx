@@ -76,7 +76,7 @@ export default async function AdminSearchPage({ searchParams }: { searchParams: 
                 align: "end",
                 render: (row) =>
                   canWrite ? (
-                    <Link href={`/admin/search?fix=${encodeURIComponent(row.query)}`} className="text-14 font-semibold underline underline-offset-4">
+                    <Link prefetch={false} href={`/admin/search?fix=${encodeURIComponent(row.query)}`} className="text-14 font-semibold underline underline-offset-4">
                       Add synonyms
                     </Link>
                   ) : null,

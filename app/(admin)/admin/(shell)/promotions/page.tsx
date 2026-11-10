@@ -25,7 +25,7 @@ export default async function AdminPromotionsPage() {
         description="Discount codes and automatic offers. Test one on a sample bag before switching it on."
         actions={
           can(staff, "promotions:write") ? (
-            <Link href="/admin/promotions/new" className={adminButton({ tone: "primary", size: "sm" })}>
+            <Link prefetch={false} href="/admin/promotions/new" className={adminButton({ tone: "primary", size: "sm" })}>
               <Plus aria-hidden /> New promotion
             </Link>
           ) : null

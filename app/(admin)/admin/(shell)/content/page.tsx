@@ -31,12 +31,12 @@ export default async function AdminContentPage() {
         description="Information pages built from blocks, and the questions on the FAQ page."
         actions={
           <>
-            <Link href="/admin/content/home" className={adminButton({ tone: "secondary", size: "sm" })}>Homepage</Link>
-            <Link href="/admin/content/faqs" className={adminButton({ tone: "secondary", size: "sm" })}>
+            <Link prefetch={false} href="/admin/content/home" className={adminButton({ tone: "secondary", size: "sm" })}>Homepage</Link>
+            <Link prefetch={false} href="/admin/content/faqs" className={adminButton({ tone: "secondary", size: "sm" })}>
               FAQs
             </Link>
             {can(staff, "content:write") ? (
-              <Link href="/admin/content/pages/new" className={adminButton({ tone: "primary", size: "sm" })}>
+              <Link prefetch={false} href="/admin/content/pages/new" className={adminButton({ tone: "primary", size: "sm" })}>
                 <Plus aria-hidden /> New page
               </Link>
             ) : null}
@@ -60,7 +60,7 @@ export default async function AdminContentPage() {
         <ul className="flex flex-col gap-1 text-16">
           {POLICIES.map(([label, href]) => (
             <li key={href}>
-              <Link href={href} target="_blank" className="underline underline-offset-4">
+              <Link prefetch={false} href={href} target="_blank" className="underline underline-offset-4">
                 {label}
               </Link>
             </li>

@@ -117,7 +117,7 @@ export function AdminShell({ staff, children }: { staff: ShellStaff; children: R
 
             <CommandPalette />
             <div className="flex-1" />
-            <NotificationBell />
+            <NotificationBell identity={staff.email} permissions={staff.permissions} />
 
             <Link href="/" prefetch={false} className={adminButton({ tone: "ghost", size: "sm" })} target="_blank" rel="noopener">
               <Store aria-hidden /> <span className="sr-only sm:not-sr-only">View store</span>

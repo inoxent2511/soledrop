@@ -102,7 +102,7 @@ export default async function AdminDashboardPage() {
                 const Icon = module.icon
                 return (
                   <li key={module.key}>
-                    <Link href={module.href} className="flex h-14 items-center gap-3 rounded-md border border-border px-4 text-16 font-semibold transition-colors hover:border-foreground">
+                    <Link prefetch={false} href={module.href} className="flex h-14 items-center gap-3 rounded-md border border-border px-4 text-16 font-semibold transition-colors hover:border-foreground">
                       <Icon aria-hidden className="size-5" />
                       {module.label}
                     </Link>
@@ -134,7 +134,7 @@ export default async function AdminDashboardPage() {
         <AdminCard
           title="Recent changes"
           actions={
-            <Link href="/admin/audit" className="text-14 font-semibold underline underline-offset-4">
+            <Link prefetch={false} href="/admin/audit" className="text-14 font-semibold underline underline-offset-4">
               Audit log
             </Link>
           }

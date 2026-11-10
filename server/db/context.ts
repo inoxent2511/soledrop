@@ -9,10 +9,12 @@ import { anonymousActor, staffActor, type Actor } from "./actor"
 import type { StaffContext } from "@/server/admin/types"
 
 type Scope = { actor: Actor }
-const requests = new AsyncLocalStorage<Scope>()
+const globals = globalThis as typeof globalThis & { __soledropActorRequests?: AsyncLocalStorage<Scope>; __soledropActorRenderScope?: () => Scope }
+const requests = globals.__soledropActorRequests ??= new AsyncLocalStorage<Scope>()
 // React cache is per render pass. Route handlers use AsyncLocalStorage instead; neither
 // enterWith-after-await nor a process-global mutable identity can safely carry a request.
-const renderScope = cache((): Scope => ({ actor: anonymousActor(serverEnv.STORE_ID) }))
+// Reuse the cache function's identity across separately bundled RSC modules too.
+const renderScope = globals.__soledropActorRenderScope ??= cache((): Scope => ({ actor: anonymousActor(serverEnv.STORE_ID) }))
 const scope = () => requests.getStore() ?? renderScope()
 
 /** Missing context is always anonymous. System capabilities are selected explicitly by services. */

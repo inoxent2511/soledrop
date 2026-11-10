@@ -305,18 +305,7 @@ export function createStaffCatalog(deps: Deps) {
     /** One row per size: on hand, held in carts, available; `low` keeps sizes at or below the threshold. */
     async stock(staff: StaffContext, query: { q?: string; low?: number; page: number; pageSize: number }) {
       need(staff, "inventory:read")
-      const { products } = await catalog.searchProducts(staff.member.storeId, { q: query.q, status: ["active", "draft"], page: 1, pageSize: 10_000 })
-      const variants = products.flatMap((product) => product.variants.map((variant) => ({ product, variant })))
-      const levels = new Map((await inventory.levels(variants.map((entry) => entry.variant.id))).map((row) => [row.variantId, row]))
-      const rows = variants
-        .map(({ product, variant }) => {
-          const level = levels.get(variant.id) ?? { onHand: 0, reserved: 0 }
-          return { variantId: variant.id, productId: product.id, title: `${product.brand.name} ${product.title}`, status: product.status, sku: variant.sku, size: variant.size, onHand: level.onHand, reserved: level.reserved, available: level.onHand - level.reserved }
-        })
-        .filter((row) => query.low === undefined || row.available <= query.low)
-        .sort((a, b) => a.available - b.available || a.title.localeCompare(b.title))
-      const start = (query.page - 1) * query.pageSize
-      return { rows: rows.slice(start, start + query.pageSize), total: rows.length }
+      return inventory.search(staff.member.storeId, query)
     },
 
     async movements(staff: StaffContext, variantIds: string[], limit = 50) {

@@ -53,7 +53,7 @@ export default async function AdminInventoryPage({ searchParams }: { searchParam
             header: "Product",
             render: (row) =>
               canSeeProducts ? (
-                <Link href={`/admin/products/${row.productId}`} className="font-semibold underline-offset-4 hover:underline">
+                <Link prefetch={false} href={`/admin/products/${row.productId}`} className="font-semibold underline-offset-4 hover:underline">
                   {row.title}
                 </Link>
               ) : (

@@ -67,7 +67,7 @@ export default async function AdminOrderPage({ params }: Props) {
           </span>
         }
         actions={
-          <Link href={`/admin/orders/${order.number}/packing-slip`} className={adminButton({ tone: "secondary", size: "sm" })} target="_blank">
+          <Link prefetch={false} href={`/admin/orders/${order.number}/packing-slip`} className={adminButton({ tone: "secondary", size: "sm" })} target="_blank">
             <Printer aria-hidden /> Packing slip
           </Link>
         }
@@ -81,7 +81,7 @@ export default async function AdminOrderPage({ params }: Props) {
                   <li key={line.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
                     <Image src={line.imageUrl} alt="" width={64} height={64} className="size-16 shrink-0 rounded-md bg-surface object-contain" />
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <Link href={`/products/${line.slug}`} target="_blank" className="font-semibold underline-offset-4 hover:underline">
+                      <Link prefetch={false} href={`/products/${line.slug}`} target="_blank" className="font-semibold underline-offset-4 hover:underline">
                         {line.brand} {line.title}
                       </Link>
                       <p className="text-14 text-subtle-foreground">
@@ -147,7 +147,7 @@ export default async function AdminOrderPage({ params }: Props) {
                 </span>
               </address>
               {order.customerId && staff.permissions.includes("customers:read") ? (
-                <Link href={`/admin/customers/${order.customerId}`} className="text-14 font-semibold underline underline-offset-4">
+                <Link prefetch={false} href={`/admin/customers/${order.customerId}`} className="text-14 font-semibold underline underline-offset-4">
                   View customer
                 </Link>
               ) : null}

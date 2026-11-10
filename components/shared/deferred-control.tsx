@@ -15,6 +15,28 @@ export function DeferredControl<Props extends object>({ load, props, fallback, m
     restoreFocus.current = root.current?.contains(document.activeElement) ?? false
     setComponent(() => loaded)
   }, [])
+  useLayoutEffect(() => {
+    mounted.current = true
+    const releasePointer = () => {
+      if (!pointerDown.current) return
+      pointerDown.current = false
+      publish()
+    }
+    // Firefox may deliver click in a later task than pointerup. Keep its original
+    // target until click arrives, rather than racing that event with a timer.
+    const releaseOutside = (event: PointerEvent) => {
+      if (!(event.target instanceof Node) || !root.current?.contains(event.target)) releasePointer()
+    }
+    window.addEventListener("pointerup", releaseOutside)
+    window.addEventListener("click", releasePointer)
+    window.addEventListener("pointercancel", releasePointer)
+    return () => {
+      mounted.current = false
+      window.removeEventListener("pointerup", releaseOutside)
+      window.removeEventListener("click", releasePointer)
+      window.removeEventListener("pointercancel", releasePointer)
+    }
+  }, [publish])
   const start = useCallback(() => {
     if (Component) return Promise.resolve()
     if (pending.current) return pending.current
@@ -33,7 +55,8 @@ export function DeferredControl<Props extends object>({ load, props, fallback, m
   }, [Component, load, publish])
 
   useEffect(() => {
-    mounted.current = true
+    // An immediately replayed hydration event can resolve an import before passive effects.
+    if (!Component) publish()
     let cancel = () => {}
     const matching = media ? window.matchMedia(media) : null
     const schedule = () => {
@@ -51,15 +74,7 @@ export function DeferredControl<Props extends object>({ load, props, fallback, m
     else window.addEventListener("load", schedule, { once: true })
     matching?.addEventListener("change", schedule)
     window.addEventListener("online", schedule)
-    let releaseTimer: number | undefined
-    const releasePointer = () => {
-      if (!pointerDown.current) return
-      // The browser sends click after pointerup. Keep its original target until that click.
-      releaseTimer = window.setTimeout(() => { pointerDown.current = false; publish() }, 0)
-    }
-    window.addEventListener("pointerup", releasePointer)
-    window.addEventListener("pointercancel", releasePointer)
-    return () => { mounted.current = false; cancel(); window.clearTimeout(releaseTimer); window.removeEventListener("load", schedule); matching?.removeEventListener("change", schedule); window.removeEventListener("online", schedule); window.removeEventListener("pointerup", releasePointer); window.removeEventListener("pointercancel", releasePointer) }
+    return () => { cancel(); window.removeEventListener("load", schedule); matching?.removeEventListener("change", schedule); window.removeEventListener("online", schedule) }
   }, [Component, media, publish, start])
 
   useLayoutEffect(() => {
@@ -79,8 +94,11 @@ export function DeferredControl<Props extends object>({ load, props, fallback, m
       requestedKey.current = null
       if (!trigger) return
       trigger.focus({ preventScroll: true })
-      if (key) trigger.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }))
-      else trigger.click()
+      if (key) {
+        trigger.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }))
+        if (!key.startsWith("Arrow")) trigger.click()
+        trigger.dispatchEvent(new KeyboardEvent("keyup", { key, bubbles: true, cancelable: true }))
+      } else trigger.click()
     }, 0)
     return () => window.clearTimeout(timer)
   }, [Component])
@@ -105,7 +123,7 @@ export function DeferredControl<Props extends object>({ load, props, fallback, m
   }} onFocusCapture={() => { void start() }} onKeyDownCapture={(event) => {
     if (Component || !(openKeys ?? ["Enter", " "]).includes(event.key) || event.metaKey || event.ctrlKey || event.altKey) return
     event.preventDefault(); event.stopPropagation(); requestedOpen.current = true
-    requestedKey.current = event.key.startsWith("Arrow") ? event.key : null
+    requestedKey.current = openKeys ? event.key : null
     pointerDown.current = false; publish(); void start()
   }} onClickCapture={(event) => {
     if (Component || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !(event.target instanceof Element) || !event.target.closest("a, button")) return

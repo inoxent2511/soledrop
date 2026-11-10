@@ -10,7 +10,8 @@ import { DomainError } from "@/server/shared/errors"
 
 // Cache only inside a single database transaction. A self-revoking change must still be able
 // to append its mandatory audit before commit; the next transaction revalidates from scratch.
-const admitted = new WeakMap<Database, Map<string, Actor>>()
+const globals = globalThis as typeof globalThis & { __soledropStaffAdmissions?: WeakMap<Database, Map<string, Actor>> }
+const admitted = globals.__soledropStaffAdmissions ??= new WeakMap<Database, Map<string, Actor>>()
 
 /** Linearizes staff authorization with revocation/role writes using the common store lock. */
 export async function currentStaffActor(db: Database, actor: Extract<Actor, { kind: "staff" }>): Promise<Actor> {

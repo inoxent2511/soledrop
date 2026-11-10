@@ -141,6 +141,17 @@ describe("staff collections and stock", () => {
     await expect(catalog().saveCollection(staffAs("support_agent"), meta, { slug: "x-y", title: "X", headline: ["", ""], description: "", kind: "manual", rules: [], seo: {}, productIds: [] })).rejects.toMatchObject({ code: "forbidden" })
   })
 
+  it("reads complete stock with only inventory permission and bounds internal page requests", async () => {
+    const staff = staffAs("fulfilment")
+    db().adminRoles.find(role => role.id === staff.roles[0].id)!.permissions = ["inventory:read"]
+    staff.permissions = ["inventory:read"]
+    const page = await catalog().stock(staff, { page: 1, pageSize: 500 })
+    expect(page.total).toBe(db().products.filter(product => ["active", "draft"].includes(product.status)).reduce((total, product) => total + product.variants.length, 0))
+    expect(page.rows).toHaveLength(page.total)
+    await expect(catalog().stock(staff, { page: 1, pageSize: 1001 })).rejects.toMatchObject({ code: "validation" })
+    await expect(catalog().stock(staffAs("content_editor"), { page: 1, pageSize: 50 })).rejects.toMatchObject({ code: "forbidden" })
+  })
+
   it("adjusts stock with a reason, records the ledger and never goes below what bags hold", async () => {
     const fulfilment = staffAs("fulfilment")
     const level = db().inventory.find((row) => row.onHand > 0)!

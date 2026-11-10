@@ -18,9 +18,11 @@ type Engine = { engine: "mysql" | "mariadb"; version: string }
 type Limits = { acquire: number; query: number; transaction: number }
 type Activity = { active: number; closing: boolean; waiters: Set<() => void> }
 type State = { pool: Pool; client: Pool; db: Database; ready: Promise<Engine>; engine?: Engine; limits: Limits; activity: Activity; connections: Set<{ destroy(): void }>; schemaCheckedAt?: number }
-const transaction = new AsyncLocalStorage<Database>()
-const sessionInitializers = new WeakMap<Pool, Map<number, Promise<void>>>()
-const globals = globalThis as typeof globalThis & { __soledropMysql?: State; __soledropMysqlShutdown?: boolean }
+const globals = globalThis as typeof globalThis & { __soledropMysql?: State; __soledropMysqlShutdown?: boolean; __soledropMysqlTransaction?: AsyncLocalStorage<Database>; __soledropMysqlSessionInitializers?: WeakMap<Pool, Map<number, Promise<void>>> }
+// Next may evaluate this module in multiple server graphs sharing the same pool.
+// The carrier must share that lifetime; its values remain isolated per async call.
+const transaction = globals.__soledropMysqlTransaction ??= new AsyncLocalStorage<Database>()
+const sessionInitializers = globals.__soledropMysqlSessionInitializers ??= new WeakMap<Pool, Map<number, Promise<void>>>()
 
 function milliseconds(name: string, fallback: number): number {
   const value = Number(process.env[name] ?? fallback)

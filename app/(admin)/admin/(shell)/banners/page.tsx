@@ -13,7 +13,7 @@ export default async function BannersPage() {
   return <>
     <PageHeader title="Banners & images" description="Change banner photos wherever they appear on the storefront. Upload photos directly in each editor or choose from Media." />
     <AdminCard title="Homepage" description="Main hero slideshow, announcement, category card photos and Instagram strip. Reorder, replace or remove images and edit their alt text.">
-      <Link href="/admin/content/home" className={adminButton({ tone: "primary" })}>Edit homepage banners</Link>
+      <Link prefetch={false} href="/admin/content/home" className={adminButton({ tone: "primary" })}>Edit homepage banners</Link>
     </AdminCard>
     <AdminCard title="Page & collection banners" description="Each page uses its own collection banner. Updating an image here changes every route that displays that collection.">
       <ul className="flex flex-col divide-y divide-border">
@@ -25,13 +25,13 @@ export default async function BannersPage() {
             </> : null}
             <div><p className="text-16 font-bold">{collection.title}</p><p className="text-14 text-subtle-foreground">{collection.slug === "new-arrivals" ? "/new-arrivals · " : ""}{collectionHref(collection.slug)}</p></div>
           </div>
-          <Link href={`/admin/collections/${collection.id}`} className={adminButton({ tone: "secondary", size: "sm" })}>Edit {collection.title} banner</Link>
+          <Link prefetch={false} href={`/admin/collections/${collection.id}`} className={adminButton({ tone: "secondary", size: "sm" })}>Edit {collection.title} banner</Link>
         </li>)}
       </ul>
       {!collections.length ? <p className="text-16 text-subtle-foreground">{can(staff, "collections:read") ? "Create a collection to add its page banner." : "Collection access is required to edit page banners."}</p> : null}
     </AdminCard>
     <AdminCard title="Product photos & featured drops" description="Product pages, cards, search results, shopping bags and the homepage featured drops use the product's own photos.">
-      {can(staff, "products:read") ? <Link href="/admin/products" className={adminButton({ tone: "secondary" })}>Manage product photos</Link> : null}
+      {can(staff, "products:read") ? <Link prefetch={false} href="/admin/products" className={adminButton({ tone: "secondary" })}>Manage product photos</Link> : null}
     </AdminCard>
   </>
 }

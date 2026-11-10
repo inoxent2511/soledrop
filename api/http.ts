@@ -21,7 +21,7 @@ export class ApiError extends Error {
   }
 }
 
-type Options = { method?: string; body?: unknown; headers?: Record<string, string>; signal?: AbortSignal }
+type Options = { method?: string; body?: unknown; headers?: Record<string, string>; signal?: AbortSignal; keepalive?: boolean }
 
 export async function request<T>(path: string, options: Options = {}): Promise<T> {
   let response: Response
@@ -32,6 +32,7 @@ export async function request<T>(path: string, options: Options = {}): Promise<T
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
       credentials: "same-origin",
       signal: options.signal,
+      ...(options.keepalive ? { keepalive: true } : {}),
     })
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error
