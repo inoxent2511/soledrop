@@ -162,3 +162,71 @@ Preliminary scout timings are diagnostic evidence, not final p95 acceptance.
 | MIG-051 | Separately bundled server modules share a pool but had separate transaction/request carriers, initialization maps and admission caches. | New native tests failed on both engines before the fix. Carriers and their supporting maps now share process lifetime; transaction data, actor identities and commit effects remain isolated per asynchronous request. Regressions cover nested rollback, concurrent connections and actors, session initialization, cross-module self-revocation and deferred invalidation. The complete native suite passes 1,473/1,473 and the application suite 1,728/1,728. Actual interrupted HTTP reads return 503 and recover to 200 after restarting both engines. Complete production browser passes remain required. |
 
 | MIG-052 | An already queued hover/idle upgrade could replace a pressed fallback despite the pointer ref guard. | A scheduler-gated regression fails on Chromium and Firefox before the fix. Pointerdown now supersedes queued publication; the new case passes in all three browsers, followed by 162/162 cold-control checks per engine (324 total), with zero skips/retries. Earlier interrupted full sweeps are diagnostic only. Two complete fresh acceptance rounds remain required. |
+
+| MIG-053 | A visible form could submit before its route-specific React handler attached; the shared header hydration check did not establish form readiness. Native GET submission could also expose entered form details in the URL. | Forms gate submission on their own hydration and explicitly use POST. Controlled editors also gate input until handlers attach. Delayed form-code regressions fail for lookup and customer login in all three browsers before the fix, then pass 30/30 per database (60 total) after it, retaining entered values and using the expected API POST without query details. A source-level architecture check prevents client mutation forms from reverting to native GET. Verify passes with 1,729 application tests. Full release acceptance remains required. |
+
+### Form and journey follow-up (2026-11-11)
+
+The resource-corrected full public sweep passed 2,832 cases per engine, but one MySQL commerce
+journey exposed MIG-053. That round is failed and does not count toward consecutive acceptance.
+The corrected browser manifest now adds six delayed-form checks: 2,838 public cases and 5,952
+total browser cases per complete two-engine round.
+
+Repeated diagnostic guest purchases depleted sizes in the isolated QA catalogue. The size
+helper now skips disabled choices. Stress-only stock was replenished for the actual linked
+product; merchant data and the frozen reference were untouched. One navigation diagnostic
+received its product RSC response in about 63 ms but reached the product heading after the
+unchanged five-second assertion. That failure is retained, without a speculative app change
+or raised timeout. The replenished journey matrix subsequently passes 12/12 per engine across
+all three browsers and both widths, with two repetitions and zero retries.
+
+A separate restricted-sandbox run crashed all eight Firefox test pages at creation, before
+application navigation. A standalone blank-page probe reproduced the crash inside the sandbox
+and passed outside it. The successful journey matrix uses the unrestricted local test runner;
+the browser launch failures are retained separately from application findings. Complete fresh
+acceptance rounds remain required and include the original navigation assertion.
+
+### Acceptance environment interruption (2026-11-10)
+
+The first corrected-build round passed verify, all 1,473 native checks, the independent clean
+build, 80 zero-difference visual comparisons and the complete performance pipeline. Its public
+sweeps were subsequently interrupted by workstation sleep/resume, confirmed by Windows power
+events. Eight simultaneous Firefox cases each recorded approximately 59 minutes and timed out;
+one account-popup case also failed just after resume. This is an invalidated round, not a clean
+acceptance pass. The original logs and failure contexts remain private and unchanged.
+
+The account case then passed 20 consecutive Firefox repetitions per database (40/40, no
+skips/retries); complete fresh rounds remain required. The local runner now requests temporary
+system-awake state for its process lifetime, releasing it on exit without changing persistent
+Windows power settings. Test deadlines, thresholds and assertions are unchanged.
+
+### Browser resource incident (2026-11-10)
+
+The subsequent second round passed preflight, all visuals and performance, then Firefox stalled
+in a homepage axe evaluation and a separate browser-context teardown (both exceeded 120 seconds).
+Other scans took about 1.4 minutes. This interrupts the consecutive-pass sequence; the earlier
+complete round remains evidence, but cannot be paired across this failed round for final sign-off.
+The failed logs/contexts are retained and no application assertion is relabelled as passing.
+
+During the incident, Firefox had 78 processes using 7.85 GiB of working memory, Node processes
+used 4.38 GiB of private memory, and only 1.43 GiB of 15.74 GiB physical memory was free. Stopping
+the owned browser tree restored 8.49 GiB free with no Firefox processes remaining. The local
+runner now caps each engine at two workers (four total), keeps banner writes at one, stops the
+reference/performance servers after their measured stage and restarts the latter for recovery
+drills. It verifies the actual reporter worker count and records browser-phase memory samples.
+All cases, rules, assertions, zero retries and existing deadlines remain. This uses the standard
+[Playwright worker limit](https://playwright.dev/docs/test-parallel#limit-workers).
+
+Focused repetitions of the exact stalled/slow cases and two new complete clean rounds are
+required before publication. No browser dependency upgrade or application change is inferred
+from these resource observations.
+
+The focused run passes 60/60 per engine (120 total): twenty repetitions each of homepage axe,
+FAQ axe and navigation/context teardown, with the original assertions. Reporter worker counts
+are exactly two, failures/skips/retries are zero, and minimum sampled free memory is 4.23 GiB.
+The fresh complete loop is running under that policy; final consecutive acceptance is pending.
+
+Public sweeps also use four sequential Playwright shards, recycling browser processes between
+batches. A list-only manifest proves four disjoint sets of 708 cases, 2,832 unique cases total.
+The runner checks each shard selection, rejects duplicate case identities and merges all totals;
+the acceptance gate still requires every case, no skips/retries and the original assertions.

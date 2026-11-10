@@ -573,3 +573,52 @@ The queued-publication fix passes its deterministic case in all three browsers a
 header/sort stress matrix three times per engine: 162/162 each, 324 total, zero skips/retries.
 The main browser list now contains 2,958 cases (2,832 public, 90 admin, 36 journeys), plus
 12 banner checks per engine. The full two-round acceptance loop must use the corrected artifact.
+
+The corrected-build acceptance round passed verify, 1,473 native checks, an independent clean
+build, all 80 frozen-reference comparisons (both databases) and the full performance pipeline.
+Workstation sleep/resume then invalidated its public sweeps: Windows power events confirm the
+interruption, and eight simultaneous Firefox cases recorded approximately 59-minute timeouts.
+A subsequent account-popup failure passed 20 isolated repetitions on each engine; that targeted
+result does not replace complete acceptance. Reports remain preserved. A temporary process-bound
+system-awake request now protects the next run from automatic sleep, without changing Windows
+power settings or application/test limits. The full loop restarts on fresh data.
+
+The first fresh complete round now passes (`m12-round-1-1794329378723.json`): 2,832 public,
+36 commerce, 90 admin and 12 banner checks per database, 5,940 browser checks total, with zero
+failures/skips/retries. All 80 frozen-reference comparisons have zero measured mismatches and
+equal heights. Verify (1,728 tests), native (1,473, including 1,000 repeated races), independent
+clean build, the full fixed performance pipeline and actual queue/restart HTTP drills pass.
+The source digest is unchanged throughout the round. The required second consecutive round
+has started on fresh data; no acceptance claim includes the earlier workstation interruption.
+
+The second round passed verify, native, clean build, 80 visual comparisons and performance, but
+Firefox then exceeded the unchanged 120-second deadline in homepage axe and context teardown.
+This breaks the consecutive-pass sequence. The host had only 1.43 GiB free physical memory;
+78 Firefox processes used 7.85 GiB working memory. Stopping the owned tree restored 8.49 GiB
+free and left no Firefox processes. The runner now caps browser concurrency at two workers per
+engine, stops idle reference/performance servers before browser sweeps and recreates performance
+servers for recovery drills. Reporter worker counts and sampled browser memory verify that
+policy. Exact-case stress checks and two new complete rounds remain required; test assertions,
+axe rules, deadlines and zero retries are retained.
+
+### Form readiness and current acceptance source (2026-11-11)
+
+The resource-corrected public sweep passes 2,832 cases per database, but its commerce phase
+exposes a real form hydration race (MIG-053). The shared header being ready does not imply the
+route's form handler is attached. Delaying the form chunk reproduces native submission in
+lookup and customer login on all three browsers. Forms now gate submission on their own
+hydration, use explicit POST, and keep controlled inputs unavailable until handlers attach.
+The regressions subsequently pass 60/60 across both databases; verify passes 1,729 application
+tests, type checking, lint and production packaging.
+
+Repeated guest diagnostics also exhaust the synthetic stock. The helper skips disabled size
+choices and stress-only replenishment targets the actual linked product. A retained Firefox
+navigation assertion misses its unchanged five-second limit despite a fast RSC response;
+no speculative navigation change is made. The replenished matrix passes all 24 guest journeys
+(two repeats, both widths, three browsers, both databases). Restricted-sandbox Firefox page
+creation crashes reproduce before app loading and disappear in an unrestricted local probe;
+the successful matrix runs outside that sandbox.
+
+The current manifest requires 2,838 public, 36 commerce, 90 admin and 12 banner cases per
+database: 5,952 browser checks per round. Two fresh complete rounds of this source are still
+required; no interrupted or failed round is combined with an earlier passing one.

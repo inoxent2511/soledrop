@@ -5,6 +5,7 @@ import { useId, useRef, useState, type FormEvent } from "react"
 import { ApiError } from "@/api/http"
 import { buttonVariants } from "@/components/ui/button-variants"
 import { useSubscribe } from "@/hooks/api/content/mutations"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { cn } from "@/lib/utils"
 
 const warmSchema = () => { void import("@/features/content/schemas/forms").catch(() => undefined) }
@@ -16,6 +17,7 @@ const warmSchema = () => { void import("@/features/content/schemas/forms").catch
  */
 export function NewsletterForm({ source = "footer" }: { source?: string }) {
   const id = useId()
+  const hydrated = useHydrated()
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const submitting = useRef(false)
@@ -48,7 +50,7 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
   const message = error ?? (done ? (subscribe.data.created ? "You're in. Watch your inbox for the next drop." : "You're already on the list — see you at the next drop.") : null)
 
   return (
-    <form noValidate onFocusCapture={warmSchema} onSubmit={onSubmit} className="flex w-full max-w-178.5 flex-col items-center gap-3">
+    <form method="post" noValidate onFocusCapture={warmSchema} onSubmit={onSubmit} className="flex w-full max-w-178.5 flex-col items-center gap-3">
       <div className="flex w-full flex-col gap-3 sm:flex-row sm:gap-3.5">
         <label htmlFor={`${id}-email`} className="sr-only">
           Email address
@@ -68,7 +70,7 @@ export function NewsletterForm({ source = "footer" }: { source?: string }) {
         <input name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" className="sr-only" />
         <button
           type="submit"
-          disabled={busy || subscribe.isPending || done}
+          disabled={!hydrated || busy || subscribe.isPending || done}
           className={cn(buttonVariants({ tone: "brand-on-ink", size: "md" }), "h-14 md:h-17 sm:w-40")}
         >
           {busy || subscribe.isPending ? "Joining…" : done ? "Joined" : "Join now"}

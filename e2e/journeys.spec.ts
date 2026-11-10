@@ -28,13 +28,15 @@ async function pickSize(page: Page, size: string) {
 }
 
 /**
- * Adds the first size that is still in stock. Product pages may show availability up to 60 s old
- * (docs/app/caching.md), so like a shopper the test moves on when the bag answers "sold out".
+ * Adds the first selectable size that is still in stock. Like a shopper, ignore disabled chips
+ * and move on when the bag rejects a size whose displayed availability became stale.
  */
 async function addFirstAvailableSize(page: Page, sizes: string[]) {
   const soldOut = page.getByRole("status").filter({ hasText: "Sorry, that size just sold out." })
   const added = page.getByRole("button", { name: "Bag, 1 item" })
   for (const size of sizes) {
+    const option = page.getByRole("radio", { name: new RegExp(`\\b${size}\\b`) }).first()
+    if (await option.isDisabled()) continue
     await pickSize(page, size)
     await page.getByRole("button", { name: "Add to cart", exact: true }).click()
     await expect(added.or(soldOut)).toBeVisible()

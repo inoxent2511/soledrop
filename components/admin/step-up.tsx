@@ -87,6 +87,7 @@ export function StepUpProvider({ children }: { children: ReactNode }) {
             <Dialog.Title className="text-20 font-extrabold">Confirm it&apos;s you</Dialog.Title>
             <Dialog.Description className="text-16 text-subtle-foreground">This action is sensitive. Enter the 6-digit code from your authenticator app to continue.</Dialog.Description>
             <form
+              method="post"
               className="flex flex-col gap-4"
               onSubmit={(event) => {
                 event.preventDefault()

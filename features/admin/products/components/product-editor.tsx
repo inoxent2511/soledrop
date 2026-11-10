@@ -14,6 +14,7 @@ import { StatusPill } from "@/components/admin/status-pill"
 import { useStepUp } from "@/components/admin/step-up"
 import { MediaPicker } from "@/features/admin/media/components/media-library"
 import { productInput, slugify, type ProductInput } from "@/features/admin/products/schema"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { cn } from "@/lib/utils"
 
 const GRADES = [
@@ -66,6 +67,7 @@ const STATUS = { active: { label: "Live", tone: "success" }, draft: { label: "Dr
 /** Create or edit a product: details, photos, sizes and prices, collections, SEO; publish and delete. */
 export function ProductEditor({ initial, brands: initialBrands, collections, can }: Props) {
   const id = useId()
+  const hydrated = useHydrated()
   const router = useRouter()
   const withStepUp = useStepUp()
   const [form, setForm] = useState(initial)
@@ -197,6 +199,8 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
 
   return (
     <form
+      method="post"
+      inert={!hydrated}
       noValidate
       className="flex flex-col gap-6"
       onSubmit={(event) => {
@@ -234,7 +238,7 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
             </button>
           ) : null}
           {can.write ? (
-            <button type="submit" disabled={saving} className={adminButton({ tone: "primary", size: "sm" })}>
+            <button type="submit" disabled={!hydrated || saving} className={adminButton({ tone: "primary", size: "sm" })}>
               {saving ? "Saving…" : form.id ? "Save" : "Create draft"}
             </button>
           ) : null}
@@ -254,7 +258,7 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
       <div className="grid items-start gap-6 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
           <AdminCard title="Details">
-            <fieldset disabled={readOnly} className="flex min-w-0 flex-col gap-4">
+            <fieldset disabled={!hydrated || readOnly} className="flex min-w-0 flex-col gap-4">
               <AdminField
                 formId={id}
                 name="title"
@@ -300,10 +304,10 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
                     <label className="text-14 font-bold" htmlFor={`${id}-alt-${index}`}>
                       Alt text
                     </label>
-                    <input id={`${id}-alt-${index}`} value={image.alt} disabled={readOnly} maxLength={300} onChange={(event) => setImage(index, { alt: event.target.value })} className={cn(adminControl, "h-9")} />
+                    <input id={`${id}-alt-${index}`} value={image.alt} disabled={!hydrated || readOnly} maxLength={300} onChange={(event) => setImage(index, { alt: event.target.value })} className={cn(adminControl, "h-9")} />
                   </div>
                   <label className="flex items-center gap-1.5 text-14">
-                    <input type="radio" name={`${id}-card`} checked={image.role === "card"} disabled={readOnly} onChange={() => setImage(index, { role: "card" })} className="size-4 accent-foreground" /> Card
+                    <input type="radio" name={`${id}-card`} checked={image.role === "card"} disabled={!hydrated || readOnly} onChange={() => setImage(index, { role: "card" })} className="size-4 accent-foreground" /> Card
                   </label>
                   {can.write ? (
                     <div className="flex gap-1">
@@ -341,17 +345,17 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
                     <tr key={row.id ?? `new-${index}`} className="border-t border-border">
                       {(["eu", "uk", "us", "cm"] as const).map((field) => (
                         <td key={field} className="px-1 py-1.5">
-                          <input aria-label={`${field.toUpperCase()} size, row ${index + 1}`} value={row[field]} disabled={readOnly} maxLength={8} onChange={(event) => setVariant(index, { [field]: event.target.value })} className={cn(adminControl, "h-9 w-16 px-2")} />
+                          <input aria-label={`${field.toUpperCase()} size, row ${index + 1}`} value={row[field]} disabled={!hydrated || readOnly} maxLength={8} onChange={(event) => setVariant(index, { [field]: event.target.value })} className={cn(adminControl, "h-9 w-16 px-2")} />
                         </td>
                       ))}
                       <td className="px-1 py-1.5">
-                        <input aria-label={`SKU, row ${index + 1}`} value={row.sku} disabled={readOnly} maxLength={40} onChange={(event) => setVariant(index, { sku: event.target.value })} aria-invalid={err(`variants.${index}.sku`) ? true : undefined} className={cn(adminControl, "h-9 w-36 px-2")} />
+                        <input aria-label={`SKU, row ${index + 1}`} value={row.sku} disabled={!hydrated || readOnly} maxLength={40} onChange={(event) => setVariant(index, { sku: event.target.value })} aria-invalid={err(`variants.${index}.sku`) ? true : undefined} className={cn(adminControl, "h-9 w-36 px-2")} />
                       </td>
                       <td className="px-1 py-1.5">
-                        <input aria-label={`Price, row ${index + 1}`} inputMode="decimal" value={row.price} disabled={readOnly || !can.price} onChange={(event) => setVariant(index, { price: event.target.value })} className={cn(adminControl, "h-9 w-28 px-2")} />
+                        <input aria-label={`Price, row ${index + 1}`} inputMode="decimal" value={row.price} disabled={!hydrated || readOnly || !can.price} onChange={(event) => setVariant(index, { price: event.target.value })} className={cn(adminControl, "h-9 w-28 px-2")} />
                       </td>
                       <td className="px-1 py-1.5">
-                        <input aria-label={`Was price, row ${index + 1}`} inputMode="decimal" value={row.compareAt} disabled={readOnly || !can.price} onChange={(event) => setVariant(index, { compareAt: event.target.value })} aria-invalid={err(`variants.${index}.compareAt`) ? true : undefined} className={cn(adminControl, "h-9 w-28 px-2")} />
+                        <input aria-label={`Was price, row ${index + 1}`} inputMode="decimal" value={row.compareAt} disabled={!hydrated || readOnly || !can.price} onChange={(event) => setVariant(index, { compareAt: event.target.value })} aria-invalid={err(`variants.${index}.compareAt`) ? true : undefined} className={cn(adminControl, "h-9 w-28 px-2")} />
                       </td>
                       <td className="px-1 py-1.5 tabular-nums">{row.id ? (form.stock[row.id] ?? 0) : "—"}</td>
                       <td className="px-1 py-1.5">
@@ -386,7 +390,7 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
           </AdminCard>
 
           <AdminCard title="Search engines">
-            <fieldset disabled={readOnly} className="flex min-w-0 flex-col gap-4">
+            <fieldset disabled={!hydrated || readOnly} className="flex min-w-0 flex-col gap-4">
               <AdminField formId={id} name="seoTitle" label={`Page title (${(form.seo.title ?? "").length}/70)`} maxLength={70} value={form.seo.title ?? ""} onChange={(event) => update({ seo: { ...form.seo, title: event.target.value } })} />
               <AdminTextarea formId={id} name="seoDescription" label={`Description (${(form.seo.description ?? "").length}/160)`} maxLength={160} value={form.seo.description ?? ""} onChange={(event) => update({ seo: { ...form.seo, description: event.target.value } })} />
             </fieldset>
@@ -395,7 +399,7 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
 
         <div className="flex min-w-0 flex-col gap-6">
           <AdminCard title="Organise">
-            <fieldset disabled={readOnly} className="flex min-w-0 flex-col gap-4">
+            <fieldset disabled={!hydrated || readOnly} className="flex min-w-0 flex-col gap-4">
               <AdminSelect formId={id} name="brandId" label="Brand" value={form.brandId} error={err("brandId")} onChange={(event) => update({ brandId: event.target.value })}>
                 <option value="">Choose a brand</option>
                 {brands.map((brand) => (

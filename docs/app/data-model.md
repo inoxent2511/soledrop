@@ -23,7 +23,7 @@ run through `pnpm db:test`. Fixtures and the saved local driver remain explicit 
 | --- | --- | --- |
 | Store and staff | `stores`, `staff_members`, `permissions`, `roles`, `role_permissions`, `staff_roles`, `staff_invites`, `staff_sessions`, `staff_recovery_codes` | Password hashes, opaque hashed session/invite tokens, sealed MFA secrets, live membership/permission checks, immutable system roles and at least one active Owner. |
 | Catalogue | `brands`, `collections`, `collection_products`, `products`, `product_images`, `variants`, attribute/custom-field definitions and projections | Optimistic versions, unique slugs/SKUs, ordered images and memberships, ordered sizes protected from deletion. Manual and rule-based collections share the existing rule engine. |
-| Inventory | `inventory_levels`, `inventory_reservations`, `inventory_movements` | Nonnegative stock, reserved stock bounded by on-hand stock, movement ledger, expiring checkout holds. |
+| Inventory | `inventory_levels`, `inventory_reservations`, `inventory_movements` | Nonnegative stock, reserved stock bounded by on-hand stock, indexed generated availability, movement ledger, expiring checkout holds. |
 | Pricing and delivery | `price_lists`, `prices`, `exchange_rates`, `tax_rates`, `shipping_zones`, `shipping_rates` and zone child tables | Currency/group/date-window eligibility, deterministic price selection, inclusive tax and existing shipping/COD rules. |
 | Promotions | `promotions`, `promotion_redemptions` | Atomic global/customer usage limits and preserved rule semantics. |
 | Customers | `customers`, `addresses`, `sessions`, `password_resets`, `customer_security`, `auth_tokens`, `oauth_accounts` | Separate customer/staff realms, credential compare-and-set, one-use proofs, transactional credential/session changes. Optional magic links, verification and OIDC remain disabled unless configured. |
@@ -44,6 +44,10 @@ Stock, checkout, order-number allocation, promotion redemption, last-Owner check
 changes acquire consistent store-first locks. Current locking reads avoid stale REPEATABLE READ
 snapshots. Deadlock/lock-timeout retries are bounded and restricted to replay-safe units. Mandatory
 audit belongs to the same transaction as staff mutations; cache invalidation runs after commit.
+
+Separately bundled server modules share the pool's transaction carrier, actor/effect carriers,
+session-initialization map and transaction-scoped admission cache. Values remain isolated per
+asynchronous request; sharing those carriers does not share a shopper's or staff member's identity.
 
 `server/orders/state-machine.ts` defines the nine canonical pre-migration order transitions, checked
 against the independent transition fixture. Cancellation, return receipt and refund restock share
@@ -67,6 +71,12 @@ weights, synonyms and Unicode behavior. Facet results use a bounded, store/query
 cache keyed by a database identity and committed catalogue revision. Product, collection and
 price mutations advance that revision inside their transaction; rollbacks cannot publish cache
 entries, and live stock and page rows are always read separately.
+
+Migration 0026 adds `inventory_levels.available`, generated from `on_hand - reserved`, and its
+variant index. Staff stock pages select narrow candidates in bounded batches and retain exact
+JavaScript title ordering; they do not truncate the catalogue at 10,000 products. Broad stock
+queries keep the availability-index-led join order, while selective scopes use the optimizer.
+Legacy missing stock rows still read as zero. Backups omit generated columns from INSERTs.
 
 Sitemap queries project at most 5,000 rows without hydrating product graphs. Large entities
 have separate sitemap files advertised in robots.txt. Draft and noindex content stays excluded.

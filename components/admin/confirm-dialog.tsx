@@ -54,6 +54,7 @@ export function ConfirmDialog({ open, onOpenChange, title, consequence, confirmL
             {consequence}
           </Dialog.Description>
           <form
+            method="post"
             className="flex flex-col gap-4"
             onSubmit={(event) => {
               event.preventDefault()

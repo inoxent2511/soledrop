@@ -5,6 +5,7 @@ import { useId, useRef, useState, type FormEvent } from "react"
 import { ApiError } from "@/api/http"
 import { buttonVariants } from "@/components/ui/button-variants"
 import { useContact } from "@/hooks/api/content/mutations"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { cn } from "@/lib/utils"
 
 const warmSchema = () => { void import("@/features/content/schemas/forms").catch(() => undefined) }
@@ -28,6 +29,7 @@ const control =
  */
 export function ContactForm() {
   const id = useId()
+  const hydrated = useHydrated()
   const contact = useContact()
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
   const [formError, setFormError] = useState<string | null>(null)
@@ -75,7 +77,7 @@ export function ContactForm() {
   }
 
   return (
-    <form noValidate onFocusCapture={warmSchema} onSubmit={onSubmit} aria-busy={busy || contact.isPending} className="flex flex-col gap-6 md:gap-10.5">
+    <form method="post" noValidate onFocusCapture={warmSchema} onSubmit={onSubmit} aria-busy={!hydrated || busy || contact.isPending} className="flex flex-col gap-6 md:gap-10.5">
       {fields.map((field) => {
         const inputId = `${id}-${field.name}`
         const error = errors[field.name]
@@ -109,7 +111,7 @@ export function ContactForm() {
         <input id={`${id}-website`} name="website" tabIndex={-1} autoComplete="off" />
       </div>
       <div className="flex flex-col gap-3 md:pt-0.5">
-        <button type="submit" disabled={busy || contact.isPending} className={cn(buttonVariants({ tone: "brand", size: "xl" }), "w-full rounded-lg border-2 border-stroke-soft md:h-19 3xl:h-19")}>
+        <button type="submit" disabled={!hydrated || busy || contact.isPending} className={cn(buttonVariants({ tone: "brand", size: "xl" }), "w-full rounded-lg border-2 border-stroke-soft md:h-19 3xl:h-19")}>
           {busy || contact.isPending ? "Sending…" : "Send message"}
         </button>
         {formError ? (

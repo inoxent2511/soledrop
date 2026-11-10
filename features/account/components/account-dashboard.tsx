@@ -11,6 +11,7 @@ import { control, FormError, FormField, useSchemaForm } from "@/features/account
 import { changePasswordSchema, deleteAccountSchema, profileSchema, savedAddressSchema } from "@/features/account/schemas/auth"
 import { PROVINCES } from "@/features/checkout/schemas/checkout"
 import { useAccountMutation, useLogout } from "@/hooks/api/account/queries"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { formatDate, formatPrice } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { CustomerAddress, CustomerProfile } from "@/server/customers/types"
@@ -126,6 +127,7 @@ function Saved({ message }: { message: string | null }) {
 
 function Details({ customer }: { customer: CustomerProfile }) {
   const id = useId()
+  const hydrated = useHydrated()
   const router = useRouter()
   const save = useAccountMutation(accountApi.updateProfile)
   const { errors, formError, validate, fail } = useSchemaForm(profileSchema)
@@ -148,7 +150,7 @@ function Details({ customer }: { customer: CustomerProfile }) {
 
   return (
     <Section id="details" title="Your details">
-      <form noValidate onSubmit={onSubmit} className="flex flex-col gap-6">
+      <form method="post" noValidate onSubmit={onSubmit} className="flex flex-col gap-6">
         <div className="grid gap-5 md:grid-cols-2">
           <FormField formId={id} name="fullName" label="Full name" autoComplete="name" defaultValue={customer.fullName} error={errors.fullName} />
           <FormField formId={id} name="phone" type="tel" label="Mobile number (optional)" autoComplete="tel" defaultValue={customer.phone ?? ""} error={errors.phone} />
@@ -158,7 +160,7 @@ function Details({ customer }: { customer: CustomerProfile }) {
           Email me new drops and offers
         </label>
         <div className="flex flex-wrap items-center gap-4">
-          <button type="submit" disabled={save.isPending} className={primary}>
+          <button type="submit" disabled={!hydrated || save.isPending} className={primary}>
             {save.isPending ? "Saving…" : "Save details"}
           </button>
           <Saved message={saved} />
@@ -231,6 +233,7 @@ function Addresses({ addresses }: { addresses: CustomerAddress[] }) {
 
 function AddressForm({ address, onDone, onCancel }: { address?: CustomerAddress; onDone: () => void; onCancel: () => void }) {
   const id = useId()
+  const hydrated = useHydrated()
   const save = useAccountMutation((input: Parameters<typeof accountApi.saveAddress>[0]) => accountApi.saveAddress(input, address?.id))
   const { errors, formError, validate, fail } = useSchemaForm(savedAddressSchema)
 
@@ -242,7 +245,7 @@ function AddressForm({ address, onDone, onCancel }: { address?: CustomerAddress;
   }
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-label={address ? "Edit address" : "New address"} className="flex flex-col gap-5 rounded-lg border-2 border-foreground p-4 md:p-5">
+    <form method="post" noValidate onSubmit={onSubmit} aria-label={address ? "Edit address" : "New address"} className="flex flex-col gap-5 rounded-lg border-2 border-foreground p-4 md:p-5">
       <div className="grid gap-5 md:grid-cols-2">
         <FormField formId={id} name="fullName" label="Full name" autoComplete="name" defaultValue={address?.fullName} error={errors.fullName} />
         <FormField formId={id} name="phone" type="tel" label="Mobile number" autoComplete="tel" defaultValue={address?.phone} error={errors.phone} />
@@ -280,7 +283,7 @@ function AddressForm({ address, onDone, onCancel }: { address?: CustomerAddress;
         Use as my default address
       </label>
       <div className="flex flex-wrap gap-4">
-        <button type="submit" disabled={save.isPending} className={primary}>
+        <button type="submit" disabled={!hydrated || save.isPending} className={primary}>
           {save.isPending ? "Saving…" : "Save address"}
         </button>
         <button type="button" onClick={onCancel} className={secondary}>
@@ -294,6 +297,7 @@ function AddressForm({ address, onDone, onCancel }: { address?: CustomerAddress;
 
 function Password() {
   const id = useId()
+  const hydrated = useHydrated()
   const change = useAccountMutation(accountApi.changePassword)
   const { errors, formError, validate, fail } = useSchemaForm(changePasswordSchema)
   const [saved, setSaved] = useState<string | null>(null)
@@ -315,13 +319,13 @@ function Password() {
 
   return (
     <Section id="password" title="Password">
-      <form noValidate onSubmit={onSubmit} className="flex flex-col gap-6">
+      <form method="post" noValidate onSubmit={onSubmit} className="flex flex-col gap-6">
         <div className="grid gap-5 md:grid-cols-2">
           <FormField formId={id} name="currentPassword" type="password" label="Current password" autoComplete="current-password" error={errors.currentPassword} />
           <FormField formId={id} name="newPassword" type="password" label="New password" autoComplete="new-password" hint="At least 8 characters, with letters and a number." error={errors.newPassword} />
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          <button type="submit" disabled={change.isPending} className={primary}>
+          <button type="submit" disabled={!hydrated || change.isPending} className={primary}>
             {change.isPending ? "Saving…" : "Change password"}
           </button>
           <Saved message={saved} />
@@ -334,6 +338,7 @@ function Password() {
 
 function Privacy() {
   const id = useId()
+  const hydrated = useHydrated()
   const router = useRouter()
   const remove = useAccountMutation(accountApi.deleteAccount)
   const { errors, formError, validate, fail } = useSchemaForm(deleteAccountSchema)
@@ -359,14 +364,14 @@ function Privacy() {
         )}
       </div>
       {open ? (
-        <form noValidate onSubmit={onSubmit} aria-label="Delete account" className="flex flex-col gap-5 rounded-lg border-2 border-destructive p-4 md:p-5">
+        <form method="post" noValidate onSubmit={onSubmit} aria-label="Delete account" className="flex flex-col gap-5 rounded-lg border-2 border-destructive p-4 md:p-5">
           <p className="text-18 font-semibold">This signs you out and permanently removes your account. It can&rsquo;t be undone.</p>
           <div className="grid gap-5 md:grid-cols-2">
             <FormField formId={id} name="password" type="password" label="Your password" autoComplete="current-password" error={errors.password} />
             <FormField formId={id} name="confirm" label="Type DELETE to confirm" autoComplete="off" error={errors.confirm} />
           </div>
           <div className="flex flex-wrap gap-4">
-            <button type="submit" disabled={remove.isPending} className={cn(primary, "bg-destructive hover:bg-foreground hover:text-background")}>
+            <button type="submit" disabled={!hydrated || remove.isPending} className={cn(primary, "bg-destructive hover:bg-foreground hover:text-background")}>
               {remove.isPending ? "Deleting…" : "Delete account"}
             </button>
             <button type="button" onClick={() => setOpen(false)} className={secondary}>

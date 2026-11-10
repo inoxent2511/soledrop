@@ -14,6 +14,7 @@ import { adminControl, AdminField, AdminTextarea, FormAlert } from "@/components
 import { RuleBuilder } from "@/components/admin/rule-builder"
 import { collectionInput } from "@/features/admin/collections/schema"
 import { slugify } from "@/features/admin/products/schema"
+import { useHydrated } from "@/hooks/use-hydrated"
 import type { Collection, CollectionRule } from "@/server/catalog/types"
 import { MediaPicker } from "@/features/admin/media/components/media-library"
 import type { StaffProductRow } from "@/server/catalog/staff"
@@ -35,6 +36,7 @@ const message = (failure: unknown) => (failure instanceof ApiError ? failure.mes
 
 /** Search products to add to a manual collection. */
 function ProductSearch({ chosen, onAdd }: { chosen: Set<string>; onAdd: (product: { id: string; title: string }) => void }) {
+  const hydrated = useHydrated()
   const [q, setQ] = useState("")
   const results = useQuery({
     queryKey: ["admin", "product-search", q],
@@ -43,7 +45,7 @@ function ProductSearch({ chosen, onAdd }: { chosen: Set<string>; onAdd: (product
   })
   return (
     <div className="flex flex-col gap-2">
-      <input type="search" aria-label="Find products to add" placeholder="Find products to add" value={q} onChange={(event) => setQ(event.target.value)} className={adminControl} />
+      <input type="search" aria-label="Find products to add" placeholder="Find products to add" disabled={!hydrated} value={q} onChange={(event) => setQ(event.target.value)} className={adminControl} />
       <ul className="flex flex-col divide-y divide-border">
         {results.data?.rows
           .filter((row) => !chosen.has(row.id))
@@ -64,6 +66,7 @@ function ProductSearch({ chosen, onAdd }: { chosen: Set<string>; onAdd: (product
 
 export function CollectionEditor({ initial, canWrite, canUpload = false }: { initial: CollectionDraft; canWrite: boolean; canUpload?: boolean }) {
   const id = useId()
+  const hydrated = useHydrated()
   const router = useRouter()
   const [form, setForm] = useState(initial)
   const [slugTouched, setSlugTouched] = useState(Boolean(initial.id))
@@ -91,6 +94,8 @@ export function CollectionEditor({ initial, canWrite, canUpload = false }: { ini
 
   return (
     <form
+      method="post"
+      inert={!hydrated}
       noValidate
       className="flex flex-col gap-6"
       onSubmit={(event) => {
@@ -99,7 +104,7 @@ export function CollectionEditor({ initial, canWrite, canUpload = false }: { ini
       }}
     >
       <AdminCard title="Details">
-        <fieldset disabled={!canWrite} className="min-w-0 flex flex-col gap-4">
+        <fieldset disabled={!hydrated || !canWrite} className="min-w-0 flex flex-col gap-4">
           <AdminField formId={id} name="title" label="Title" value={form.title} onChange={(event) => update({ title: event.target.value, ...(slugTouched ? {} : { slug: slugify(event.target.value) }) })} />
           <AdminField
             formId={id}
@@ -124,7 +129,7 @@ export function CollectionEditor({ initial, canWrite, canUpload = false }: { ini
         {form.image ? <div className="flex flex-col items-start gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element -- admin media preview */}
           <img src={form.image.url} alt={form.image.alt} width={240} height={120} className="h-32 w-60 rounded-md bg-surface object-contain" />
-          <AdminField formId={id} name="image-alt" label="Banner alt text" value={form.image.alt} disabled={!canWrite || busy} onChange={(event) => update({ image: { ...form.image!, alt: event.target.value } })} />
+          <AdminField formId={id} name="image-alt" label="Banner alt text" value={form.image.alt} disabled={!hydrated || !canWrite || busy} onChange={(event) => update({ image: { ...form.image!, alt: event.target.value } })} />
           {canWrite ? <button type="button" disabled={busy} onClick={() => update({ image: null })} className={adminButton({ tone: "ghost" })}>Remove banner</button> : null}
         </div> : <p className="text-16 text-subtle-foreground">No banner image.</p>}
         {canWrite ? <button type="button" disabled={busy} onClick={() => setPicker(true)} className={adminButton({ tone: "secondary" })}>Choose banner image</button> : null}
@@ -132,7 +137,7 @@ export function CollectionEditor({ initial, canWrite, canUpload = false }: { ini
       <MediaPicker open={picker} onOpenChange={setPicker} chosen={form.image ? [form.image.url] : []} canUpload={canUpload} onPick={(item) => { update({ image: { url: item.url, alt: item.alt, width: item.width, height: item.height } }); setPicker(false) }} />
 
       <AdminCard title="Products">
-        <fieldset disabled={!canWrite} className="min-w-0 flex flex-col gap-4">
+        <fieldset disabled={!hydrated || !canWrite} className="min-w-0 flex flex-col gap-4">
           <div role="radiogroup" aria-label="How products are chosen" className="flex flex-wrap gap-4 text-16">
             <label className="flex items-center gap-2">
               <input type="radio" checked={form.kind === "manual"} onChange={() => update({ kind: "manual" })} className="size-4 accent-foreground" /> Pick products by hand
@@ -165,7 +170,7 @@ export function CollectionEditor({ initial, canWrite, canUpload = false }: { ini
       </AdminCard>
 
       <AdminCard title="Search engines">
-        <fieldset disabled={!canWrite} className="min-w-0 flex flex-col gap-4">
+        <fieldset disabled={!hydrated || !canWrite} className="min-w-0 flex flex-col gap-4">
           <AdminField formId={id} name="seoTitle" label="Page title" maxLength={70} value={form.seo.title ?? ""} onChange={(event) => update({ seo: { ...form.seo, title: event.target.value } })} />
           <AdminTextarea formId={id} name="seoDescription" label="Description" maxLength={160} value={form.seo.description ?? ""} onChange={(event) => update({ seo: { ...form.seo, description: event.target.value } })} />
         </fieldset>
@@ -181,7 +186,7 @@ export function CollectionEditor({ initial, canWrite, canUpload = false }: { ini
           ) : (
             <span />
           )}
-          <button type="submit" disabled={busy} className={adminButton({ tone: "primary" })}>
+          <button type="submit" disabled={!hydrated || busy} className={adminButton({ tone: "primary" })}>
             {busy ? "Saving…" : form.id ? "Save" : "Create collection"}
           </button>
         </div>

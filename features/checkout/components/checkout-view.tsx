@@ -11,6 +11,7 @@ import { CheckoutSummary } from "@/features/checkout/components/checkout-summary
 import { PromoCodeForm } from "@/features/checkout/components/promo-code-form"
 import { checkoutSchema, PROVINCES } from "@/features/checkout/schemas/checkout"
 import { useCheckoutQuote, usePlaceOrder } from "@/hooks/api/checkout/mutations"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { formatPrice } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { CustomerAddress } from "@/server/customers/types"
@@ -62,6 +63,7 @@ const newKey = () => crypto.randomUUID().replaceAll("-", "")
  */
 export function CheckoutView({ context }: { context: CheckoutContext }) {
   const id = useId()
+  const hydrated = useHydrated()
   const router = useRouter()
   const quote = useCheckoutQuote()
   const place = usePlaceOrder()
@@ -133,7 +135,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
   const selectedRate = data?.shippingQuotes.find((rate) => rate.code === shippingCode)
   const codUnavailable = selectedRate ? !selectedRate.cashOnDelivery : false
   const blocked = !cart || cart.lines.length === 0 || cart.warnings.length > 0 || cart.lines.some((line) => !line.available)
-  const busy = place.isPending || place.isSuccess
+  const busy = !hydrated || place.isPending || place.isSuccess
 
   /** A cash-on-delivery choice lapses when the delivery option changes to a prepaid-only one. */
   const chosenPayment = codUnavailable && paymentMethod === "cod" ? "" : paymentMethod
@@ -234,7 +236,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
 
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-cart lg:gap-5">
           {/* The summary holds its own promotion-code form, so it sits beside this form, not inside it; Place order submits this one by id. */}
-          <form id={`${id}-form`} noValidate onSubmit={onSubmit} aria-busy={busy} aria-label="Checkout details" className="flex min-w-0 flex-col gap-5">
+          <form id={`${id}-form`} method="post" inert={!hydrated} noValidate onSubmit={onSubmit} aria-busy={busy} aria-label="Checkout details" className="flex min-w-0 flex-col gap-5">
             <Section title="Contact" number={1}>
               {context.customer ? (
                 <p className="text-18 md:text-20">
@@ -249,6 +251,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                     id={`${id}-email`}
                     name="email"
                     type="email"
+                    disabled={!hydrated}
                     autoComplete="email"
                     value={values.email}
                     onChange={(event) => set("email", event.target.value)}
@@ -299,6 +302,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                       <select
                         id={`${id}-province`}
                         name="province"
+                        disabled={!hydrated}
                         autoComplete={field.autoComplete}
                         value={values.province}
                         onChange={(event) => {
@@ -318,6 +322,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                       <input
                         id={`${id}-${field.name}`}
                         name={field.name}
+                        disabled={!hydrated}
                         type={field.type ?? "text"}
                         inputMode={field.name === "postalCode" ? "numeric" : undefined}
                         autoComplete={field.autoComplete}

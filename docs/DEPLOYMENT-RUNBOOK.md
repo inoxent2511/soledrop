@@ -5,6 +5,9 @@ bounded transactional outbox. The owner has confirmed that Web App / Node.js is 
 hPanel. Account setup and the actual hosted deployment remain owner actions; local acceptance
 does not verify the account's database, storage, mail or proxy configuration.
 
+Consult the [migration report](MIGRATION-REPORT.md) for the release's validation evidence and
+remaining source-design, account and manual checks before opening customer traffic.
+
 ## 1. Release and private merchant data
 
 There are two separate inputs:

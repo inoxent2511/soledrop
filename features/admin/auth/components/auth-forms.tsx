@@ -36,7 +36,7 @@ export function StaffLoginForm({ next }: { next: string }) {
   }
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-busy={login.isPending} className="flex flex-col gap-4">
+    <form method="post" noValidate onSubmit={onSubmit} aria-busy={login.isPending} className="flex flex-col gap-4">
       <AdminField formId={id} name="email" type="email" label="Work email" autoComplete="username" error={errors.email} />
       <AdminField formId={id} name="password" type="password" label="Password" autoComplete="current-password" error={errors.password} />
       <FormAlert>{formError}</FormAlert>
@@ -68,7 +68,7 @@ export function VerifyCodeForm({ next }: { next: string }) {
   }
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-busy={verify.isPending} className="flex flex-col gap-4">
+    <form method="post" noValidate onSubmit={onSubmit} aria-busy={verify.isPending} className="flex flex-col gap-4">
       <AdminField
         formId={id}
         name="code"
@@ -159,7 +159,7 @@ export function EnrolForm({ next }: { next: string }) {
       ) : (
         <p className="text-16 text-subtle-foreground">Preparing your code…</p>
       )}
-      <form noValidate onSubmit={onSubmit} aria-busy={confirm.isPending} className="flex flex-col gap-4">
+      <form method="post" noValidate onSubmit={onSubmit} aria-busy={confirm.isPending} className="flex flex-col gap-4">
         <AdminField formId={id} name="code" label="6-digit code" inputMode="numeric" autoComplete="one-time-code" maxLength={7} error={errors.code} />
         <FormAlert>{formError}</FormAlert>
         <button type="submit" disabled={confirm.isPending || !begin.data} className={submit}>
@@ -185,7 +185,7 @@ export function AcceptInviteForm({ token, email }: { token: string; email: strin
   }
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-busy={accept.isPending} className="flex flex-col gap-4">
+    <form method="post" noValidate onSubmit={onSubmit} aria-busy={accept.isPending} className="flex flex-col gap-4">
       <AdminField formId={id} name="email" label="Work email" value={email} readOnly autoComplete="username" />
       <AdminField formId={id} name="displayName" label="Your name" autoComplete="name" error={errors.displayName} />
       <AdminField formId={id} name="password" type="password" label="Choose a password" autoComplete="new-password" hint="At least 12 characters. A short sentence works well." error={errors.password} />

@@ -7,7 +7,7 @@ Public references checked for planning: [Node app setup](https://www.hostinger.c
 | Owner must verify | Why it matters | Where/how to check in hPanel | Implemented fallback / acceptance stage |
 | --- | --- | --- | --- |
 | Exact plan and Node app entitlement | A generic PHP site slot is not a Node process | Owner confirmed Web App / Node.js is available; exact resource allocation remains unverified | Use the existing Node entitlement; VPS remains optional (M9) |
-| Available Node version | Current Next/native modules and source maintenance scripts have version floors | Node app dashboard → runtime/build settings | Node 24.x pinned; official portable Node 24.22.2 build and 1,702 application checks pass locally; verify the account selection (M9) |
+| Available Node version | Current Next/native modules and source maintenance scripts have version floors | Node app dashboard → runtime/build settings | Node 24.x pinned; official portable Node 24.22.2 build and 1,729 application checks pass locally; verify the account selection (M9) |
 | RAM/CPU/process/request limits | Large builds, image encoding and batches can exceed shared limits | Plan/resource usage and Node app limits | Host Git build authorized; compatible Linux CI build fallback, pool default 5, upload-time variants and bounded jobs (M1/M6/M9) |
 | Database engine and exact version | CHECK behavior and SQL compatibility depend on it | Databases → management/phpMyAdmin → server/version details | Fail startup/readiness unless MySQL ≥8.0.16 or MariaDB ≥10.6; common subset targets 10.11 (M1) |
 | Connection cap per DB user | Shared plans have limited connections | Database user/plan limits; ask support for the exact per-user limit if not shown | DATABASE_POOL_MAX defaults to 5; finite queue/acquire timeout; no per-request pools (M1) |
@@ -20,7 +20,7 @@ Public references checked for planning: [Node app setup](https://www.hostinger.c
 | Persistent writable path, quota and backup coverage | Deployment must not remove uploads | File manager/SSH: confirm an absolute persistent directory outside the deployed app tree; verify quota/backups | STORAGE_DIR with startup write probe; optional S3/R2 reference adapter if persistent disk is unavailable (M6/M9) |
 | SMTP host/port/TLS/user/hourly limits | Mail delivery must respect mailbox limits | Emails → mailbox → configuration/settings and plan limits | SMTP transport plus throttled outbox; console/file sink for all local runs (M6) |
 | SPF/DKIM/DMARC settings | Deliverability cannot be proved by a local socket test | Email deliverability/DNS section; inspect records without changing them during this run | Runbook instructions and owner post-deploy checks only (M9) |
-| sharp/native binary support | Runtime image processing can fail on a different OS/ABI | Runtime logs or a trusted disposable upload smoke check after owner deployment | Generate variants at upload; fail upload clearly if encoder unavailable; package correct runtime native assets, original fallback only where documented (M6/M9) |
+| sharp/native binary support | Runtime image processing can fail on a different OS/ABI | Runtime logs or a trusted disposable upload smoke check after owner deployment | Generate variants at upload; fail upload clearly if encoder unavailable; package correct runtime native assets. Prepared v2 image reads fail closed if the required object is missing (M6/M9) |
 | Outbound HTTPS to PSP/webhooks/object storage | External integrations need network access | Plan docs/support and owner-only post-deploy smoke tests | Config-gated adapters, timeouts, outbox retry and local reference payment/console behavior (M6/M9) |
 | Process restarts, deployment behavior and log location | In-memory jobs/cache cannot be durable | Node app logs, restart controls and deployment history | MySQL/outbox remain authoritative; graceful pool shutdown; structured errors without secrets (M1/M6/M9) |
 | Upload/body/request time limits | Proxy limits may precede application validation | Node limits/plan support; owner test with permitted image sizes | App byte/pixel checks, capped encoding and batch size; clear errors, no DB orphan on failure (M6/M9) |
@@ -31,9 +31,9 @@ Public references checked for planning: [Node app setup](https://www.hostinger.c
 
 Docker and system database servers were absent at orientation. Official portable MySQL 8.0.46 and
 MariaDB 10.11.15 now run on loopback ports 3307/3308 in ignored task-owned directories. The verified
-merchant transfer restores all 79 tables to fresh databases on both engines with equal row content;
-the original 3,758 preservation checks pass per engine. All 44 originals and 528 prepared image
-variants verify by checksum. Node 24.22.2 was downloaded from nodejs.org and matched the official
+merchant transfer on migration 0026 restores all 87 tables to fresh databases on both engines with
+equal row content; the original 3,758 preservation checks pass per engine. All 44 originals and
+2,200 prepared image variants (2,244 objects total) verify by checksum. Node 24.22.2 was downloaded from nodejs.org and matched the official
 SHA-256 manifest before use. Linux/actual hPanel checks are separate from this Windows evidence.
 
 Follow [the deployment runbook](../DEPLOYMENT-RUNBOOK.md) for the code/private-data handoff,

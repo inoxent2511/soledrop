@@ -7,16 +7,19 @@ import { adminOrdersApi } from "@/api/admin/orders"
 import { ApiError } from "@/api/http"
 import { adminButton } from "@/components/admin/button"
 import { AdminTextarea, FormAlert } from "@/components/admin/form"
+import { useHydrated } from "@/hooks/use-hydrated"
 
 /** Adds a staff-only note; the page re-renders with it on the timeline. */
 export function OrderNoteForm({ number }: { number: string }) {
   const id = useId()
+  const hydrated = useHydrated()
   const router = useRouter()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   return (
     <form
+      method="post"
       className="flex flex-col gap-3"
       onSubmit={async (event) => {
         event.preventDefault()
@@ -39,7 +42,7 @@ export function OrderNoteForm({ number }: { number: string }) {
       <AdminTextarea formId={id} name="body" label="Add a staff note" hint="Only staff see notes." maxLength={2000} />
       <FormAlert>{error}</FormAlert>
       <div>
-        <button type="submit" disabled={pending} className={adminButton({ tone: "secondary", size: "sm" })}>
+        <button type="submit" disabled={!hydrated || pending} className={adminButton({ tone: "secondary", size: "sm" })}>
           {pending ? "Saving…" : "Add note"}
         </button>
       </div>

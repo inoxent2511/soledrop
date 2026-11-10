@@ -1,5 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
+import ts from "typescript"
 
 import { describe, expect, it } from "vitest"
 
@@ -20,6 +21,30 @@ const read = (file: string) => fs.readFileSync(path.join(ROOT, file), "utf8")
 const SOURCE_DIRS = ["app", "components", "features", "hooks", "lib", "server", "api", "content", "context"]
 const source = SOURCE_DIRS.flatMap((dir) => files(dir, /\.(ts|tsx)$/)).filter((file) => !file.endsWith("cn-tables.ts"))
 const ui = source.filter((file) => file.endsWith(".tsx"))
+
+describe("form submission protocol", () => {
+  it("keeps client-handled form details out of native GET URLs", () => {
+    const unsafe: string[] = []
+    for (const file of ui) {
+      const tree = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+      const visit = (node: ts.Node) => {
+        if ((ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) && node.tagName.getText(tree) === "form") {
+          const attributes = node.attributes.properties.filter(ts.isJsxAttribute)
+          const value = (name: string) => {
+            const attribute = attributes.find(item => item.name.getText(tree) === name)
+            return attribute?.initializer && ts.isStringLiteral(attribute.initializer) ? attribute.initializer.text : undefined
+          }
+          if (attributes.some(item => item.name.getText(tree) === "onSubmit") && value("role") !== "search" && !["post", "dialog"].includes(value("method") ?? "")) {
+            unsafe.push(`${file}:${tree.getLineAndCharacterOfPosition(node.getStart(tree)).line + 1}`)
+          }
+        }
+        ts.forEachChild(node, visit)
+      }
+      visit(tree)
+    }
+    expect(unsafe).toEqual([])
+  })
+})
 
 describe("data seam", () => {
   it("initialises browser schemas through the CSP-safe validation module", () => {

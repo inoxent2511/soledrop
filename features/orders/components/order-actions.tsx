@@ -96,7 +96,7 @@ export function OrderActions({ order, token }: { order: OrderDto; token: string 
         </button>
       ) : null}
       {order.canRequestReturn && returning ? (
-        <form noValidate onSubmit={onReturn} aria-labelledby={`${id}-return`} className="flex flex-col gap-4 rounded-lg border-2 border-foreground p-4">
+        <form method="post" noValidate onSubmit={onReturn} aria-labelledby={`${id}-return`} className="flex flex-col gap-4 rounded-lg border-2 border-foreground p-4">
           <p id={`${id}-return`} className="text-18 font-semibold">
             Which pairs are you returning?
           </p>

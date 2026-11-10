@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button-variants"
 import { FormError, FormField, useSchemaForm } from "@/features/account/components/form-field"
 import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from "@/features/account/schemas/auth"
 import { useLogin, useRegister } from "@/hooks/api/account/queries"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { useMutation } from "@tanstack/react-query"
 import { cn } from "@/lib/utils"
 
@@ -19,6 +20,7 @@ const values = (form: HTMLFormElement) => Object.fromEntries(new FormData(form))
 
 export function LoginForm({ next }: { next: string }) {
   const id = useId()
+  const hydrated = useHydrated()
   const router = useRouter()
   const login = useLogin()
   const { errors, formError, validate, fail } = useSchemaForm(loginSchema)
@@ -37,7 +39,7 @@ export function LoginForm({ next }: { next: string }) {
   }
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-busy={login.isPending} className={formClass}>
+    <form method="post" noValidate onSubmit={onSubmit} aria-busy={!hydrated || login.isPending} className={formClass}>
       <FormField formId={id} name="email" type="email" label="Email" autoComplete="email" error={errors.email} />
       <FormField
         formId={id}
@@ -52,7 +54,7 @@ export function LoginForm({ next }: { next: string }) {
           </Link>
         }
       />
-      <button type="submit" disabled={login.isPending} className={submit}>
+      <button type="submit" disabled={!hydrated || login.isPending} className={submit}>
         {login.isPending ? "Signing in…" : "Sign in"}
       </button>
       <FormError>{formError}</FormError>
@@ -68,6 +70,7 @@ export function LoginForm({ next }: { next: string }) {
 
 export function RegisterForm({ next }: { next: string }) {
   const id = useId()
+  const hydrated = useHydrated()
   const router = useRouter()
   const register = useRegister()
   const { errors, formError, validate, fail } = useSchemaForm(registerSchema)
@@ -87,7 +90,7 @@ export function RegisterForm({ next }: { next: string }) {
   }
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-busy={register.isPending} className={formClass}>
+    <form method="post" noValidate onSubmit={onSubmit} aria-busy={!hydrated || register.isPending} className={formClass}>
       <FormField formId={id} name="fullName" label="Full name" autoComplete="name" error={errors.fullName} />
       <FormField formId={id} name="email" type="email" label="Email" autoComplete="email" error={errors.email} />
       <FormField formId={id} name="password" type="password" label="Password" autoComplete="new-password" hint="At least 8 characters, with letters and a number." error={errors.password} />
@@ -95,7 +98,7 @@ export function RegisterForm({ next }: { next: string }) {
         <input type="checkbox" name="marketingOptIn" className="mt-1 size-5 shrink-0 accent-foreground" />
         Email me new drops and offers. Unsubscribe any time.
       </label>
-      <button type="submit" disabled={register.isPending} className={submit}>
+      <button type="submit" disabled={!hydrated || register.isPending} className={submit}>
         {register.isPending ? "Creating account…" : "Create account"}
       </button>
       <FormError>{formError}</FormError>
@@ -119,6 +122,7 @@ export function RegisterForm({ next }: { next: string }) {
 
 export function ForgotPasswordForm() {
   const id = useId()
+  const hydrated = useHydrated()
   const request = useMutation({ mutationFn: authApi.forgotPassword })
   const { errors, formError, validate, fail } = useSchemaForm(forgotPasswordSchema)
 
@@ -138,9 +142,9 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-busy={request.isPending} className={formClass}>
+    <form method="post" noValidate onSubmit={onSubmit} aria-busy={!hydrated || request.isPending} className={formClass}>
       <FormField formId={id} name="email" type="email" label="Email" autoComplete="email" error={errors.email} />
-      <button type="submit" disabled={request.isPending} className={submit}>
+      <button type="submit" disabled={!hydrated || request.isPending} className={submit}>
         {request.isPending ? "Sending…" : "Send reset link"}
       </button>
       <FormError>{formError}</FormError>
@@ -150,6 +154,7 @@ export function ForgotPasswordForm() {
 
 export function ResetPasswordForm({ token }: { token: string }) {
   const id = useId()
+  const hydrated = useHydrated()
   const reset = useMutation({ mutationFn: (password: string) => authApi.resetPassword(token, password) })
   const { errors, formError, validate, fail } = useSchemaForm(resetPasswordSchema)
   const [shown, setShown] = useState(false)
@@ -173,13 +178,13 @@ export function ResetPasswordForm({ token }: { token: string }) {
   }
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-busy={reset.isPending} className={formClass}>
+    <form method="post" noValidate onSubmit={onSubmit} aria-busy={!hydrated || reset.isPending} className={formClass}>
       <FormField formId={id} name="password" type={shown ? "text" : "password"} label="New password" autoComplete="new-password" hint="At least 8 characters, with letters and a number." error={errors.password ?? errors.token} />
       <label className="flex min-h-11 items-center gap-3 text-16 font-medium md:text-18">
         <input type="checkbox" checked={shown} onChange={(event) => setShown(event.target.checked)} className="size-5 accent-foreground" />
         Show password
       </label>
-      <button type="submit" disabled={reset.isPending} className={submit}>
+      <button type="submit" disabled={!hydrated || reset.isPending} className={submit}>
         {reset.isPending ? "Saving…" : "Save new password"}
       </button>
       <FormError>{formError}</FormError>

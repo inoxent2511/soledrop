@@ -18,6 +18,7 @@ import { useStepUp } from "@/components/admin/step-up"
 import { useSchemaForm } from "@/features/account/components/form-field"
 import { staffPasswordSchema } from "@/features/admin/auth/schemas"
 import { useChangeStaffPassword, useRevokeSession, useStaffSessions } from "@/hooks/api/admin/account/queries"
+import { useHydrated } from "@/hooks/use-hydrated"
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })
 
@@ -92,6 +93,7 @@ const passwordForm = z
 
 export function PasswordPanel() {
   const id = useId()
+  const hydrated = useHydrated()
   const change = useChangeStaffPassword()
   const { errors, formError, validate, fail } = useSchemaForm(passwordForm)
 
@@ -105,7 +107,7 @@ export function PasswordPanel() {
 
   return (
     <AdminCard title="Password" description="Changing it signs you out on your other devices.">
-      <form noValidate onSubmit={onSubmit} className="flex max-w-md flex-col gap-4">
+      <form method="post" noValidate onSubmit={onSubmit} className="flex max-w-md flex-col gap-4">
         <AdminField formId={id} name="currentPassword" type="password" label="Current password" autoComplete="current-password" error={errors.currentPassword} />
         <AdminField formId={id} name="newPassword" type="password" label="New password" autoComplete="new-password" hint="At least 12 characters." error={errors.newPassword} />
         <AdminField formId={id} name="confirmPassword" type="password" label="Repeat the new password" autoComplete="new-password" error={errors.confirmPassword} />
@@ -115,7 +117,7 @@ export function PasswordPanel() {
             Password changed.
           </p>
         ) : null}
-        <button type="submit" disabled={change.isPending} className={adminButton({ tone: "primary" })}>
+        <button type="submit" disabled={!hydrated || change.isPending} className={adminButton({ tone: "primary" })}>
           {change.isPending ? "Saving…" : "Change password"}
         </button>
       </form>

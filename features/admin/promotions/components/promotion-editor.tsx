@@ -116,6 +116,8 @@ export function PromotionEditor({ initial, collections, canWrite }: { initial: P
 
   return (
     <form
+      method="post"
+      inert={!hydrated}
       noValidate
       className="grid items-start gap-6 lg:grid-cols-3"
       onSubmit={(event) => {
@@ -237,7 +239,7 @@ export function PromotionEditor({ initial, collections, canWrite }: { initial: P
         <FormAlert>{error}</FormAlert>
         {canWrite ? (
           <div className="flex justify-end">
-            <button type="submit" disabled={busy} className={adminButton({ tone: "primary" })}>
+            <button type="submit" disabled={!hydrated || busy} className={adminButton({ tone: "primary" })}>
               {busy ? "Saving…" : form.id ? "Save" : "Create promotion"}
             </button>
           </div>

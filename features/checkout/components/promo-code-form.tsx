@@ -4,6 +4,7 @@ import { useId, useState, type FormEvent } from "react"
 
 import { ApiError } from "@/api/http"
 import { useApplyCode, useRemoveCode } from "@/hooks/api/cart/useCartMutations"
+import { useHydrated } from "@/hooks/use-hydrated"
 import type { Cart } from "@/server/cart/types"
 
 /**
@@ -12,6 +13,7 @@ import type { Cart } from "@/server/cart/types"
  */
 export function PromoCodeForm({ cart, onChange }: { cart: Cart; onChange: () => void }) {
   const id = useId()
+  const hydrated = useHydrated()
   const apply = useApplyCode()
   const remove = useRemoveCode()
   const [error, setError] = useState<string | null>(null)
@@ -39,7 +41,7 @@ export function PromoCodeForm({ cart, onChange }: { cart: Cart; onChange: () => 
 
   return (
     <div className="flex flex-col gap-3">
-      <form noValidate onSubmit={onSubmit} className="flex flex-col gap-2">
+      <form method="post" noValidate onSubmit={onSubmit} className="flex flex-col gap-2">
         <label htmlFor={`${id}-code`} className="text-16 font-bold md:text-18">
           Promotion code
         </label>
@@ -56,7 +58,7 @@ export function PromoCodeForm({ cart, onChange }: { cart: Cart; onChange: () => 
           />
           <button
             type="submit"
-            disabled={apply.isPending}
+            disabled={!hydrated || apply.isPending}
             className="h-13 shrink-0 rounded-lg border-2 border-foreground px-5 text-16 font-bold uppercase transition-colors hover:bg-foreground hover:text-background disabled:opacity-50"
           >
             {apply.isPending ? "Checking…" : "Apply"}

@@ -178,7 +178,7 @@ export function MiniCart({ className }: { className: string }) {
                   ))}
                 </ul>
 
-                <form onSubmit={onCode} className="flex flex-col gap-2">
+                <form method="post" onSubmit={onCode} className="flex flex-col gap-2">
                   <label htmlFor={codeId} className="text-14 font-bold tracking-wide-2 uppercase">
                     Promo code
                   </label>

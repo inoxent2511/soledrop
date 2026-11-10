@@ -1,6 +1,6 @@
 # Migration inventory: PostgreSQL to MySQL/MariaDB
 
-Historical migration paths below are labelled `(retired migrations)`; those files belong to the pre-migration revision and are not current deployment inputs.
+Historical references use `(retired migrations)` and `legacy-hosted` as generic labels for the removed provider paths. Source excerpts adapt provider identifiers and are not current, copyable code. Consult baseline `8bdc580` for original paths and bytes; these references are not deployment inputs.
 
 Baseline: local commit 8bdc580 (A14). This is a plumbing migration. Existing components, routes, tokens, copy and UI journeys stay frozen. No remote account, database, payment or email is used.
 
@@ -10,7 +10,7 @@ M0 inventory/baseline; M1 SQL schema/pool/UUID/migrator; M2 repositories/contrac
 
 ## Observed starting state
 
-The legacy SQL implementation uses the former platform, but the live local preview uses a saved file driver. Customer/staff auth already uses in-app scrypt, hashed opaque sessions, separate cookies and staff TOTP; no the former identity provider SDK methods implement those journeys. No existing magic-link/OAuth/email-verification, reviews, wishlist, saved-view or version-history screens/tables were found. Product/page drafts and optimistic updatedAt guards do exist and stay. Optional new auth capabilities must preserve default screens and not require unavailable providers.
+At orientation, the legacy SQL implementation used the former hosted platform, while the local preview used a saved file driver. Customer/staff auth already used in-app scrypt, hashed opaque sessions, separate cookies and staff TOTP; no external identity SDK implemented those journeys. No existing magic-link/OAuth/email-verification, reviews, wishlist, saved-view or version-history screens/tables were found. Product/page drafts and optimistic updatedAt guards do exist and stay. Optional new auth capabilities must preserve default screens and not require unavailable providers.
 
 The private saved catalogue and uploads must be imported without changing IDs, prices, stock, order history or MFA setup. Existing UUIDv4 IDs are retained in BINARY(16); new IDs use UUIDv7. Natural business keys remain natural keys.
 
@@ -1576,16 +1576,16 @@ Each replacement is enforced in actor-scoped queries, never only route guards: p
 | --- | --- |
 | Customer login/signup/reset/profile/address/session/export/delete | Preserve screens/cookies, harden first-party primitives, actor-scoped persistence (M4/M5) |
 | Staff invite/login/TOTP/recovery/AAL/step-up/revocation | Preserve identities/sealed MFA and separate cookies; maintained TOTP library; explicit freshness/revocation (M4/M5) |
-| the former identity provider SDK | No runtime use found; unused dependency/config removed (M8) |
+| legacy identity provider SDK | No runtime use found; unused dependency/config removed (M8) |
 | media Storage bucket upload/download/remove | Same public route; persistent external local-disk root, upload-time variants, S3/R2 reference, signed private reads (M6) |
 | pg_trgm/search RPCs | FULLTEXT search_documents, search_terms vocabulary, prefix/SKU, service synonyms/typos, reference search adapter (M6) |
 | Resend/console email | SMTP/nodemailer plus console/file sink; transactional outbox throttle/retry (M6) |
 | rate_limit_hit | Atomic fixed-window upsert + cleanup job (M3/M6) |
 | JOBS_SECRET; /api/jobs | CRON_SECRET; same routes, cron/external scheduler, bounded idempotent processing (M6) |
-| the former platform Realtime | No subscriptions found; existing polling/revalidation preserved (M6) |
-| @the former platform/ssr; @the former platform/the former platform-js | Remove after repository acceptance; Drizzle + mysql2 replace transport (M8) |
+| legacy hosted platform Realtime | No subscriptions found; existing polling/revalidation preserved (M6) |
+| @legacy hosted platform/ssr; @legacy-hosted/client | Remove after repository acceptance; Drizzle + mysql2 replace transport (M8) |
 | @electric-sql/pglite / legacy SQL tests | Port each invariant/RLS intent to real-engine contract/actor/grant tests before removal (M2/M5/M8) |
-| the former platform_URL / service-role / NEXT_PUBLIC_the former platform_* | DATABASE_URL/pool/TLS; no browser database config (M1/M8) |
+| legacy hosted platform_URL / service-role / NEXT_PUBLIC_LEGACY_HOSTED_* | DATABASE_URL/pool/TLS; no browser database config (M1/M8) |
 | SESSION_SECRET | AUTH_SECRET continuity import; no session/MFA loss (M4/M8) |
 | standalone / Dockerfile / serve script | Locally built Hostinger artifact, PORT/HOSTNAME, external storage, no dev runtime deps (M9) |
 
@@ -1614,389 +1614,389 @@ Every matching tracked line follows. SQL ports at M1/M3; source/env/dependencies
 
 | File:line | Existing mention | Replacement stage |
 | --- | --- | --- |
-| .env.example:5 | # local (saved to LOCAL_DATA_DIR; one server process) \| fixtures (isolated QA only) \| the former platform | M1/M2/M6/M8 |
-| .env.example:16 | # ── Database (DATA_DRIVER=the former platform) ────────────────────────────────────────── | M1/M2/M6/M8 |
+| .env.example:5 | # local (saved to LOCAL_DATA_DIR; one server process) \| fixtures (isolated QA only) \| legacy hosted platform | M1/M2/M6/M8 |
+| .env.example:16 | # ── Database (DATA_DRIVER=legacy hosted platform) ────────────────────────────────────────── | M1/M2/M6/M8 |
 | .env.example:18 | # Server only: bypasses RLS | M1/M2/M6/M8 |
-| .env.example:58 | # on = DEMO staff accounts (one per preset role) in the fixtures driver; never with the former platform (A-011) | M1/M2/M6/M8 |
+| .env.example:58 | # on = DEMO staff accounts (one per preset role) in the fixtures driver; never with legacy hosted platform (A-011) | M1/M2/M6/M8 |
 | README.md:12 | Run one server process per local data directory. Initial private Owner credentials for this migrated workspace are in ignored `.data/store/owner-bootstrap.json`; record them securely. New stores use `pnpm admin:create-owner` after configuring private secrets.  | M1/M2/M6/M8 |
-| app/(admin)/admin/(shell)/settings/page.tsx:85 | <p className="text-16">Driver: {integrations.driver === "fixtures" ? "In-memory sample data (no database)" : integrations.driver === "local" ? "Saved local store" : "the former platform Postgres"}</p> | M1/M2/M6/M8 |
-| docs/DEPLOYMENT-RUNBOOK.md:11 | \| Database \| `(retired migrations)/*.sql` (forward only) \| Postgres 15+ with the the former platform `auth` schema (RLS helpers use `auth.uid()`). \| | M8/M9; historical notes retained |
+| app/(admin)/admin/(shell)/settings/page.tsx:85 | <p className="text-16">Driver: {integrations.driver === "fixtures" ? "In-memory sample data (no database)" : integrations.driver === "local" ? "Saved local store" : "legacy hosted platform Postgres"}</p> | M1/M2/M6/M8 |
+| docs/DEPLOYMENT-RUNBOOK.md:11 | \| Database \| `(retired migrations)/*.sql` (forward only) \| Postgres 15+ with the legacy hosted platform `auth` schema (RLS helpers use `auth.uid()`). \| | M8/M9; historical notes retained |
 | docs/DEPLOYMENT-RUNBOOK.md:12 | \| Bootstrap \| `the former seed SQL` \| Empty store, retail price list, base-currency identity rate and disabled integration flags. Sample catalogue SQL and images live in `qa/fixtures` and are never production seeds. \| | M8/M9; historical notes retained |
-| docs/DEPLOYMENT-RUNBOOK.md:21 | Required in production: `NEXT_PUBLIC_SITE_URL` (build argument), `DATA_DRIVER=the former platform`, | M8/M9; historical notes retained |
-| docs/DEPLOYMENT-RUNBOOK.md:32 | For saved local operation and banner controls, see [catalogue and banners](app/admin/catalogue-and-banners.md). `DATA_DRIVER=local` is a single-process local preview; hosted deployments use the former platform and remain stateless. | M8/M9; historical notes retained |
-| docs/DEPLOYMENT-RUNBOOK.md:38 | `the former platform_SERVICE_ROLE_KEY` is read only by `server/db/the former platform.ts` (enforced by | M8/M9; historical notes retained |
-| docs/DEPLOYMENT-RUNBOOK.md:45 | 2. **Local the former platform** (needs Docker + the former platform CLI): `the former platform start`, `the former platform db reset` (migrations | M8/M9; historical notes retained |
-| docs/DEPLOYMENT-RUNBOOK.md:46 | + seed), set `DATA_DRIVER=the former platform`, `the former platform_URL=http://127.0.0.1:54321` and the printed | M8/M9; historical notes retained |
-| docs/DEPLOYMENT-RUNBOOK.md:49 | `the former platform link --project-ref <ref>` and `the retired migration CLI`. Apply the minimal `the former seed SQL` | M8/M9; historical notes retained |
-| docs/DEPLOYMENT-RUNBOOK.md:58 | 7. **Smoke**: `GET /api/health` → 200, `GET /api/ready` → 200 with `"driver":"the former platform"`, place a COD | M8/M9; historical notes retained |
-| docs/DEPLOYMENT-RUNBOOK.md:90 | - **Backups**: the former platform point-in-time recovery on the hosted plan; test a restore before launch. | M8/M9; historical notes retained |
+| docs/DEPLOYMENT-RUNBOOK.md:21 | Required in production: `NEXT_PUBLIC_SITE_URL` (build argument), `DATA_DRIVER=legacy hosted platform`, | M8/M9; historical notes retained |
+| docs/DEPLOYMENT-RUNBOOK.md:32 | For saved local operation and banner controls, see [catalogue and banners](app/admin/catalogue-and-banners.md). `DATA_DRIVER=local` is a single-process local preview; hosted deployments use legacy hosted platform and remain stateless. | M8/M9; historical notes retained |
+| docs/DEPLOYMENT-RUNBOOK.md:38 | `legacy hosted platform_SERVICE_ROLE_KEY` is read only by `server/db/legacy-hosted.ts` (enforced by | M8/M9; historical notes retained |
+| docs/DEPLOYMENT-RUNBOOK.md:45 | 2. **Local legacy hosted platform** (needs Docker + legacy hosted platform CLI): `legacy hosted platform start`, `legacy hosted platform db reset` (migrations | M8/M9; historical notes retained |
+| docs/DEPLOYMENT-RUNBOOK.md:46 | + seed), set `DATA_DRIVER=legacy hosted platform`, `legacy hosted platform_URL=http://127.0.0.1:54321` and the printed | M8/M9; historical notes retained |
+| docs/DEPLOYMENT-RUNBOOK.md:49 | `legacy hosted platform link --project-ref <ref>` and `the retired migration CLI`. Apply the minimal `the former seed SQL` | M8/M9; historical notes retained |
+| docs/DEPLOYMENT-RUNBOOK.md:58 | 7. **Smoke**: `GET /api/health` → 200, `GET /api/ready` → 200 with `"driver":"legacy hosted platform"`, place a COD | M8/M9; historical notes retained |
+| docs/DEPLOYMENT-RUNBOOK.md:90 | - **Backups**: legacy hosted platform point-in-time recovery on the hosted plan; test a restore before launch. | M8/M9; historical notes retained |
 | docs/DEPLOYMENT-RUNBOOK.md:100 | Push a migration that disables RLS; edit an applied migration; run `seed.sql` on production; expose the | M8/M9; historical notes retained |
-| docs/DEPLOYMENT-RUNBOOK.md:109 | - **First Owner, local the former platform**: `pnpm admin:create-owner --email you@example.com` writes a one-time | M8/M9; historical notes retained |
-| docs/DEPLOYMENT-RUNBOOK.md:112 | - **First Owner, hosted database**: in the the former platform SQL editor, insert the invite yourself (the token is | M8/M9; historical notes retained |
-| docs/DEPLOYMENT-RUNBOOK.md:125 | start with them and `DATA_DRIVER=the former platform`. | M8/M9; historical notes retained |
+| docs/DEPLOYMENT-RUNBOOK.md:109 | - **First Owner, local legacy hosted platform**: `pnpm admin:create-owner --email you@example.com` writes a one-time | M8/M9; historical notes retained |
+| docs/DEPLOYMENT-RUNBOOK.md:112 | - **First Owner, hosted database**: in the legacy hosted platform SQL editor, insert the invite yourself (the token is | M8/M9; historical notes retained |
+| docs/DEPLOYMENT-RUNBOOK.md:125 | start with them and `DATA_DRIVER=legacy hosted platform`. | M8/M9; historical notes retained |
 | docs/app/admin/admin-decisions.md:7 | \| A-001 \| security \| Staff identity \| Staff sign in with the app's own staff auth: scrypt password hashes (the customer `password.ts`), hashed opaque session tokens in an `httpOnly` cookie (`sd_staff`, path `/`, `SameSite=Strict`), and mandatory TOTP (RFC 6238 | M8/M9; historical notes retained |
 | docs/app/admin/admin-decisions.md:12 | \| A-006 \| security \| Three layers \| (1) `proxy.ts` redirects `/admin/**` without a staff cookie to `/admin/login`; (2) `requireStaff()` / `requirePermission()` (`server/admin/dal.ts`, `server-only`) open every admin page, route handler and server function; a t | M8/M9; historical notes retained |
 | docs/app/admin/admin-decisions.md:17 | \| A-011 \| security \| Demo staff \| `ADMIN_DEMO_STAFF=on` seeds one **DEMO** staff member per preset role into the fixtures driver (`<role>@demo.soledrop.local`, password `Demo-Staff-2026!`, TOTP secret derived from the role key, `server/fixtures/admin-seed.ts`) | M8/M9; historical notes retained |
-| docs/app/admin/admin-decisions.md:19 | \| A-013 \| derived \| Owner bootstrap \| The first Owner comes from `pnpm admin:create-owner --email you@…` (`scripts/create-owner.mjs`), which writes a one-time Owner invite into the **local** the former platform database (it refuses any non-local `the former platform_URL`) and print | M8/M9; historical notes retained |
+| docs/app/admin/admin-decisions.md:19 | \| A-013 \| derived \| Owner bootstrap \| The first Owner comes from `pnpm admin:create-owner --email you@…` (`scripts/create-owner.mjs`), which writes a one-time Owner invite into the **local** legacy hosted platform database (it refuses any non-local `legacy hosted platform_URL`) and print | M8/M9; historical notes retained |
 | docs/app/admin/admin-decisions.md:20 | \| A-014 \| security \| Media uploads \| Images are accepted by their bytes (JPEG/PNG/WebP/AVIF magic numbers), at most 10 MB and 40 megapixels, then decoded and re-encoded with sharp to WebP (≤ 2400 px, metadata dropped); anything sharp can't decode is refused. F | M8/M9; historical notes retained |
 | docs/app/admin/admin-decisions.md:27 | \| A-021 \| derived \| Saved local store \| Normal local work defaults to a saved single-process file driver, reusing the domain repository operations behind a serialized queue. Snapshots are checksummed and atomically replaced; private media lives beside them. Fi | M8/M9; historical notes retained |
 | docs/app/admin/audit-events.md:21 | Who can read it: `audit:read` (Owner, Admin) through the admin, and through RLS (`audit_read` policy, `has_permission(store_id, 'audit:read')`). | M8/M9; historical notes retained |
 | docs/app/admin/catalogue-and-banners.md:3 | The normal local store uses `DATA_DRIVER=local`. Catalogue, content, commerce and staff records are saved under `LOCAL_DATA_DIR` (default `.data/store`). Restarting never restores sample products or replaces admin edits. Explicit `DATA_DRIVER=fixtures` remains | M8/M9; historical notes retained |
 | docs/app/admin/catalogue-and-banners.md:28 | The source of truth is now the saved store. Product/merchandising files moved out of `public` into `qa/fixtures/images` for isolated regressions. `the former seed SQL` now creates only operating configuration: an empty store, retail price list, PKR identity rate | M8/M9; historical notes retained |
-| docs/app/admin/catalogue-and-banners.md:40 | - This local file driver supports one server process on one machine. Do not share it between replicas or put it on an ephemeral serverless filesystem. Hosted deployments use the existing the former platform path, the forward migrations and a private `media` Storage bucke | M8/M9; historical notes retained |
+| docs/app/admin/catalogue-and-banners.md:40 | - This local file driver supports one server process on one machine. Do not share it between replicas or put it on an ephemeral serverless filesystem. Hosted deployments use the existing legacy hosted platform path, the forward migrations and a private `media` Storage bucke | M8/M9; historical notes retained |
 | docs/app/admin/security.md:12 | \| A logged-in member doing more than their role \| `adminRoute(access)` on every handler (architecture test), `permissionPage()` on every page, service-level permission checks on every operation, RLS `has_permission()` as the database backstop (A-006) \| `e2e/ad | M8/M9; historical notes retained |
-| docs/app/admin/security.md:27 | - Staff identity is in-house, not the former identity provider (A-001); RLS policies are written for the former platform-Auth users, so with in-house sessions the database layer protects against the anon key and customer tokens, while staff checks happen in layers 1–2. | M8/M9; historical notes retained |
-| docs/app/admin/security.md:28 | - The fixtures driver keeps sessions and media in process memory: a restart signs everyone out and drops uploads. Production uses the the former platform driver. | M8/M9; historical notes retained |
+| docs/app/admin/security.md:27 | - Staff identity is in-house, not legacy identity provider (A-001); RLS policies are written for legacy hosted platform-Auth users, so with in-house sessions the database layer protects against the anon key and customer tokens, while staff checks happen in layers 1–2. | M8/M9; historical notes retained |
+| docs/app/admin/security.md:28 | - The fixtures driver keeps sessions and media in process memory: a restart signs everyone out and drops uploads. Production uses the legacy hosted platform driver. | M8/M9; historical notes retained |
 | docs/app/admin/verification.md:7 | - Typecheck and zero-warning lint passed. All **200 tests in 25 files** passed, including migration metadata recovery, saved uploads, publishing, deletion, failed-write rollback, locking/corruption handling and the homepage SQL/RLS checks. | M8/M9; historical notes retained |
-| docs/app/admin/verification.md:46 | - Database tests apply migrations and check RPCs/RLS in PGlite. Real Postgres parallel-connection contention, hosted the former platform and Storage integration remain unverified. | M8/M9; historical notes retained |
-| docs/app/api.md:21 | `server/db/the former platform.ts` maps them to the same codes. | M8/M9; historical notes retained |
-| docs/app/build-log.md:11 | - Did not start application code. The session also had no shell (no pnpm, next build, tests, Playwright, the former platform CLI or git), so no stage could reach "Done when:" or be verified/committed. Writing unverified code would break the "never mark green without runn | M8/M9; historical notes retained |
-| docs/app/build-log.md:23 | - Data seam: `server/<domain>` with fixtures and the former platform repositories selected by `DATA_DRIVER`. | M8/M9; historical notes retained |
-| docs/app/build-log.md:24 | - Database: `the former platform/migrations` (42 tables, RLS deny by default, SECURITY DEFINER staff-role pair with `search_path=''`, all RPCs), and `the former seed SQL` generated from the fixtures. | M8/M9; historical notes retained |
-| docs/app/build-log.md:31 | - Hand-off: `.env.example` (checked by a test), Dockerfile, `.dockerignore`, `the former platform/config.toml`, `docs/DEPLOYMENT-RUNBOOK.md`, `docs/app/{phase-2,data-model,api,caching,events}.md`. | M8/M9; historical notes retained |
+| docs/app/admin/verification.md:46 | - Database tests apply migrations and check RPCs/RLS in PGlite. Real Postgres parallel-connection contention, hosted legacy hosted platform and Storage integration remain unverified. | M8/M9; historical notes retained |
+| docs/app/api.md:21 | `server/db/legacy-hosted.ts` maps them to the same codes. | M8/M9; historical notes retained |
+| docs/app/build-log.md:11 | - Did not start application code. The session also had no shell (no pnpm, next build, tests, Playwright, legacy hosted platform CLI or git), so no stage could reach "Done when:" or be verified/committed. Writing unverified code would break the "never mark green without runn | M8/M9; historical notes retained |
+| docs/app/build-log.md:23 | - Data seam: `server/<domain>` with fixtures and legacy hosted platform repositories selected by `DATA_DRIVER`. | M8/M9; historical notes retained |
+| docs/app/build-log.md:24 | - Database: `retired migrations` (42 tables, RLS deny by default, SECURITY DEFINER staff-role pair with `search_path=''`, all RPCs), and `the former seed SQL` generated from the fixtures. | M8/M9; historical notes retained |
+| docs/app/build-log.md:31 | - Hand-off: `.env.example` (checked by a test), Dockerfile, `.dockerignore`, `legacy hosted platform/config.toml`, `docs/DEPLOYMENT-RUNBOOK.md`, `docs/app/{phase-2,data-model,api,caching,events}.md`. | M8/M9; historical notes retained |
 | docs/app/build-log.md:34 | - vitest 70/70 ✓: RPC/contention 26, RLS 8, seed 2, unit/architecture/integration 34. | M8/M9; historical notes retained |
-| docs/app/build-log.md:42 | - No Docker, the former platform CLI or Postgres server, so `the former platform start`/`db reset` and parallel-connection lock tests can't run. PGlite serialises calls. | M8/M9; historical notes retained |
+| docs/app/build-log.md:42 | - No Docker, legacy hosted platform CLI or Postgres server, so `legacy hosted platform start`/`db reset` and parallel-connection lock tests can't run. PGlite serialises calls. | M8/M9; historical notes retained |
 | docs/app/build-log.md:47 | - Migration `20261107090000_admin_foundation.sql` (additive): staff identity columns, `permissions`, `roles`, `role_permissions`, `staff_roles`, `staff_invites`, `staff_sessions`, audit context columns, `has_permission()` (SECURITY DEFINER, `search_path=''`),  | M8/M9; historical notes retained |
-| docs/app/build-log.md:51 | - Tooling: `pnpm admin:docs` (generates `docs/app/admin/permissions.md`), `pnpm admin:create-owner` (local the former platform only), `.env.example` now committed (it was gitignored), DEMO staff for QA (`ADMIN_DEMO_STAFF=on` in `qa/serve.mjs`). | M8/M9; historical notes retained |
+| docs/app/build-log.md:51 | - Tooling: `pnpm admin:docs` (generates `docs/app/admin/permissions.md`), `pnpm admin:create-owner` (local legacy hosted platform only), `.env.example` now committed (it was gitignored), DEMO staff for QA (`ADMIN_DEMO_STAFF=on` in `qa/serve.mjs`). | M8/M9; historical notes retained |
 | docs/app/build-log.md:60 | - `server/orders`: staff search (number, email, name, phone; status, payment, method, date range; four sorts; paging), refunds list, return approve/reject, staff notes. Both drivers, plus migration `20261108090000_admin_orders.sql` (`order_notes` with RLS, sea | M8/M9; historical notes retained |
 | docs/app/build-log.md:64 | Verified: tsc ✓, eslint ✓, vitest (admin orders integration 6, admin DB 9 incl. order notes RLS) ✓, `next build` ✓, Playwright Chromium admin-auth 9/9 + admin-orders 3/3 ✓. | M8/M9; historical notes retained |
 | docs/app/build-log.md:68 | - Catalogue repository (both drivers): staff search over every status, by-id reads, `saveProduct` (migration `20261109090000_admin_catalog.sql`: `save_product` RPC with millisecond optimistic concurrency, slug/SKU uniqueness, ordered sizes protected), delete f | M8/M9; historical notes retained |
-| docs/app/build-log.md:71 | - CSV export now neutralises formula cells for every export (done in A2) and staff search terms are sanitised in one place (`server/db/the former platform.ts#searchTerm`). | M8/M9; historical notes retained |
-| docs/app/build-log.md:126 | - The cross-browser attempt exposed BUG-021 (Zod's dynamic-code probe violates the nonce CSP in Firefox) and BUG-022 (checkout holds surviving bag changes, plus the former platform release deleting rows without restoring reserved counts). The red attempt was interrupted  | M8/M9; historical notes retained |
-| docs/app/build-log.md:128 | - Cart line/quantity changes release prior holds. the former platform uses the existing `reserve_stock` RPC with an empty replacement; integration and PGlite tests cover stock restoration, repeated release, and isolation from another cart's holds. | M8/M9; historical notes retained |
-| docs/app/build-log.md:146 | Implementation: local commit `8777e34` (QA fixes and component gallery). Resolved BUG-018–BUG-023: sale-savings contrast, the New Arrival keyboard regression, sort naming during hydration, Zod/CSP compatibility, checkout reservation release (including the former platform | M8/M9; historical notes retained |
+| docs/app/build-log.md:71 | - CSV export now neutralises formula cells for every export (done in A2) and staff search terms are sanitised in one place (`server/db/legacy-hosted.ts#searchTerm`). | M8/M9; historical notes retained |
+| docs/app/build-log.md:126 | - The cross-browser attempt exposed BUG-021 (Zod's dynamic-code probe violates the nonce CSP in Firefox) and BUG-022 (checkout holds surviving bag changes, plus legacy hosted platform release deleting rows without restoring reserved counts). The red attempt was interrupted  | M8/M9; historical notes retained |
+| docs/app/build-log.md:128 | - Cart line/quantity changes release prior holds. legacy hosted platform uses the existing `reserve_stock` RPC with an empty replacement; integration and PGlite tests cover stock restoration, repeated release, and isolation from another cart's holds. | M8/M9; historical notes retained |
+| docs/app/build-log.md:146 | Implementation: local commit `8777e34` (QA fixes and component gallery). Resolved BUG-018–BUG-023: sale-savings contrast, the New Arrival keyboard regression, sort naming during hydration, Zod/CSP compatibility, checkout reservation release (including legacy hosted platform | M8/M9; historical notes retained |
 | docs/app/build-log.md:158 | Remaining requirements (not claimed complete): PERF-03 (final admin initial JS 338.5–343.2 KiB vs 250 KiB), prior storefront performance/design findings, source design gate G3, broad export step-up coverage, exhaustive mutation/role and failure-atomicity check | M8/M9; historical notes retained |
 | docs/app/build-log.md:162 | Completed the admin bootstrap/operations runbook, Admin API reference, current data model/RLS matrix and reservation semantics, cache invalidation notes, component capabilities, navigation registry description and security/verification limits. Corrected stale  | M8/M9; historical notes retained |
 | docs/app/build-log.md:170 | Normal local operation now uses a single-process saved file driver with a shared queue, checksummed snapshots, atomic replacement, write rollback and an exclusive process lock. Media files persist beside it. Restarts never reseed products. Fixtures, sample ima | M8/M9; historical notes retained |
 | docs/app/build-plan.md:10 | Scope: migration (staff auth columns, roles, permissions, role_permissions, staff_roles, staff_invites, staff_sessions, has_permission(), last-Owner trigger, RLS), fixtures tables; permission registry + preset roles; staff auth (password, TOTP MFA + recovery c | M8/M9; historical notes retained |
 | docs/app/build-plan.md:29 | ### A13 — Documentation (runbook admin bootstrap, data-model RLS matrix, api.md) | M8/M9; historical notes retained |
 | docs/app/build-plan.md:30 | Scope: complete the admin runbook, API/RLS documentation, component gallery and implementation notes. | M8/M9; historical notes retained |
-| docs/app/caching.md:35 | - No application-level cache sits in front of the database. `DATA_DRIVER=local` reads the saved local store through a serialized repository queue; `fixtures` is in-process QA data; `the former platform` queries Postgres through the server's service role. | M8/M9; historical notes retained |
+| docs/app/caching.md:35 | - No application-level cache sits in front of the database. `DATA_DRIVER=local` reads the saved local store through a serialized repository queue; `fixtures` is in-process QA data; `legacy hosted platform` queries Postgres through the server's service role. | M8/M9; historical notes retained |
 | docs/app/data-model.md:3 | Source of truth: `(retired migrations)/` (schema → RLS → functions, forward only), mirrored by the | M8/M9; historical notes retained |
 | docs/app/data-model.md:5 | (`tests/db`). 53 tables, all in `public`, all with RLS enabled and denied by default. The saved local driver mirrors domain rows in a versioned file snapshot; see [catalogue and banners](admin/catalogue-and-banners.md). | M8/M9; historical notes retained |
-| docs/app/data-model.md:20 | \| Store & staff \| `stores`, `staff_members` \| Legacy `staff_role` enum: owner, manager, fulfilment, support; phase 2 staff use their own password/MFA sessions and RBAC roles (A-001, A-007). the former platform-Auth identities can use `auth.uid()` policies. `stores.next_o | M8/M9; historical notes retained |
+| docs/app/data-model.md:20 | \| Store & staff \| `stores`, `staff_members` \| Legacy `staff_role` enum: owner, manager, fulfilment, support; phase 2 staff use their own password/MFA sessions and RBAC roles (A-001, A-007). legacy hosted platform-Auth identities can use `auth.uid()` policies. `stores.next_o | M8/M9; historical notes retained |
 | docs/app/data-model.md:66 | \| `has_permission(store, permission)` \| SECURITY DEFINER: does the signed-in user hold the permission through an active membership's roles. Used by the admin RLS policies. \| | M8/M9; historical notes retained |
-| docs/app/data-model.md:75 | Cart line/quantity edits release the previous checkout holds after saving. The the former platform release path | M8/M9; historical notes retained |
+| docs/app/data-model.md:75 | Cart line/quantity edits release the previous checkout holds after saving. The legacy hosted platform release path | M8/M9; historical notes retained |
 | docs/app/data-model.md:91 | - **service_role** (the server) bypasses RLS. The key never leaves the server. | M8/M9; historical notes retained |
 | docs/app/data-model.md:103 | Verified by `tests/db/rls.test.ts`. | M8/M9; historical notes retained |
 | docs/app/design-decisions.md:66 | \| D-060 \| owner \| Delivery settings, promo bar, FAQ, bag, product page, Shipping policy \| Free delivery now starts at Rs. 12,000 (was PKR 5,000). The threshold lives in one place, the standard delivery rate's `freeOver` (`server/fixtures/commerce-seed.ts`, `su | M8/M9; historical notes retained |
 | docs/app/phase-2.md:3 | Phase 1 delivered the storefront, the commerce engine, the database layer (migrations, RLS, functions, | M8/M9; historical notes retained |
-| docs/app/phase-2.md:12 | \| P2-02 \| **the former platform project** region and plan \| Pro plan (point-in-time recovery) in the region closest to the app. Run `the retired migration CLI` from a trusted machine (runbook §3). \| | M8/M9; historical notes retained |
-| docs/app/phase-2.md:36 | \| P2-15 \| Staff identity in-house (A-001) or the former identity provider \| Keep in-house until there's a reason (SSO, one login for several apps); the switch is contained in `server/admin`. \| | M8/M9; historical notes retained |
+| docs/app/phase-2.md:12 | \| P2-02 \| **legacy hosted platform project** region and plan \| Pro plan (point-in-time recovery) in the region closest to the app. Run `the retired migration CLI` from a trusted machine (runbook §3). \| | M8/M9; historical notes retained |
+| docs/app/phase-2.md:36 | \| P2-15 \| Staff identity in-house (A-001) or legacy identity provider \| Keep in-house until there's a reason (SSO, one login for several apps); the switch is contained in `server/admin`. \| | M8/M9; historical notes retained |
 | docs/app/phase-2.md:51 | 7. **Parallel-connection concurrency test** against a real Postgres (the PGlite tests serialise calls; | M8/M9; historical notes retained |
-| e2e/security.spec.ts:61 | expect(JSON.stringify(body)).not.toMatch(/stack\|at .*\.js\|the former platform\|postgres/i) | M2/M5/M10 |
-| features/admin/content/home-schema.ts:6 | // records for saved local and the former platform stores, including same-store ownership. | M1/M2/M6/M8 |
-| lib/env.server.ts:14 | DATA_DRIVER: z.enum(["local", "fixtures", "the former platform"]).default("local"), | M1/M2/M6/M8 |
+| e2e/security.spec.ts:61 | expect(JSON.stringify(body)).not.toMatch(/stack\|at .*\.js\|legacy hosted platform\|postgres/i) | M2/M5/M10 |
+| features/admin/content/home-schema.ts:6 | // records for saved local and legacy hosted platform stores, including same-store ownership. | M1/M2/M6/M8 |
+| lib/env.server.ts:14 | DATA_DRIVER: z.enum(["local", "fixtures", "legacy hosted platform"]).default("local"), | M1/M2/M6/M8 |
 | lib/env.server.ts:19 | // The seeded store (server/fixtures/seed.ts, the former seed SQL); one store per deployment. | M1/M2/M6/M8 |
-| lib/env.server.ts:50 | if (env.DATA_DRIVER === "the former platform" && (!env.the former platform_URL \|\| !env.the former platform_SERVICE_ROLE_KEY)) { | M1/M2/M6/M8 |
-| lib/env.server.ts:51 | context.addIssue({ code: "custom", message: "DATA_DRIVER=the former platform needs the former platform_URL and the former platform_SERVICE_ROLE_KEY" }) | M1/M2/M6/M8 |
-| package.json:27 | "@the former platform/ssr": "^0.12.7", | M1/M2/M6/M8 |
-| package.json:28 | "@the former platform/the former platform-js": "^2.118.0", | M1/M2/M6/M8 |
+| lib/env.server.ts:50 | if (env.DATA_DRIVER === "legacy hosted platform" && (!env.legacy hosted platform_URL \|\| !env.legacy hosted platform_SERVICE_ROLE_KEY)) { | M1/M2/M6/M8 |
+| lib/env.server.ts:51 | context.addIssue({ code: "custom", message: "DATA_DRIVER=legacy hosted platform needs legacy hosted platform_URL and legacy hosted platform_SERVICE_ROLE_KEY" }) | M1/M2/M6/M8 |
+| package.json:27 | "@legacy hosted platform/ssr": "^0.12.7", | M1/M2/M6/M8 |
+| package.json:28 | "@legacy-hosted/client": "^2.118.0", | M1/M2/M6/M8 |
 | package.json:46 | "@electric-sql/pglite": "^0.5.14", | M1/M2/M6/M8 |
-| pnpm-lock.yaml:14 | '@the former platform/ssr': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:16 | version: 0.12.7(@the former platform/the former platform-js@2.118.0) | M1/M2/M6/M8 |
-| pnpm-lock.yaml:17 | '@the former platform/the former platform-js': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:14 | '@legacy hosted platform/ssr': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:16 | version: 0.12.7(@legacy-hosted/client@2.118.0) | M1/M2/M6/M8 |
+| pnpm-lock.yaml:17 | '@legacy-hosted/client': | M1/M2/M6/M8 |
 | pnpm-lock.yaml:66 | '@electric-sql/pglite': | M1/M2/M6/M8 |
 | pnpm-lock.yaml:296 | '@electric-sql/pglite@0.5.14': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:758 | '@the former platform/auth-js@2.118.0': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:762 | '@the former platform/functions-js@2.118.0': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:766 | '@the former platform/phoenix@0.4.5': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:769 | '@the former platform/postgrest-js@2.118.0': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:773 | '@the former platform/realtime-js@2.118.0': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:777 | '@the former platform/ssr@0.12.7': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:780 | '@the former platform/the former platform-js': ^2.114.0 | M1/M2/M6/M8 |
-| pnpm-lock.yaml:782 | '@the former platform/storage-js@2.118.0': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:786 | '@the former platform/the former platform-js@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:758 | '@legacy hosted platform/auth-js@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:762 | '@legacy hosted platform/functions-js@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:766 | '@legacy hosted platform/phoenix@0.4.5': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:769 | '@legacy hosted platform/postgrest-js@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:773 | '@legacy hosted platform/realtime-js@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:777 | '@legacy hosted platform/ssr@0.12.7': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:780 | '@legacy-hosted/client': ^2.114.0 | M1/M2/M6/M8 |
+| pnpm-lock.yaml:782 | '@legacy hosted platform/storage-js@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:786 | '@legacy-hosted/client@2.118.0': | M1/M2/M6/M8 |
 | pnpm-lock.yaml:3528 | '@electric-sql/pglite@0.5.14': {} | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3887 | '@the former platform/auth-js@2.118.0': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3891 | '@the former platform/functions-js@2.118.0': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3895 | '@the former platform/phoenix@0.4.5': {} | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3897 | '@the former platform/postgrest-js@2.118.0': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3901 | '@the former platform/realtime-js@2.118.0': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3903 | '@the former platform/phoenix': 0.4.5 | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3906 | '@the former platform/ssr@0.12.7(@the former platform/the former platform-js@2.118.0)': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3908 | '@the former platform/the former platform-js': 2.118.0 | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3911 | '@the former platform/storage-js@2.118.0': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3916 | '@the former platform/the former platform-js@2.118.0': | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3918 | '@the former platform/auth-js': 2.118.0 | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3919 | '@the former platform/functions-js': 2.118.0 | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3920 | '@the former platform/postgrest-js': 2.118.0 | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3921 | '@the former platform/realtime-js': 2.118.0 | M1/M2/M6/M8 |
-| pnpm-lock.yaml:3922 | '@the former platform/storage-js': 2.118.0 | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3887 | '@legacy hosted platform/auth-js@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3891 | '@legacy hosted platform/functions-js@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3895 | '@legacy hosted platform/phoenix@0.4.5': {} | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3897 | '@legacy hosted platform/postgrest-js@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3901 | '@legacy hosted platform/realtime-js@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3903 | '@legacy hosted platform/phoenix': 0.4.5 | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3906 | '@legacy hosted platform/ssr@0.12.7(@legacy-hosted/client@2.118.0)': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3908 | '@legacy-hosted/client': 2.118.0 | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3911 | '@legacy hosted platform/storage-js@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3916 | '@legacy-hosted/client@2.118.0': | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3918 | '@legacy hosted platform/auth-js': 2.118.0 | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3919 | '@legacy hosted platform/functions-js': 2.118.0 | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3920 | '@legacy hosted platform/postgrest-js': 2.118.0 | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3921 | '@legacy hosted platform/realtime-js': 2.118.0 | M1/M2/M6/M8 |
+| pnpm-lock.yaml:3922 | '@legacy hosted platform/storage-js': 2.118.0 | M1/M2/M6/M8 |
 | proxy.ts:8 | * server/admin/dal.ts on every page and handler, and RLS backs them in the database. | M1/M2/M6/M8 |
-| qa/bugs.md:41 | \| BUG-022 \| major (inventory) \| Bag edits / checkout reservation release \| Hold a pair at checkout, then remove it or reduce the quantity in the bag \| Previous holds are released and stock is available to other shoppers \| Holds survive cart edits; the former platform's r | M1/M2/M6/M8 |
-| qa/bugs.md:66 | \| BUG-030 \| Local saved storage was labelled as the former platform in integration settings. \| Explicit local label, checked on the running saved preview. \| | M1/M2/M6/M8 |
-| scripts/create-owner.mjs:3 | * Creates a one-time Owner invite in a saved local store or LOCAL the former platform and prints its link. | M1/M2/M6/M8 |
-| scripts/create-owner.mjs:8 | * For the former platform, reads its URL and service-role key from the environment (or .env.local). Refuses any | M1/M2/M6/M8 |
-| scripts/create-owner.mjs:48 | console.error("Set the former platform_URL and the former platform_SERVICE_ROLE_KEY (local the former platform). With the fixtures driver, use ADMIN_DEMO_STAFF=on instead.") | M1/M2/M6/M8 |
-| scripts/serve.mjs:17 | env: { ...process.env, NODE_ENV: "production", PORT: process.argv[2] ?? process.env.PORT ?? "3200", HOSTNAME: process.env.DATA_DRIVER === "the former platform" ? process.env.HOSTNAME ?? "0.0.0.0" : "127.0.0.1", LOCAL_DATA_DIR: path.resolve(process.env.LOCAL_DATA_DIR ?? " | M1/M2/M6/M8 |
+| qa/bugs.md:41 | \| BUG-022 \| major (inventory) \| Bag edits / checkout reservation release \| Hold a pair at checkout, then remove it or reduce the quantity in the bag \| Previous holds are released and stock is available to other shoppers \| Holds survive cart edits; legacy hosted platform's r | M1/M2/M6/M8 |
+| qa/bugs.md:66 | \| BUG-030 \| Local saved storage was labelled as legacy hosted platform in integration settings. \| Explicit local label, checked on the running saved preview. \| | M1/M2/M6/M8 |
+| scripts/create-owner.mjs:3 | * Creates a one-time Owner invite in a saved local store or LOCAL legacy hosted platform and prints its link. | M1/M2/M6/M8 |
+| scripts/create-owner.mjs:8 | * For legacy hosted platform, reads its URL and service-role key from the environment (or .env.local). Refuses any | M1/M2/M6/M8 |
+| scripts/create-owner.mjs:48 | console.error("Set legacy hosted platform_URL and legacy hosted platform_SERVICE_ROLE_KEY (local legacy hosted platform). With the fixtures driver, use ADMIN_DEMO_STAFF=on instead.") | M1/M2/M6/M8 |
+| scripts/serve.mjs:17 | env: { ...process.env, NODE_ENV: "production", PORT: process.argv[2] ?? process.env.PORT ?? "3200", HOSTNAME: process.env.DATA_DRIVER === "legacy hosted platform" ? process.env.HOSTNAME ?? "0.0.0.0" : "127.0.0.1", LOCAL_DATA_DIR: path.resolve(process.env.LOCAL_DATA_DIR ?? " | M1/M2/M6/M8 |
 | server/admin/dal.ts:17 | * before touching data; proxy.ts only does an optimistic cookie check, and RLS is the backstop. | M1/M2/M6/M8 |
-| server/admin/index.ts:6 | import { createthe former platformAdminRepository } from "@/server/admin/the former platform.repository" | M1/M2/M6/M8 |
-| server/admin/index.ts:10 | const repository = selectRepository({ fixtures: createFixturesAdminRepository, the former platform: createthe former platformAdminRepository }) | M1/M2/M6/M8 |
-| server/admin/repository.ts:4 | /** Staff identity and RBAC storage; both drivers implement it (fixtures, the former platform). */ | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:6 | import { the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:9 | /** Staff identity and RBAC on Postgres (migration 20261107090000_admin_foundation.sql). */ | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:163 | const row = unwrap(await the former platform().from("staff_members").select(MEMBER_COLUMNS).eq("store_id", storeId).ilike("email", email).maybeSingle()) as MemberRow \| null | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:167 | const row = unwrap(await the former platform().from("staff_members").select(MEMBER_COLUMNS).eq("store_id", storeId).eq("user_id", userId).maybeSingle()) as MemberRow \| null | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:171 | const rows = unwrap(await the former platform().from("staff_members").select(MEMBER_COLUMNS).eq("store_id", storeId).order("created_at")) as MemberRow[] | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:176 | await the former platform() | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:185 | let query = the former platform().from("staff_members").update(memberColumns(changes)).eq("store_id", storeId).eq("user_id", userId) | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:194 | await the former platform().rpc("sync_admin_registry", { | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:202 | const rows = unwrap(await the former platform().from("roles").select(ROLE_COLUMNS).eq("store_id", storeId).order("created_at")) as RoleRow[] | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:206 | const row = unwrap(await the former platform().from("roles").select(ROLE_COLUMNS).eq("store_id", storeId).eq("key", key).maybeSingle()) as RoleRow \| null | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:211 | await the former platform().rpc("save_role", { | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:228 | await the former platform().rpc("save_role", { | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:242 | unwrap(await the former platform().rpc("delete_role", { p_store_id: storeId, p_key: key })) | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:246 | const rows = unwrap(await the former platform().from("staff_roles").select(`roles(${ROLE_COLUMNS})`).eq("store_id", storeId).eq("user_id", userId)) as unknown as { roles: RoleRow }[] | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:250 | unwrap(await the former platform().rpc("set_staff_roles", { p_store_id: storeId, p_user_id: userId, p_role_keys: roleKeys })) | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:253 | return unwrap(await the former platform().rpc("active_owner_count", { p_store_id: storeId })) as number | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:258 | await the former platform() | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:276 | const row = unwrap(await the former platform().from("staff_invites").select("*").eq("token_hash", tokenHash).maybeSingle()) as InviteRow \| null | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:285 | unwrap(await the former platform().from("staff_invites").update(map).eq("id", id)) | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:288 | const rows = unwrap(await the former platform().from("staff_invites").select("*").eq("store_id", storeId).order("created_at", { ascending: false })) as InviteRow[] | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:294 | await the former platform().from("staff_sessions").insert({ | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:310 | const row = unwrap(await the former platform().from("staff_sessions").select("*").eq("token_hash", tokenHash).maybeSingle()) as SessionRow \| null | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:314 | unwrap(await the former platform().from("staff_sessions").update(sessionColumns(changes)).eq("id", id)) | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:317 | const rows = unwrap(await the former platform().from("staff_sessions").select("*").eq("store_id", storeId).eq("user_id", userId).order("last_seen_at", { ascending: false })) as SessionRow[] | M1/M2/M6/M8 |
-| server/admin/the former platform.repository.ts:321 | let query = the former platform().from("staff_sessions").update({ revoked_at: new Date().toISOString() }).eq("store_id", storeId).eq("user_id", userId).is("revoked_at", null) | M1/M2/M6/M8 |
-| server/cart/index.ts:5 | import { createthe former platformCartRepository } from "@/server/cart/the former platform.repository" | M1/M2/M6/M8 |
-| server/cart/index.ts:14 | const repository = selectRepository({ fixtures: createFixturesCartRepository, the former platform: createthe former platformCartRepository }) | M1/M2/M6/M8 |
-| server/cart/the former platform.repository.ts:5 | import { the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/cart/the former platform.repository.ts:43 | await the former platform().from("carts").select(CART_SELECT).eq("store_id", storeId).eq("token_hash", tokenHash).eq("status", "active").maybeSingle(), | M1/M2/M6/M8 |
-| server/cart/the former platform.repository.ts:48 | const row = unwrap(await the former platform().from("carts").select(CART_SELECT).eq("id", id).maybeSingle()) as CartRecord \| null | M1/M2/M6/M8 |
-| server/cart/the former platform.repository.ts:53 | await the former platform() | M1/M2/M6/M8 |
-| server/cart/the former platform.repository.ts:67 | await the former platform().from("carts").insert({ | M1/M2/M6/M8 |
-| server/cart/the former platform.repository.ts:81 | await the former platform().rpc("save_cart", { | M1/M2/M6/M8 |
-| server/cart/the former platform.repository.ts:91 | unwrap(await the former platform().rpc("merge_carts", { p_guest_cart_id: guestCartId, p_customer_cart_id: customerCartId })) | M1/M2/M6/M8 |
-| server/cart/the former platform.repository.ts:95 | return unwrap(await the former platform().rpc("purge_abandoned_carts", { p_older_than_days: olderThanDays })) as number | M1/M2/M6/M8 |
-| server/cart/the former platform.repository.ts:100 | const result = await the former platform() | M1/M2/M6/M8 |
-| server/catalog/index.ts:8 | import { createthe former platformCatalogRepository } from "@/server/catalog/the former platform.repository" | M1/M2/M6/M8 |
-| server/catalog/index.ts:17 | the former platform: createthe former platformCatalogRepository, | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:5 | import { searchTerm, the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:81 | await the former platform().from("products").select(PRODUCT_SELECT).eq("store_id", storeId).eq("status", "active").order("position"), | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:87 | await the former platform().from("products").select(PRODUCT_SELECT).eq("store_id", storeId).eq("slug", slug).eq("status", "active").maybeSingle(), | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:93 | const productIds = unwrap(await the former platform().from("variants").select("product_id").in("id", variantIds)) as { product_id: string }[] | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:95 | const rows = unwrap(await the former platform().from("products").select(PRODUCT_SELECT).in("id", ids)) as unknown as ProductRecord[] | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:100 | await the former platform() | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:109 | return unwrap(await the former platform().from("brands").select("id, slug, name, position").eq("store_id", storeId).order("position")) as Brand[] | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:113 | await the former platform().from("attribute_definitions").select("code, label, type, scope, options, filterable, position").eq("store_id", storeId).order("position"), | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:118 | await the former platform().from("custom_field_definitions").select("entity, code, label, type, required, visible_on_storefront").eq("store_id", storeId), | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:124 | await the former platform().rpc("import_products", { p_store_id: storeId, p_products: products }), | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:130 | let request = the former platform().from("products").select(PRODUCT_SELECT, { count: "exact" }).eq("store_id", storeId) | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:142 | const row = unwrap(await the former platform().from("products").select(PRODUCT_SELECT).eq("store_id", storeId).eq("id", id).maybeSingle()) as unknown as ProductRecord \| null | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:146 | unwrap(await the former platform().rpc("save_product", { p_store_id: storeId, p_product: product, p_expected_updated_at: expectedUpdatedAt })) | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:152 | const variants = unwrap(await the former platform().from("variants").select("id").eq("product_id", id)) as { id: string }[] | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:154 | const ordered = unwrap(await the former platform().from("order_lines").select("id").in("variant_id", variants.map((variant) => variant.id)).limit(1)) as { id: string }[] | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:157 | const deleted = unwrap(await the former platform().from("products").delete().eq("store_id", storeId).eq("id", id).select("id")) as { id: string }[] | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:161 | unwrap(await the former platform().rpc("save_collection", { p_store_id: storeId, p_collection: collection, p_product_ids: productIds })) | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:165 | unwrap(await the former platform().from("collections").delete().eq("store_id", storeId).eq("id", id)) | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:168 | const rows = unwrap(await the former platform().from("collection_products").select("product_id").eq("collection_id", collectionId).order("position")) as { product_id: string }[] | M1/M2/M6/M8 |
-| server/catalog/the former platform.repository.ts:172 | unwrap(await the former platform().from("brands").insert({ id: brand.id, store_id: storeId, slug: brand.slug, name: brand.name, position: brand.position })) | M1/M2/M6/M8 |
-| server/content/index.ts:9 | import { createthe former platformContentRepository } from "@/server/content/the former platform.repository" | M1/M2/M6/M8 |
-| server/content/index.ts:16 | the former platform: createthe former platformContentRepository, | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:5 | import { the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:15 | const row = unwrap(await the former platform().from("storefront_content").select("content, updated_at").eq("store_id", storeId).maybeSingle()) as { content: HomeContent; updated_at: string } \| null | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:19 | unwrap(await the former platform().rpc("save_home", { p_store_id: storeId, p_content: content, p_expected_updated_at: expectedUpdatedAt })) | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:25 | const rows = unwrap(await the former platform().from("pages").select("*").eq("store_id", storeId).eq("published", true)) as PageRecord[] | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:29 | const row = unwrap(await the former platform().from("pages").select("*").eq("store_id", storeId).eq("slug", slug).eq("published", true).maybeSingle()) as PageRecord \| null | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:33 | return unwrap(await the former platform().from("faqs").select("id, category, question, answer, position").eq("store_id", storeId).order("position")) as Faq[] | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:37 | await the former platform().rpc("subscribe_newsletter", { p_store_id: storeId, p_email: subscriber.email, p_source: subscriber.source }), | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:41 | unwrap(await the former platform().from("newsletter_subscribers").update({ status: "unsubscribed" }).eq("store_id", storeId).eq("email", email)) | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:45 | await the former platform().from("contact_messages").insert({ | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:57 | const rows = unwrap(await the former platform().from("pages").select("*").eq("store_id", storeId).order("title")) as PageRecord[] | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:61 | const row = unwrap(await the former platform().from("pages").select("*").eq("store_id", storeId).eq("slug", slug).maybeSingle()) as PageRecord \| null | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:66 | await the former platform().rpc("save_page", { | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:78 | const rows = unwrap(await the former platform().from("pages").delete().eq("store_id", storeId).eq("slug", slug).select("slug")) as { slug: string }[] | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:82 | unwrap(await the former platform().from("faqs").upsert({ id: faq.id, store_id: storeId, category: faq.category, question: faq.question, answer: faq.answer, position: faq.position }, { onConflict: "id" })) | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:86 | const rows = unwrap(await the former platform().from("faqs").delete().eq("store_id", storeId).eq("id", id).select("id")) as { id: string }[] | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:90 | unwrap(await the former platform().rpc("reorder_faqs", { p_store_id: storeId, p_ids: ids })) | M1/M2/M6/M8 |
-| server/content/the former platform.repository.ts:93 | let request = the former platform().from("newsletter_subscribers").select("email, status, source, consent_at", { count: "exact" }).eq("store_id", storeId) | M1/M2/M6/M8 |
-| server/customers/index.ts:7 | import { createthe former platformCustomerRepository } from "@/server/customers/the former platform.repository" | M1/M2/M6/M8 |
-| server/customers/index.ts:12 | const repository = selectRepository({ fixtures: createFixturesCustomerRepository, the former platform: createthe former platformCustomerRepository }) | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:5 | import { searchTerm, the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:64 | let query = the former platform().from("customers").select("*").eq(column, value) | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:75 | await the former platform() | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:94 | await the former platform() | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:113 | unwrap(await the former platform().from("sessions").insert({ token_hash: session.tokenHash, customer_id: session.customerId, expires_at: session.expiresAt })) | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:117 | await the former platform().from("sessions").select("token_hash, customer_id, created_at, expires_at").eq("token_hash", tokenHash).gt("expires_at", new Date().toISOString()).maybeSingle(), | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:122 | unwrap(await the former platform().from("sessions").delete().eq("token_hash", tokenHash)) | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:125 | unwrap(await the former platform().from("sessions").delete().eq("customer_id", customerId)) | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:129 | unwrap(await the former platform().from("password_resets").insert({ token_hash: reset.tokenHash, customer_id: reset.customerId, expires_at: reset.expiresAt })) | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:133 | await the former platform() | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:146 | const rows = unwrap(await the former platform().from("addresses").select("*").eq("customer_id", customerId).order("is_default", { ascending: false })) as AddressRecord[] | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:151 | await the former platform().rpc("save_address", { | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:170 | unwrap(await the former platform().rpc("delete_address", { p_customer_id: customerId, p_address_id: addressId })) | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:173 | unwrap(await the former platform().rpc("scrub_customer", { p_customer_id: customerId })) | M1/M2/M6/M8 |
-| server/customers/the former platform.repository.ts:176 | let request = the former platform().from("customers").select("*", { count: "exact" }).eq("store_id", storeId).not("email", "like", "%@invalid") | M1/M2/M6/M8 |
-| server/db/driver.ts:6 | export type DataDriver = "local" \| "fixtures" \| "the former platform" | M1/M2/M6/M8 |
-| server/db/driver.ts:30 | export function selectRepository<T extends object>(implementations: { fixtures: () => T; the former platform: () => T }): () => T { | M1/M2/M6/M8 |
-| server/db/local-store.ts:7 | /** Durable, single-process local storage. Hosted deployments use the the former platform driver. */ | M1/M2/M6/M8 |
-| server/db/the former platform.ts:3 | import { createClient, type the former platformClient } from "@the former platform/the former platform-js" | M1/M2/M6/M8 |
-| server/db/the former platform.ts:11 | * Service-role client for the the former platform driver. Server-only: the key bypasses RLS, so it is | M1/M2/M6/M8 |
-| server/db/the former platform.ts:12 | * read from lib/env.server.ts and never reaches the browser. RLS still protects every table | M1/M2/M6/M8 |
-| server/db/the former platform.ts:13 | * from the anon and authenticated roles (the former platform/migrations). | M1/M2/M6/M8 |
-| server/db/the former platform.ts:15 | export function the former platform(): the former platformClient { | M1/M2/M6/M8 |
-| server/db/the former platform.ts:26 | /** Codes our RPCs raise as "code: shopper-safe message" ((retired migrations)/*_functions.sql). */ | M1/M2/M6/M8 |
-| server/db/the former platform.ts:29 | /** Unwraps a the former platform-js response, translating Postgres errors raised by our RPCs into DomainErrors. */ | M1/M2/M6/M8 |
+| server/admin/index.ts:6 | import { createlegacy hosted platformAdminRepository } from "@/server/admin/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/admin/index.ts:10 | const repository = selectRepository({ fixtures: createFixturesAdminRepository, legacy hosted platform: createlegacy hosted platformAdminRepository }) | M1/M2/M6/M8 |
+| server/admin/repository.ts:4 | /** Staff identity and RBAC storage; both drivers implement it (fixtures, legacy hosted platform). */ | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:6 | import { legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:9 | /** Staff identity and RBAC on Postgres (migration 20261107090000_admin_foundation.sql). */ | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:163 | const row = unwrap(await legacyHosted().from("staff_members").select(MEMBER_COLUMNS).eq("store_id", storeId).ilike("email", email).maybeSingle()) as MemberRow \| null | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:167 | const row = unwrap(await legacyHosted().from("staff_members").select(MEMBER_COLUMNS).eq("store_id", storeId).eq("user_id", userId).maybeSingle()) as MemberRow \| null | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:171 | const rows = unwrap(await legacyHosted().from("staff_members").select(MEMBER_COLUMNS).eq("store_id", storeId).order("created_at")) as MemberRow[] | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:176 | await legacyHosted() | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:185 | let query = legacyHosted().from("staff_members").update(memberColumns(changes)).eq("store_id", storeId).eq("user_id", userId) | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:194 | await legacyHosted().rpc("sync_admin_registry", { | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:202 | const rows = unwrap(await legacyHosted().from("roles").select(ROLE_COLUMNS).eq("store_id", storeId).order("created_at")) as RoleRow[] | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:206 | const row = unwrap(await legacyHosted().from("roles").select(ROLE_COLUMNS).eq("store_id", storeId).eq("key", key).maybeSingle()) as RoleRow \| null | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:211 | await legacyHosted().rpc("save_role", { | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:228 | await legacyHosted().rpc("save_role", { | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:242 | unwrap(await legacyHosted().rpc("delete_role", { p_store_id: storeId, p_key: key })) | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:246 | const rows = unwrap(await legacyHosted().from("staff_roles").select(`roles(${ROLE_COLUMNS})`).eq("store_id", storeId).eq("user_id", userId)) as unknown as { roles: RoleRow }[] | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:250 | unwrap(await legacyHosted().rpc("set_staff_roles", { p_store_id: storeId, p_user_id: userId, p_role_keys: roleKeys })) | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:253 | return unwrap(await legacyHosted().rpc("active_owner_count", { p_store_id: storeId })) as number | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:258 | await legacyHosted() | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:276 | const row = unwrap(await legacyHosted().from("staff_invites").select("*").eq("token_hash", tokenHash).maybeSingle()) as InviteRow \| null | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:285 | unwrap(await legacyHosted().from("staff_invites").update(map).eq("id", id)) | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:288 | const rows = unwrap(await legacyHosted().from("staff_invites").select("*").eq("store_id", storeId).order("created_at", { ascending: false })) as InviteRow[] | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:294 | await legacyHosted().from("staff_sessions").insert({ | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:310 | const row = unwrap(await legacyHosted().from("staff_sessions").select("*").eq("token_hash", tokenHash).maybeSingle()) as SessionRow \| null | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:314 | unwrap(await legacyHosted().from("staff_sessions").update(sessionColumns(changes)).eq("id", id)) | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:317 | const rows = unwrap(await legacyHosted().from("staff_sessions").select("*").eq("store_id", storeId).eq("user_id", userId).order("last_seen_at", { ascending: false })) as SessionRow[] | M1/M2/M6/M8 |
+| server/admin/legacy-hosted.repository.ts:321 | let query = legacyHosted().from("staff_sessions").update({ revoked_at: new Date().toISOString() }).eq("store_id", storeId).eq("user_id", userId).is("revoked_at", null) | M1/M2/M6/M8 |
+| server/cart/index.ts:5 | import { createlegacy hosted platformCartRepository } from "@/server/cart/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/cart/index.ts:14 | const repository = selectRepository({ fixtures: createFixturesCartRepository, legacy hosted platform: createlegacy hosted platformCartRepository }) | M1/M2/M6/M8 |
+| server/cart/legacy-hosted.repository.ts:5 | import { legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/cart/legacy-hosted.repository.ts:43 | await legacyHosted().from("carts").select(CART_SELECT).eq("store_id", storeId).eq("token_hash", tokenHash).eq("status", "active").maybeSingle(), | M1/M2/M6/M8 |
+| server/cart/legacy-hosted.repository.ts:48 | const row = unwrap(await legacyHosted().from("carts").select(CART_SELECT).eq("id", id).maybeSingle()) as CartRecord \| null | M1/M2/M6/M8 |
+| server/cart/legacy-hosted.repository.ts:53 | await legacyHosted() | M1/M2/M6/M8 |
+| server/cart/legacy-hosted.repository.ts:67 | await legacyHosted().from("carts").insert({ | M1/M2/M6/M8 |
+| server/cart/legacy-hosted.repository.ts:81 | await legacyHosted().rpc("save_cart", { | M1/M2/M6/M8 |
+| server/cart/legacy-hosted.repository.ts:91 | unwrap(await legacyHosted().rpc("merge_carts", { p_guest_cart_id: guestCartId, p_customer_cart_id: customerCartId })) | M1/M2/M6/M8 |
+| server/cart/legacy-hosted.repository.ts:95 | return unwrap(await legacyHosted().rpc("purge_abandoned_carts", { p_older_than_days: olderThanDays })) as number | M1/M2/M6/M8 |
+| server/cart/legacy-hosted.repository.ts:100 | const result = await legacyHosted() | M1/M2/M6/M8 |
+| server/catalog/index.ts:8 | import { createlegacy hosted platformCatalogRepository } from "@/server/catalog/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/catalog/index.ts:17 | legacy hosted platform: createlegacy hosted platformCatalogRepository, | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:5 | import { searchTerm, legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:81 | await legacyHosted().from("products").select(PRODUCT_SELECT).eq("store_id", storeId).eq("status", "active").order("position"), | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:87 | await legacyHosted().from("products").select(PRODUCT_SELECT).eq("store_id", storeId).eq("slug", slug).eq("status", "active").maybeSingle(), | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:93 | const productIds = unwrap(await legacyHosted().from("variants").select("product_id").in("id", variantIds)) as { product_id: string }[] | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:95 | const rows = unwrap(await legacyHosted().from("products").select(PRODUCT_SELECT).in("id", ids)) as unknown as ProductRecord[] | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:100 | await legacyHosted() | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:109 | return unwrap(await legacyHosted().from("brands").select("id, slug, name, position").eq("store_id", storeId).order("position")) as Brand[] | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:113 | await legacyHosted().from("attribute_definitions").select("code, label, type, scope, options, filterable, position").eq("store_id", storeId).order("position"), | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:118 | await legacyHosted().from("custom_field_definitions").select("entity, code, label, type, required, visible_on_storefront").eq("store_id", storeId), | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:124 | await legacyHosted().rpc("import_products", { p_store_id: storeId, p_products: products }), | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:130 | let request = legacyHosted().from("products").select(PRODUCT_SELECT, { count: "exact" }).eq("store_id", storeId) | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:142 | const row = unwrap(await legacyHosted().from("products").select(PRODUCT_SELECT).eq("store_id", storeId).eq("id", id).maybeSingle()) as unknown as ProductRecord \| null | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:146 | unwrap(await legacyHosted().rpc("save_product", { p_store_id: storeId, p_product: product, p_expected_updated_at: expectedUpdatedAt })) | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:152 | const variants = unwrap(await legacyHosted().from("variants").select("id").eq("product_id", id)) as { id: string }[] | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:154 | const ordered = unwrap(await legacyHosted().from("order_lines").select("id").in("variant_id", variants.map((variant) => variant.id)).limit(1)) as { id: string }[] | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:157 | const deleted = unwrap(await legacyHosted().from("products").delete().eq("store_id", storeId).eq("id", id).select("id")) as { id: string }[] | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:161 | unwrap(await legacyHosted().rpc("save_collection", { p_store_id: storeId, p_collection: collection, p_product_ids: productIds })) | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:165 | unwrap(await legacyHosted().from("collections").delete().eq("store_id", storeId).eq("id", id)) | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:168 | const rows = unwrap(await legacyHosted().from("collection_products").select("product_id").eq("collection_id", collectionId).order("position")) as { product_id: string }[] | M1/M2/M6/M8 |
+| server/catalog/legacy-hosted.repository.ts:172 | unwrap(await legacyHosted().from("brands").insert({ id: brand.id, store_id: storeId, slug: brand.slug, name: brand.name, position: brand.position })) | M1/M2/M6/M8 |
+| server/content/index.ts:9 | import { createlegacy hosted platformContentRepository } from "@/server/content/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/content/index.ts:16 | legacy hosted platform: createlegacy hosted platformContentRepository, | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:5 | import { legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:15 | const row = unwrap(await legacyHosted().from("storefront_content").select("content, updated_at").eq("store_id", storeId).maybeSingle()) as { content: HomeContent; updated_at: string } \| null | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:19 | unwrap(await legacyHosted().rpc("save_home", { p_store_id: storeId, p_content: content, p_expected_updated_at: expectedUpdatedAt })) | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:25 | const rows = unwrap(await legacyHosted().from("pages").select("*").eq("store_id", storeId).eq("published", true)) as PageRecord[] | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:29 | const row = unwrap(await legacyHosted().from("pages").select("*").eq("store_id", storeId).eq("slug", slug).eq("published", true).maybeSingle()) as PageRecord \| null | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:33 | return unwrap(await legacyHosted().from("faqs").select("id, category, question, answer, position").eq("store_id", storeId).order("position")) as Faq[] | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:37 | await legacyHosted().rpc("subscribe_newsletter", { p_store_id: storeId, p_email: subscriber.email, p_source: subscriber.source }), | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:41 | unwrap(await legacyHosted().from("newsletter_subscribers").update({ status: "unsubscribed" }).eq("store_id", storeId).eq("email", email)) | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:45 | await legacyHosted().from("contact_messages").insert({ | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:57 | const rows = unwrap(await legacyHosted().from("pages").select("*").eq("store_id", storeId).order("title")) as PageRecord[] | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:61 | const row = unwrap(await legacyHosted().from("pages").select("*").eq("store_id", storeId).eq("slug", slug).maybeSingle()) as PageRecord \| null | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:66 | await legacyHosted().rpc("save_page", { | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:78 | const rows = unwrap(await legacyHosted().from("pages").delete().eq("store_id", storeId).eq("slug", slug).select("slug")) as { slug: string }[] | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:82 | unwrap(await legacyHosted().from("faqs").upsert({ id: faq.id, store_id: storeId, category: faq.category, question: faq.question, answer: faq.answer, position: faq.position }, { onConflict: "id" })) | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:86 | const rows = unwrap(await legacyHosted().from("faqs").delete().eq("store_id", storeId).eq("id", id).select("id")) as { id: string }[] | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:90 | unwrap(await legacyHosted().rpc("reorder_faqs", { p_store_id: storeId, p_ids: ids })) | M1/M2/M6/M8 |
+| server/content/legacy-hosted.repository.ts:93 | let request = legacyHosted().from("newsletter_subscribers").select("email, status, source, consent_at", { count: "exact" }).eq("store_id", storeId) | M1/M2/M6/M8 |
+| server/customers/index.ts:7 | import { createlegacy hosted platformCustomerRepository } from "@/server/customers/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/customers/index.ts:12 | const repository = selectRepository({ fixtures: createFixturesCustomerRepository, legacy hosted platform: createlegacy hosted platformCustomerRepository }) | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:5 | import { searchTerm, legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:64 | let query = legacyHosted().from("customers").select("*").eq(column, value) | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:75 | await legacyHosted() | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:94 | await legacyHosted() | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:113 | unwrap(await legacyHosted().from("sessions").insert({ token_hash: session.tokenHash, customer_id: session.customerId, expires_at: session.expiresAt })) | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:117 | await legacyHosted().from("sessions").select("token_hash, customer_id, created_at, expires_at").eq("token_hash", tokenHash).gt("expires_at", new Date().toISOString()).maybeSingle(), | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:122 | unwrap(await legacyHosted().from("sessions").delete().eq("token_hash", tokenHash)) | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:125 | unwrap(await legacyHosted().from("sessions").delete().eq("customer_id", customerId)) | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:129 | unwrap(await legacyHosted().from("password_resets").insert({ token_hash: reset.tokenHash, customer_id: reset.customerId, expires_at: reset.expiresAt })) | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:133 | await legacyHosted() | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:146 | const rows = unwrap(await legacyHosted().from("addresses").select("*").eq("customer_id", customerId).order("is_default", { ascending: false })) as AddressRecord[] | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:151 | await legacyHosted().rpc("save_address", { | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:170 | unwrap(await legacyHosted().rpc("delete_address", { p_customer_id: customerId, p_address_id: addressId })) | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:173 | unwrap(await legacyHosted().rpc("scrub_customer", { p_customer_id: customerId })) | M1/M2/M6/M8 |
+| server/customers/legacy-hosted.repository.ts:176 | let request = legacyHosted().from("customers").select("*", { count: "exact" }).eq("store_id", storeId).not("email", "like", "%@invalid") | M1/M2/M6/M8 |
+| server/db/driver.ts:6 | export type DataDriver = "local" \| "fixtures" \| "legacy hosted platform" | M1/M2/M6/M8 |
+| server/db/driver.ts:30 | export function selectRepository<T extends object>(implementations: { fixtures: () => T; legacy hosted platform: () => T }): () => T { | M1/M2/M6/M8 |
+| server/db/local-store.ts:7 | /** Durable, single-process local storage. Hosted deployments use the legacy hosted platform driver. */ | M1/M2/M6/M8 |
+| server/db/legacy-hosted.ts:3 | import { createClient, type LegacyHostedClient } from "@legacy-hosted/client" | M1/M2/M6/M8 |
+| server/db/legacy-hosted.ts:11 | * Service-role client for the legacy hosted platform driver. Server-only: the key bypasses RLS, so it is | M1/M2/M6/M8 |
+| server/db/legacy-hosted.ts:12 | * read from lib/env.server.ts and never reaches the browser. RLS still protects every table | M1/M2/M6/M8 |
+| server/db/legacy-hosted.ts:13 | * from the anon and authenticated roles (retired migrations). | M1/M2/M6/M8 |
+| server/db/legacy-hosted.ts:15 | export function legacyHosted(): LegacyHostedClient { | M1/M2/M6/M8 |
+| server/db/legacy-hosted.ts:26 | /** Codes our RPCs raise as "code: shopper-safe message" ((retired migrations)/*_functions.sql). */ | M1/M2/M6/M8 |
+| server/db/legacy-hosted.ts:29 | /** Unwraps a legacy-hosted-client response, translating Postgres errors raised by our RPCs into DomainErrors. */ | M1/M2/M6/M8 |
 | server/fixtures/seed.ts:20 | * The same data seeds Postgres via `node scripts/db-seed-sql.mjs`. | M1/M2/M6/M8 |
 | server/fixtures/store.ts:24 | * The in-memory database behind DATA_DRIVER=fixtures. Tables mirror the Postgres schema | M1/M2/M6/M8 |
-| server/fixtures/store.ts:25 | * (the former platform/migrations) and the fixtures repositories reproduce each RPC's guarantees — | M1/M2/M6/M8 |
+| server/fixtures/store.ts:25 | * (retired migrations) and the fixtures repositories reproduce each RPC's guarantees — | M1/M2/M6/M8 |
 | server/fixtures/store.ts:186 | * fixtures driver mirrors a Postgres transaction. Node runs it without interleaving because | M1/M2/M6/M8 |
 | server/fixtures/tables.ts:20 | /** Shape of the fixtures database — one property per Postgres table (docs/app/data-model.md). */ | M1/M2/M6/M8 |
-| server/http/jobs.ts:11 | * any scheduler (cron, the former platform pg_cron + pg_net, a platform cron) can drive them. | M1/M2/M6/M8 |
-| server/inventory/index.ts:5 | import { createthe former platformInventoryRepository } from "@/server/inventory/the former platform.repository" | M1/M2/M6/M8 |
-| server/inventory/index.ts:8 | export const inventory = selectRepository({ fixtures: createFixturesInventoryRepository, the former platform: createthe former platformInventoryRepository }) | M1/M2/M6/M8 |
-| server/inventory/the former platform.repository.ts:3 | import { the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/inventory/the former platform.repository.ts:11 | await the former platform().rpc("stock_availability", { p_variant_ids: variantIds, p_cart_id: forCartId ?? null }), | M1/M2/M6/M8 |
-| server/inventory/the former platform.repository.ts:17 | await the former platform().rpc("reserve_stock", { | M1/M2/M6/M8 |
-| server/inventory/the former platform.repository.ts:26 | unwrap(await the former platform().rpc("reserve_stock", { p_cart_id: cartId, p_items: [], p_ttl_minutes: 15 })) | M1/M2/M6/M8 |
-| server/inventory/the former platform.repository.ts:30 | const rows = unwrap(await the former platform().from("inventory_levels").select("variant_id, on_hand").in("variant_id", variantIds)) as { variant_id: string; on_hand: number }[] | M1/M2/M6/M8 |
-| server/inventory/the former platform.repository.ts:34 | return unwrap(await the former platform().rpc("release_expired_reservations")) as number | M1/M2/M6/M8 |
-| server/inventory/the former platform.repository.ts:38 | await the former platform().rpc("adjust_stock", { p_variant_id: variantId, p_delta: delta, p_reason: reason, p_actor: actor }), | M1/M2/M6/M8 |
-| server/inventory/the former platform.repository.ts:43 | const rows = unwrap(await the former platform().from("inventory_levels").select("variant_id, on_hand, reserved").in("variant_id", variantIds)) as { variant_id: string; on_hand: number; reserved: number }[] | M1/M2/M6/M8 |
-| server/inventory/the former platform.repository.ts:48 | const rows = unwrap(await the former platform().from("inventory_movements").select("id, variant_id, delta, reason, actor, at").in("variant_id", variantIds).order("at", { ascending: false }).limit(limit)) as { id: string; variant_id: string; delta: number; reason: string; | M1/M2/M6/M8 |
-| server/media/index.ts:7 | import { createthe former platformMediaRepository } from "@/server/media/the former platform.repository" | M1/M2/M6/M8 |
-| server/media/index.ts:11 | const repository = selectRepository({ fixtures: createFixturesMediaRepository, the former platform: createthe former platformMediaRepository }) | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:3 | import { searchTerm, the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:8 | /** Index rows in `media` (migration 20261109090000), files in the the former platform Storage bucket `media` (runbook). */ | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:30 | return unwrap(await the former platform().rpc("media_has_order_usage", { p_store_id: storeId, p_url: url })) as boolean | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:33 | let request = the former platform().from("media").select("*", { count: "exact" }).eq("store_id", storeId) | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:42 | const row = unwrap(await the former platform().from("media").select("*").eq("store_id", storeId).eq("id", id).maybeSingle()) as MediaRecord \| null | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:46 | const row = unwrap(await the former platform().from("media").select("*").eq("id", id).maybeSingle()) as MediaRecord \| null | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:50 | const upload = await the former platform().storage.from(BUCKET).upload(item.path, data, { contentType: item.mime, upsert: false }) | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:53 | await the former platform() | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:62 | const row = unwrap(await the former platform().from("media").update({ alt }).eq("store_id", storeId).eq("id", id).select("*").maybeSingle()) as MediaRecord \| null | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:67 | const row = unwrap(await the former platform().from("media").delete().eq("store_id", storeId).eq("id", id).select("path").maybeSingle()) as { path: string } \| null | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:69 | await the former platform().storage.from(BUCKET).remove([row.path]) | M1/M2/M6/M8 |
-| server/media/the former platform.repository.ts:72 | const download = await the former platform().storage.from(BUCKET).download(path) | M1/M2/M6/M8 |
-| server/media/validate.ts:6 | import { createthe former platformMediaRepository } from "@/server/media/the former platform.repository" | M1/M2/M6/M8 |
-| server/media/validate.ts:9 | const repository = selectRepository({ fixtures: createFixturesMediaRepository, the former platform: createthe former platformMediaRepository }) | M1/M2/M6/M8 |
-| server/orders/fixtures.repository.ts:39 | /** Staff search over the fixture orders, mirroring the Postgres query in the the former platform repository. */ | M1/M2/M6/M8 |
-| server/orders/index.ts:12 | import { createthe former platformOrderRepository } from "@/server/orders/the former platform.repository" | M1/M2/M6/M8 |
-| server/orders/index.ts:14 | const repository = selectRepository({ fixtures: createFixturesOrderRepository, the former platform: createthe former platformOrderRepository }) | M1/M2/M6/M8 |
+| server/http/jobs.ts:11 | * any scheduler (cron, legacy hosted platform pg_cron + pg_net, a platform cron) can drive them. | M1/M2/M6/M8 |
+| server/inventory/index.ts:5 | import { createlegacy hosted platformInventoryRepository } from "@/server/inventory/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/inventory/index.ts:8 | export const inventory = selectRepository({ fixtures: createFixturesInventoryRepository, legacy hosted platform: createlegacy hosted platformInventoryRepository }) | M1/M2/M6/M8 |
+| server/inventory/legacy-hosted.repository.ts:3 | import { legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/inventory/legacy-hosted.repository.ts:11 | await legacyHosted().rpc("stock_availability", { p_variant_ids: variantIds, p_cart_id: forCartId ?? null }), | M1/M2/M6/M8 |
+| server/inventory/legacy-hosted.repository.ts:17 | await legacyHosted().rpc("reserve_stock", { | M1/M2/M6/M8 |
+| server/inventory/legacy-hosted.repository.ts:26 | unwrap(await legacyHosted().rpc("reserve_stock", { p_cart_id: cartId, p_items: [], p_ttl_minutes: 15 })) | M1/M2/M6/M8 |
+| server/inventory/legacy-hosted.repository.ts:30 | const rows = unwrap(await legacyHosted().from("inventory_levels").select("variant_id, on_hand").in("variant_id", variantIds)) as { variant_id: string; on_hand: number }[] | M1/M2/M6/M8 |
+| server/inventory/legacy-hosted.repository.ts:34 | return unwrap(await legacyHosted().rpc("release_expired_reservations")) as number | M1/M2/M6/M8 |
+| server/inventory/legacy-hosted.repository.ts:38 | await legacyHosted().rpc("adjust_stock", { p_variant_id: variantId, p_delta: delta, p_reason: reason, p_actor: actor }), | M1/M2/M6/M8 |
+| server/inventory/legacy-hosted.repository.ts:43 | const rows = unwrap(await legacyHosted().from("inventory_levels").select("variant_id, on_hand, reserved").in("variant_id", variantIds)) as { variant_id: string; on_hand: number; reserved: number }[] | M1/M2/M6/M8 |
+| server/inventory/legacy-hosted.repository.ts:48 | const rows = unwrap(await legacyHosted().from("inventory_movements").select("id, variant_id, delta, reason, actor, at").in("variant_id", variantIds).order("at", { ascending: false }).limit(limit)) as { id: string; variant_id: string; delta: number; reason: string; | M1/M2/M6/M8 |
+| server/media/index.ts:7 | import { createlegacy hosted platformMediaRepository } from "@/server/media/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/media/index.ts:11 | const repository = selectRepository({ fixtures: createFixturesMediaRepository, legacy hosted platform: createlegacy hosted platformMediaRepository }) | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:3 | import { searchTerm, legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:8 | /** Index rows in `media` (migration 20261109090000), files in the legacy hosted platform Storage bucket `media` (runbook). */ | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:30 | return unwrap(await legacyHosted().rpc("media_has_order_usage", { p_store_id: storeId, p_url: url })) as boolean | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:33 | let request = legacyHosted().from("media").select("*", { count: "exact" }).eq("store_id", storeId) | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:42 | const row = unwrap(await legacyHosted().from("media").select("*").eq("store_id", storeId).eq("id", id).maybeSingle()) as MediaRecord \| null | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:46 | const row = unwrap(await legacyHosted().from("media").select("*").eq("id", id).maybeSingle()) as MediaRecord \| null | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:50 | const upload = await legacyHosted().storage.from(BUCKET).upload(item.path, data, { contentType: item.mime, upsert: false }) | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:53 | await legacyHosted() | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:62 | const row = unwrap(await legacyHosted().from("media").update({ alt }).eq("store_id", storeId).eq("id", id).select("*").maybeSingle()) as MediaRecord \| null | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:67 | const row = unwrap(await legacyHosted().from("media").delete().eq("store_id", storeId).eq("id", id).select("path").maybeSingle()) as { path: string } \| null | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:69 | await legacyHosted().storage.from(BUCKET).remove([row.path]) | M1/M2/M6/M8 |
+| server/media/legacy-hosted.repository.ts:72 | const download = await legacyHosted().storage.from(BUCKET).download(path) | M1/M2/M6/M8 |
+| server/media/validate.ts:6 | import { createlegacy hosted platformMediaRepository } from "@/server/media/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/media/validate.ts:9 | const repository = selectRepository({ fixtures: createFixturesMediaRepository, legacy hosted platform: createlegacy hosted platformMediaRepository }) | M1/M2/M6/M8 |
+| server/orders/fixtures.repository.ts:39 | /** Staff search over the fixture orders, mirroring the Postgres query in the legacy hosted platform repository. */ | M1/M2/M6/M8 |
+| server/orders/index.ts:12 | import { createlegacy hosted platformOrderRepository } from "@/server/orders/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/orders/index.ts:14 | const repository = selectRepository({ fixtures: createFixturesOrderRepository, legacy hosted platform: createlegacy hosted platformOrderRepository }) | M1/M2/M6/M8 |
 | server/orders/state-machine.ts:4 | * Legal order transitions. The same table is enforced in Postgres by `transition_order` | M1/M2/M6/M8 |
-| server/orders/state-machine.ts:5 | * (the former platform/migrations) so no client — storefront, API or future admin — can skip a step. | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:3 | import { searchTerm, the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:172 | const row = unwrap(await the former platform().from("orders").select(ORDER_SELECT).eq("id", id).maybeSingle()) as OrderRecord \| null | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:179 | await the former platform().rpc("place_order", { | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:232 | const row = unwrap(await the former platform().from("orders").select(ORDER_SELECT).eq("store_id", storeId).eq("number", number).maybeSingle()) as OrderRecord \| null | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:237 | const row = unwrap(await the former platform().from("orders").select(ORDER_SELECT).eq("store_id", storeId).eq("idempotency_key", key).maybeSingle()) as OrderRecord \| null | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:242 | await the former platform().from("orders").select(ORDER_SELECT).eq("store_id", storeId).eq("customer_id", customerId).order("placed_at", { ascending: false }), | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:247 | const rows = unwrap(await the former platform().from("orders").select(ORDER_SELECT).eq("store_id", storeId).ilike("email", email)) as OrderRecord[] | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:251 | unwrap(await the former platform().rpc("transition_order", { p_order_id: orderId, p_to: to, p_actor: actor, p_note: note ?? null, p_tracking_number: trackingNumber ?? null })) | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:256 | await the former platform().rpc("record_payment", { | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:269 | const rows = unwrap(await the former platform().from("payments").select("*").eq("order_id", orderId).order("created_at")) as PaymentRecord[] | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:274 | await the former platform().rpc("create_refund", { | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:288 | await the former platform().rpc("create_return", { | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:297 | const row = unwrap(await the former platform().rpc("restock_return", { p_return_id: returnId, p_actor: actor })) as ReturnRecord | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:301 | const rows = unwrap(await the former platform().from("returns").select("*").eq("order_id", orderId)) as ReturnRecord[] | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:305 | let request = the former platform().from("orders").select(ORDER_SELECT, { count: "exact" }).eq("store_id", storeId) | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:320 | const rows = unwrap(await the former platform().from("refunds").select("*").eq("order_id", orderId).order("created_at")) as RefundRecord[] | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:324 | const row = unwrap(await the former platform().from("returns").update({ status: decision }).eq("id", returnId).eq("status", "requested").select("*").maybeSingle()) as ReturnRecord \| null | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:326 | const existing = unwrap(await the former platform().from("returns").select("status").eq("id", returnId).maybeSingle()) as { status: string } \| null | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:331 | const row = unwrap(await the former platform().from("order_notes").insert({ order_id: note.orderId, author: note.author, author_name: note.authorName, body: note.body }).select("*").single()) as NoteRecord | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:335 | const rows = unwrap(await the former platform().from("order_notes").select("*").eq("order_id", orderId).order("created_at")) as NoteRecord[] | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:341 | let request = the former platform().from("payments").select("id, provider, status, amount, currency, provider_ref, created_at, orders!inner(number, store_id)", { count: "exact" }).eq("orders.store_id", storeId) | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:347 | const result = await the former platform().from("refunds").select("id, amount, reason, created_at, payments(provider), orders!inner(number, store_id, currency)", { count: "exact" }).eq("orders.store_id", storeId).order("created_at", { ascending: false }).range(start, sta | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:352 | return unwrap(await the former platform().rpc("next_order_number", { p_store_id: storeId })) as string | M1/M2/M6/M8 |
-| server/orders/the former platform.repository.ts:355 | return unwrap(await the former platform().rpc("anonymise_customer_orders", { p_customer_id: customerId })) as number | M1/M2/M6/M8 |
-| server/platform/index.ts:5 | import { createthe former platformPlatformRepository } from "@/server/platform/the former platform.repository" | M1/M2/M6/M8 |
-| server/platform/index.ts:7 | export const platform = selectRepository({ fixtures: createFixturesPlatformRepository, the former platform: createthe former platformPlatformRepository }) | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:3 | import { searchTerm, the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:34 | await the former platform().from("feature_flags").select("key, description, enabled, customer_groups").eq("store_id", storeId), | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:39 | const row = unwrap(await the former platform().from("outbox_events").insert({ store_id: storeId, topic, payload }).select("*").single()) as OutboxRecord | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:43 | const rows = unwrap(await the former platform().rpc("claim_outbox_events", { p_limit: limit })) as OutboxRecord[] | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:47 | unwrap(await the former platform().from("outbox_events").update({ status: "delivered", delivered_at: new Date().toISOString() }).eq("id", id)) | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:50 | unwrap(await the former platform().rpc("fail_outbox_event", { p_id: id, p_error: error, p_max_attempts: maxAttempts })) | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:54 | await the former platform().from("webhook_deliveries").insert({ | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:65 | await the former platform().from("audit_log").insert({ | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:83 | await the former platform().from("audit_log").select("id, actor, action, entity, entity_id, before, after, at").eq("entity", entity).eq("entity_id", entityId).order("at"), | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:88 | return unwrap(await the former platform().rpc("rate_limit_hit", { p_key: key, p_window_seconds: windowSeconds })) as number | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:92 | await the former platform().from("idempotency_keys").select("status, body").eq("key", key).gt("expires_at", new Date().toISOString()).maybeSingle(), | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:97 | unwrap(await the former platform().from("idempotency_keys").upsert({ key, status, body })) | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:100 | const result = await the former platform().from("stores").select("id").limit(1) | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:105 | await the former platform() | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:117 | let request = the former platform().from("audit_log").select("*", { count: "exact" }).or(`store_id.eq.${storeId},store_id.is.null`) | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:134 | const count = async (status: string) => (await the former platform().from("outbox_events").select("id", { count: "exact", head: true }).eq("store_id", storeId).eq("status", status)).count ?? 0 | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:136 | const failedRows = unwrap(await the former platform().from("outbox_events").select("*").eq("store_id", storeId).eq("status", "failed").order("created_at", { ascending: false }).limit(20)) as { id: string; topic: OutboxEvent["topic"]; payload: Record<string, unknown>; sta | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:137 | const deliveryRows = unwrap(await the former platform().from("webhook_deliveries").select("id, event_id, endpoint, status, response_status, at, outbox_events!inner(store_id)").eq("outbox_events.store_id", storeId).order("at", { ascending: false }).limit(20)) as unknown a | M1/M2/M6/M8 |
-| server/platform/the former platform.repository.ts:147 | const rows = unwrap(await the former platform().from("outbox_events").update({ status: "pending", available_at: new Date().toISOString(), last_error: null }).eq("store_id", storeId).eq("id", id).eq("status", "failed").select("id")) as { id: string }[] | M1/M2/M6/M8 |
-| server/pricing/index.ts:6 | import { createthe former platformPricingRepository } from "@/server/pricing/the former platform.repository" | M1/M2/M6/M8 |
-| server/pricing/index.ts:8 | const repository = selectRepository({ fixtures: createFixturesPricingRepository, the former platform: createthe former platformPricingRepository }) | M1/M2/M6/M8 |
-| server/pricing/the former platform.repository.ts:3 | import { the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/pricing/the former platform.repository.ts:11 | await the former platform().from("price_lists").select("id, code, currency, customer_group, priority, starts_at, ends_at").eq("store_id", storeId), | M1/M2/M6/M8 |
-| server/pricing/the former platform.repository.ts:26 | await the former platform().from("prices").select("price_list_id, variant_id, amount, compare_at").in("variant_id", variantIds), | M1/M2/M6/M8 |
-| server/pricing/the former platform.repository.ts:32 | await the former platform().from("exchange_rates").select("base, rates, updated_at").eq("store_id", storeId).single(), | M1/M2/M6/M8 |
-| server/pricing/the former platform.repository.ts:38 | await the former platform() | M1/M2/M6/M8 |
-| server/promotions/index.ts:9 | import { createthe former platformPromotionRepository } from "@/server/promotions/the former platform.repository" | M1/M2/M6/M8 |
-| server/promotions/index.ts:13 | the former platform: createthe former platformPromotionRepository, | M1/M2/M6/M8 |
-| server/promotions/the former platform.repository.ts:3 | import { the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/promotions/the former platform.repository.ts:43 | const rows = unwrap(await the former platform().from("promotions").select("*").eq("store_id", storeId).eq("active", true)) as PromotionRecord[] | M1/M2/M6/M8 |
-| server/promotions/the former platform.repository.ts:48 | await the former platform().rpc("promotion_redemption_counts", { p_store_id: storeId, p_customer_id: shopper.customerId, p_email: shopper.email }), | M1/M2/M6/M8 |
-| server/promotions/the former platform.repository.ts:54 | await the former platform().rpc("shopper_order_count", { p_store_id: storeId, p_customer_id: shopper.customerId, p_email: shopper.email }), | M1/M2/M6/M8 |
-| server/promotions/the former platform.repository.ts:59 | const rows = unwrap(await the former platform().from("promotions").select("*").eq("store_id", storeId).order("title")) as PromotionRecord[] | M1/M2/M6/M8 |
-| server/promotions/the former platform.repository.ts:63 | const row = unwrap(await the former platform().from("promotions").select("*").eq("store_id", storeId).eq("id", id).maybeSingle()) as PromotionRecord \| null | M1/M2/M6/M8 |
-| server/promotions/the former platform.repository.ts:69 | await the former platform() | M1/M2/M6/M8 |
-| server/promotions/the former platform.repository.ts:94 | const used = unwrap(await the former platform().from("promotion_redemptions").select("id").eq("promotion_id", id).limit(1)) as { id: string }[] | M1/M2/M6/M8 |
-| server/promotions/the former platform.repository.ts:96 | const deleted = unwrap(await the former platform().from("promotions").delete().eq("store_id", storeId).eq("id", id).eq("times_used", 0).select("id")) as { id: string }[] | M1/M2/M6/M8 |
-| server/promotions/the former platform.repository.ts:100 | const rows = unwrap(await the former platform().from("promotion_redemptions").select("promotion_id, order_id, email, at").eq("promotion_id", promotionId).order("at", { ascending: false }).limit(limit)) as { | M1/M2/M6/M8 |
-| server/search/index.ts:6 | import { createthe former platformSearchRepository } from "@/server/search/the former platform.repository" | M1/M2/M6/M8 |
-| server/search/index.ts:8 | const repository = selectRepository({ fixtures: createFixturesSearchRepository, the former platform: createthe former platformSearchRepository }) | M1/M2/M6/M8 |
-| server/search/match.ts:4 | * Pure functions, so the fixtures and the former platform drivers rank results identically. | M1/M2/M6/M8 |
-| server/search/the former platform.repository.ts:3 | import { the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/search/the former platform.repository.ts:11 | return unwrap(await the former platform().from("search_synonyms").select("id, term, synonyms").eq("store_id", storeId).order("term")) as SynonymGroup[] | M1/M2/M6/M8 |
-| server/search/the former platform.repository.ts:15 | await the former platform().from("search_queries").insert({ | M1/M2/M6/M8 |
-| server/search/the former platform.repository.ts:28 | const rows = unwrap(await the former platform().rpc("search_trending", { p_store_id: storeId, p_days: days, p_limit: limit })) as { query: string; count: number }[] | M1/M2/M6/M8 |
-| server/search/the former platform.repository.ts:32 | const row = unwrap(await the former platform().rpc("search_report", { p_store_id: storeId, p_days: days, p_limit: limit })) as { | M1/M2/M6/M8 |
-| server/search/the former platform.repository.ts:42 | unwrap(await the former platform().from("search_synonyms").upsert({ id: group.id, store_id: storeId, term: group.term, synonyms: group.synonyms }, { onConflict: "id" })) | M1/M2/M6/M8 |
-| server/search/the former platform.repository.ts:46 | const rows = unwrap(await the former platform().from("search_synonyms").delete().eq("store_id", storeId).eq("id", id).select("id")) as { id: string }[] | M1/M2/M6/M8 |
-| server/shipping/index.ts:8 | import { createthe former platformShippingRepository } from "@/server/shipping/the former platform.repository" | M1/M2/M6/M8 |
-| server/shipping/index.ts:12 | the former platform: createthe former platformShippingRepository, | M1/M2/M6/M8 |
-| server/shipping/the former platform.repository.ts:3 | import { the former platform, unwrap } from "@/server/db/the former platform" | M1/M2/M6/M8 |
-| server/shipping/the former platform.repository.ts:12 | await the former platform() | M1/M2/M6/M8 |
-| server/shipping/the former platform.repository.ts:48 | await the former platform().from("tax_rates").select("country, province, label, basis_points, inclusive").eq("store_id", storeId), | M1/M2/M6/M8 |
-| server/shipping/the former platform.repository.ts:54 | await the former platform().rpc("save_shipping_zone", { | M1/M2/M6/M8 |
-| server/shipping/the former platform.repository.ts:63 | const deleted = unwrap(await the former platform().from("shipping_zones").delete().eq("store_id", storeId).eq("id", id).select("id")) as { id: string }[] | M1/M2/M6/M8 |
-| server/shipping/the former platform.repository.ts:67 | unwrap(await the former platform().rpc("replace_tax_rates", { p_store_id: storeId, p_rates: rates.map((rate) => ({ country: rate.country, province: rate.province, label: rate.label, basis_points: rate.basisPoints, inclusive: rate.inclusive })) })) | M1/M2/M6/M8 |
-| the former platform/config.toml:1 | # Local the former platform stack for development (`the former platform start`, `the former platform db reset`). | M1/M3/M5 |
-| the former platform/config.toml:2 | # Never `the former platform link` or `the retired migration CLI` from this repository without the owner (docs/DEPLOYMENT-RUNBOOK.md). | M1/M3/M5 |
-| the former platform/config.toml:9 | # gets no direct table access (RLS denies anon by default), so only these schemas are exposed. | M1/M3/M5 |
-| the former platform/config.toml:40 | # Shopper accounts live in public.customers (server/customers); the former identity provider is reserved for staff (phase 2). | M1/M3/M5 |
+| server/orders/state-machine.ts:5 | * (retired migrations) so no client — storefront, API or future admin — can skip a step. | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:3 | import { searchTerm, legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:172 | const row = unwrap(await legacyHosted().from("orders").select(ORDER_SELECT).eq("id", id).maybeSingle()) as OrderRecord \| null | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:179 | await legacyHosted().rpc("place_order", { | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:232 | const row = unwrap(await legacyHosted().from("orders").select(ORDER_SELECT).eq("store_id", storeId).eq("number", number).maybeSingle()) as OrderRecord \| null | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:237 | const row = unwrap(await legacyHosted().from("orders").select(ORDER_SELECT).eq("store_id", storeId).eq("idempotency_key", key).maybeSingle()) as OrderRecord \| null | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:242 | await legacyHosted().from("orders").select(ORDER_SELECT).eq("store_id", storeId).eq("customer_id", customerId).order("placed_at", { ascending: false }), | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:247 | const rows = unwrap(await legacyHosted().from("orders").select(ORDER_SELECT).eq("store_id", storeId).ilike("email", email)) as OrderRecord[] | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:251 | unwrap(await legacyHosted().rpc("transition_order", { p_order_id: orderId, p_to: to, p_actor: actor, p_note: note ?? null, p_tracking_number: trackingNumber ?? null })) | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:256 | await legacyHosted().rpc("record_payment", { | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:269 | const rows = unwrap(await legacyHosted().from("payments").select("*").eq("order_id", orderId).order("created_at")) as PaymentRecord[] | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:274 | await legacyHosted().rpc("create_refund", { | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:288 | await legacyHosted().rpc("create_return", { | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:297 | const row = unwrap(await legacyHosted().rpc("restock_return", { p_return_id: returnId, p_actor: actor })) as ReturnRecord | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:301 | const rows = unwrap(await legacyHosted().from("returns").select("*").eq("order_id", orderId)) as ReturnRecord[] | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:305 | let request = legacyHosted().from("orders").select(ORDER_SELECT, { count: "exact" }).eq("store_id", storeId) | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:320 | const rows = unwrap(await legacyHosted().from("refunds").select("*").eq("order_id", orderId).order("created_at")) as RefundRecord[] | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:324 | const row = unwrap(await legacyHosted().from("returns").update({ status: decision }).eq("id", returnId).eq("status", "requested").select("*").maybeSingle()) as ReturnRecord \| null | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:326 | const existing = unwrap(await legacyHosted().from("returns").select("status").eq("id", returnId).maybeSingle()) as { status: string } \| null | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:331 | const row = unwrap(await legacyHosted().from("order_notes").insert({ order_id: note.orderId, author: note.author, author_name: note.authorName, body: note.body }).select("*").single()) as NoteRecord | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:335 | const rows = unwrap(await legacyHosted().from("order_notes").select("*").eq("order_id", orderId).order("created_at")) as NoteRecord[] | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:341 | let request = legacyHosted().from("payments").select("id, provider, status, amount, currency, provider_ref, created_at, orders!inner(number, store_id)", { count: "exact" }).eq("orders.store_id", storeId) | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:347 | const result = await legacyHosted().from("refunds").select("id, amount, reason, created_at, payments(provider), orders!inner(number, store_id, currency)", { count: "exact" }).eq("orders.store_id", storeId).order("created_at", { ascending: false }).range(start, sta | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:352 | return unwrap(await legacyHosted().rpc("next_order_number", { p_store_id: storeId })) as string | M1/M2/M6/M8 |
+| server/orders/legacy-hosted.repository.ts:355 | return unwrap(await legacyHosted().rpc("anonymise_customer_orders", { p_customer_id: customerId })) as number | M1/M2/M6/M8 |
+| server/platform/index.ts:5 | import { createlegacy hosted platformPlatformRepository } from "@/server/platform/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/platform/index.ts:7 | export const platform = selectRepository({ fixtures: createFixturesPlatformRepository, legacy hosted platform: createlegacy hosted platformPlatformRepository }) | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:3 | import { searchTerm, legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:34 | await legacyHosted().from("feature_flags").select("key, description, enabled, customer_groups").eq("store_id", storeId), | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:39 | const row = unwrap(await legacyHosted().from("outbox_events").insert({ store_id: storeId, topic, payload }).select("*").single()) as OutboxRecord | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:43 | const rows = unwrap(await legacyHosted().rpc("claim_outbox_events", { p_limit: limit })) as OutboxRecord[] | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:47 | unwrap(await legacyHosted().from("outbox_events").update({ status: "delivered", delivered_at: new Date().toISOString() }).eq("id", id)) | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:50 | unwrap(await legacyHosted().rpc("fail_outbox_event", { p_id: id, p_error: error, p_max_attempts: maxAttempts })) | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:54 | await legacyHosted().from("webhook_deliveries").insert({ | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:65 | await legacyHosted().from("audit_log").insert({ | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:83 | await legacyHosted().from("audit_log").select("id, actor, action, entity, entity_id, before, after, at").eq("entity", entity).eq("entity_id", entityId).order("at"), | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:88 | return unwrap(await legacyHosted().rpc("rate_limit_hit", { p_key: key, p_window_seconds: windowSeconds })) as number | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:92 | await legacyHosted().from("idempotency_keys").select("status, body").eq("key", key).gt("expires_at", new Date().toISOString()).maybeSingle(), | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:97 | unwrap(await legacyHosted().from("idempotency_keys").upsert({ key, status, body })) | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:100 | const result = await legacyHosted().from("stores").select("id").limit(1) | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:105 | await legacyHosted() | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:117 | let request = legacyHosted().from("audit_log").select("*", { count: "exact" }).or(`store_id.eq.${storeId},store_id.is.null`) | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:134 | const count = async (status: string) => (await legacyHosted().from("outbox_events").select("id", { count: "exact", head: true }).eq("store_id", storeId).eq("status", status)).count ?? 0 | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:136 | const failedRows = unwrap(await legacyHosted().from("outbox_events").select("*").eq("store_id", storeId).eq("status", "failed").order("created_at", { ascending: false }).limit(20)) as { id: string; topic: OutboxEvent["topic"]; payload: Record<string, unknown>; sta | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:137 | const deliveryRows = unwrap(await legacyHosted().from("webhook_deliveries").select("id, event_id, endpoint, status, response_status, at, outbox_events!inner(store_id)").eq("outbox_events.store_id", storeId).order("at", { ascending: false }).limit(20)) as unknown a | M1/M2/M6/M8 |
+| server/platform/legacy-hosted.repository.ts:147 | const rows = unwrap(await legacyHosted().from("outbox_events").update({ status: "pending", available_at: new Date().toISOString(), last_error: null }).eq("store_id", storeId).eq("id", id).eq("status", "failed").select("id")) as { id: string }[] | M1/M2/M6/M8 |
+| server/pricing/index.ts:6 | import { createlegacy hosted platformPricingRepository } from "@/server/pricing/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/pricing/index.ts:8 | const repository = selectRepository({ fixtures: createFixturesPricingRepository, legacy hosted platform: createlegacy hosted platformPricingRepository }) | M1/M2/M6/M8 |
+| server/pricing/legacy-hosted.repository.ts:3 | import { legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/pricing/legacy-hosted.repository.ts:11 | await legacyHosted().from("price_lists").select("id, code, currency, customer_group, priority, starts_at, ends_at").eq("store_id", storeId), | M1/M2/M6/M8 |
+| server/pricing/legacy-hosted.repository.ts:26 | await legacyHosted().from("prices").select("price_list_id, variant_id, amount, compare_at").in("variant_id", variantIds), | M1/M2/M6/M8 |
+| server/pricing/legacy-hosted.repository.ts:32 | await legacyHosted().from("exchange_rates").select("base, rates, updated_at").eq("store_id", storeId).single(), | M1/M2/M6/M8 |
+| server/pricing/legacy-hosted.repository.ts:38 | await legacyHosted() | M1/M2/M6/M8 |
+| server/promotions/index.ts:9 | import { createlegacy hosted platformPromotionRepository } from "@/server/promotions/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/promotions/index.ts:13 | legacy hosted platform: createlegacy hosted platformPromotionRepository, | M1/M2/M6/M8 |
+| server/promotions/legacy-hosted.repository.ts:3 | import { legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/promotions/legacy-hosted.repository.ts:43 | const rows = unwrap(await legacyHosted().from("promotions").select("*").eq("store_id", storeId).eq("active", true)) as PromotionRecord[] | M1/M2/M6/M8 |
+| server/promotions/legacy-hosted.repository.ts:48 | await legacyHosted().rpc("promotion_redemption_counts", { p_store_id: storeId, p_customer_id: shopper.customerId, p_email: shopper.email }), | M1/M2/M6/M8 |
+| server/promotions/legacy-hosted.repository.ts:54 | await legacyHosted().rpc("shopper_order_count", { p_store_id: storeId, p_customer_id: shopper.customerId, p_email: shopper.email }), | M1/M2/M6/M8 |
+| server/promotions/legacy-hosted.repository.ts:59 | const rows = unwrap(await legacyHosted().from("promotions").select("*").eq("store_id", storeId).order("title")) as PromotionRecord[] | M1/M2/M6/M8 |
+| server/promotions/legacy-hosted.repository.ts:63 | const row = unwrap(await legacyHosted().from("promotions").select("*").eq("store_id", storeId).eq("id", id).maybeSingle()) as PromotionRecord \| null | M1/M2/M6/M8 |
+| server/promotions/legacy-hosted.repository.ts:69 | await legacyHosted() | M1/M2/M6/M8 |
+| server/promotions/legacy-hosted.repository.ts:94 | const used = unwrap(await legacyHosted().from("promotion_redemptions").select("id").eq("promotion_id", id).limit(1)) as { id: string }[] | M1/M2/M6/M8 |
+| server/promotions/legacy-hosted.repository.ts:96 | const deleted = unwrap(await legacyHosted().from("promotions").delete().eq("store_id", storeId).eq("id", id).eq("times_used", 0).select("id")) as { id: string }[] | M1/M2/M6/M8 |
+| server/promotions/legacy-hosted.repository.ts:100 | const rows = unwrap(await legacyHosted().from("promotion_redemptions").select("promotion_id, order_id, email, at").eq("promotion_id", promotionId).order("at", { ascending: false }).limit(limit)) as { | M1/M2/M6/M8 |
+| server/search/index.ts:6 | import { createlegacy hosted platformSearchRepository } from "@/server/search/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/search/index.ts:8 | const repository = selectRepository({ fixtures: createFixturesSearchRepository, legacy hosted platform: createlegacy hosted platformSearchRepository }) | M1/M2/M6/M8 |
+| server/search/match.ts:4 | * Pure functions, so the fixtures and legacy hosted platform drivers rank results identically. | M1/M2/M6/M8 |
+| server/search/legacy-hosted.repository.ts:3 | import { legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/search/legacy-hosted.repository.ts:11 | return unwrap(await legacyHosted().from("search_synonyms").select("id, term, synonyms").eq("store_id", storeId).order("term")) as SynonymGroup[] | M1/M2/M6/M8 |
+| server/search/legacy-hosted.repository.ts:15 | await legacyHosted().from("search_queries").insert({ | M1/M2/M6/M8 |
+| server/search/legacy-hosted.repository.ts:28 | const rows = unwrap(await legacyHosted().rpc("search_trending", { p_store_id: storeId, p_days: days, p_limit: limit })) as { query: string; count: number }[] | M1/M2/M6/M8 |
+| server/search/legacy-hosted.repository.ts:32 | const row = unwrap(await legacyHosted().rpc("search_report", { p_store_id: storeId, p_days: days, p_limit: limit })) as { | M1/M2/M6/M8 |
+| server/search/legacy-hosted.repository.ts:42 | unwrap(await legacyHosted().from("search_synonyms").upsert({ id: group.id, store_id: storeId, term: group.term, synonyms: group.synonyms }, { onConflict: "id" })) | M1/M2/M6/M8 |
+| server/search/legacy-hosted.repository.ts:46 | const rows = unwrap(await legacyHosted().from("search_synonyms").delete().eq("store_id", storeId).eq("id", id).select("id")) as { id: string }[] | M1/M2/M6/M8 |
+| server/shipping/index.ts:8 | import { createlegacy hosted platformShippingRepository } from "@/server/shipping/legacy hosted platform.repository" | M1/M2/M6/M8 |
+| server/shipping/index.ts:12 | legacy hosted platform: createlegacy hosted platformShippingRepository, | M1/M2/M6/M8 |
+| server/shipping/legacy-hosted.repository.ts:3 | import { legacy hosted platform, unwrap } from "@/server/db/legacy hosted platform" | M1/M2/M6/M8 |
+| server/shipping/legacy-hosted.repository.ts:12 | await legacyHosted() | M1/M2/M6/M8 |
+| server/shipping/legacy-hosted.repository.ts:48 | await legacyHosted().from("tax_rates").select("country, province, label, basis_points, inclusive").eq("store_id", storeId), | M1/M2/M6/M8 |
+| server/shipping/legacy-hosted.repository.ts:54 | await legacyHosted().rpc("save_shipping_zone", { | M1/M2/M6/M8 |
+| server/shipping/legacy-hosted.repository.ts:63 | const deleted = unwrap(await legacyHosted().from("shipping_zones").delete().eq("store_id", storeId).eq("id", id).select("id")) as { id: string }[] | M1/M2/M6/M8 |
+| server/shipping/legacy-hosted.repository.ts:67 | unwrap(await legacyHosted().rpc("replace_tax_rates", { p_store_id: storeId, p_rates: rates.map((rate) => ({ country: rate.country, province: rate.province, label: rate.label, basis_points: rate.basisPoints, inclusive: rate.inclusive })) })) | M1/M2/M6/M8 |
+| legacy hosted platform/config.toml:1 | # Local legacy hosted platform stack for development (`legacy hosted platform start`, `legacy hosted platform db reset`). | M1/M3/M5 |
+| legacy hosted platform/config.toml:2 | # Never `legacy hosted platform link` or `the retired migration CLI` from this repository without the owner (docs/DEPLOYMENT-RUNBOOK.md). | M1/M3/M5 |
+| legacy hosted platform/config.toml:9 | # gets no direct table access (RLS denies anon by default), so only these schemas are exposed. | M1/M3/M5 |
+| legacy hosted platform/config.toml:40 | # Shopper accounts live in public.customers (server/customers); legacy identity provider is reserved for staff (phase 2). | M1/M3/M5 |
 | (retired migrations)/20261104090000_schema.sql:4 | -- gen_random_uuid() is core Postgres (13+); no extension needed. | M1/M3/M5 |
-| (retired migrations)/20261104090000_schema.sql:34 | -- Staff are the former identity provider users (phase 2 admin); shoppers use the app's own sessions table. | M1/M3/M5 |
-| (retired migrations)/20261104090100_rls.sql:4 | -- and content; staff (the former identity provider users listed in staff_members, phase 2 admin) act by role. | M1/M3/M5 |
+| (retired migrations)/20261104090000_schema.sql:34 | -- Staff are legacy identity provider users (phase 2 admin); shoppers use the app's own sessions table. | M1/M3/M5 |
+| (retired migrations)/20261104090100_rls.sql:4 | -- and content; staff (legacy identity provider users listed in staff_members, phase 2 admin) act by role. | M1/M3/M5 |
 | (retired migrations)/20261104090100_rls.sql:36 | -- ─── Enable RLS everywhere; start from no privileges ──────────────────────── | M1/M3/M5 |
-| (retired migrations)/20261104090200_functions.sql:4 | -- Expected failures raise 'code: shopper-safe message'; server/db/the former platform.ts maps the code to a DomainError. | M1/M3/M5 |
+| (retired migrations)/20261104090200_functions.sql:4 | -- Expected failures raise 'code: shopper-safe message'; server/db/legacy-hosted.ts maps the code to a DomainError. | M1/M3/M5 |
 | (retired migrations)/20261105090000_search.sql:3 | -- drivers (identical ranking); Postgres supplies storage, trending aggregation and trigram indexes | M1/M3/M5 |
-| (retired migrations)/20261105090000_search.sql:5 | -- the former platform installs extensions in the `extensions` schema; created here when missing (local, tests). | M1/M3/M5 |
+| (retired migrations)/20261105090000_search.sql:5 | -- legacy hosted platform installs extensions in the `extensions` schema; created here when missing (local, tests). | M1/M3/M5 |
 | (retired migrations)/20261105090000_search.sql:8 | create extension if not exists pg_trgm with schema extensions; | M1/M3/M5 |
 | (retired migrations)/20261107090000_admin_foundation.sql:4 | -- admin uses where a change must be atomic. RLS is enabled on every new table. | M1/M3/M5 |
 | (retired migrations)/20261107090000_admin_foundation.sql:116 | -- ─── Permission check for RLS (A-006 layer 3) ─────────────────────────────── | M1/M3/M5 |
 | (retired migrations)/20261107090000_admin_foundation.sql:297 | -- ─── RLS (A-006): deny by default; staff act through has_permission() ─────── | M1/M3/M5 |
-| (retired migrations)/20261109090000_admin_catalog.sql:131 | -- Files live in object storage (the former platform Storage bucket `media`, runbook); this is the index. | M1/M3/M5 |
+| (retired migrations)/20261109090000_admin_catalog.sql:131 | -- Files live in object storage (legacy hosted platform Storage bucket `media`, runbook); this is the index. | M1/M3/M5 |
 | tests/db/admin.test.ts:1 | import type { PGlite } from "@electric-sql/pglite" | M2/M5/M10 |
 | tests/db/admin.test.ts:6 | /** Admin foundation (migration 20261107090000): RBAC, has_permission, last Owner, RPCs, RLS. */ | M2/M5/M10 |
 | tests/db/admin.test.ts:215 | // RLS lets the statement run but match no rows: nothing changes. | M2/M5/M10 |
 | tests/db/harness.ts:4 | import { PGlite } from "@electric-sql/pglite" | M2/M5/M10 |
 | tests/db/harness.ts:5 | import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm" | M2/M5/M10 |
-| tests/db/harness.ts:7 | const MIGRATIONS = path.resolve(import.meta.dirname, "../../the former platform/migrations") | M2/M5/M10 |
-| tests/db/harness.ts:10 | * What the former platform provides before our migrations run: the API roles and `auth.uid()` reading the | M2/M5/M10 |
+| tests/db/harness.ts:7 | const MIGRATIONS = path.resolve(import.meta.dirname, "../../retired migrations") | M2/M5/M10 |
+| tests/db/harness.ts:10 | * What legacy hosted platform provides before our migrations run: the API roles and `auth.uid()` reading the | M2/M5/M10 |
 | tests/db/harness.ts:28 | /** A new in-memory Postgres with every migration applied in file-name order. */ | M2/M5/M10 |
-| tests/db/harness.ts:30 | // the former platform ships pg_trgm; PGlite loads it as a contrib module (migration 20261105090000). | M2/M5/M10 |
+| tests/db/harness.ts:30 | // legacy hosted platform ships pg_trgm; PGlite loads it as a contrib module (migration 20261105090000). | M2/M5/M10 |
 | tests/db/harness.ts:31 | const db = new PGlite({ extensions: { pg_trgm } }) | M2/M5/M10 |
-| tests/db/harness.ts:95 | /** The p_order payload the app sends (server/orders/the former platform.repository.ts). */ | M2/M5/M10 |
+| tests/db/harness.ts:95 | /** The p_order payload the app sends (server/orders/legacy-hosted.repository.ts). */ | M2/M5/M10 |
 | tests/db/home-content.test.ts:15 | await db.exec(fs.readFileSync(path.resolve(import.meta.dirname, "../../the former seed SQL"), "utf8")) | M2/M5/M10 |
 | tests/db/rls.test.ts:1 | import type { PGlite } from "@electric-sql/pglite" | M2/M5/M10 |
 | tests/db/rpc.test.ts:1 | import type { PGlite } from "@electric-sql/pglite" | M2/M5/M10 |
 | tests/db/rpc.test.ts:9 | * invariants under interleaving; parallel-connection lock timing needs a Postgres server | M2/M5/M10 |
 | tests/db/search.test.ts:1 | import type { PGlite } from "@electric-sql/pglite" | M2/M5/M10 |
-| tests/unit/architecture.test.ts:33 | it("gives every repository a the former platform and a fixtures implementation behind one index", () => { | M2/M5/M10 |
-| tests/unit/architecture.test.ts:37 | for (const file of ["the former platform.repository.ts", "fixtures.repository.ts", "index.ts"]) { | M2/M5/M10 |
-| tests/unit/architecture.test.ts:59 | expect(readers.sort()).toEqual([path.join("lib", "env.server.ts"), path.join("server", "db", "the former platform.ts")].sort()) | M2/M5/M10 |
-| tests/unit/architecture.test.ts:96 | for (const file of [...source, ...files("the former platform", /\.sql$/), ...files("tests", /\.ts$/)].filter((name) => !name.endsWith("architecture.test.ts"))) { | M2/M5/M10 |
-| tests/unit/architecture.test.ts:102 | for (const file of files("the former platform/migrations", /\.sql$/)) { | M2/M5/M10 |
-| tests/unit/architecture.test.ts:108 | const names = files("the former platform/migrations", /\.sql$/).map((file) => path.basename(file)) | M2/M5/M10 |
-| tests/unit/orders.test.ts:13 | it("matches the transition table in transition_order (the former platform/migrations)", () => { | M2/M5/M10 |
+| tests/unit/architecture.test.ts:33 | it("gives every repository a legacy hosted platform and a fixtures implementation behind one index", () => { | M2/M5/M10 |
+| tests/unit/architecture.test.ts:37 | for (const file of ["legacy-hosted.repository.ts", "fixtures.repository.ts", "index.ts"]) { | M2/M5/M10 |
+| tests/unit/architecture.test.ts:59 | expect(readers.sort()).toEqual([path.join("lib", "env.server.ts"), path.join("server", "db", "legacy-hosted.ts")].sort()) | M2/M5/M10 |
+| tests/unit/architecture.test.ts:96 | for (const file of [...source, ...files("legacy hosted platform", /\.sql$/), ...files("tests", /\.ts$/)].filter((name) => !name.endsWith("architecture.test.ts"))) { | M2/M5/M10 |
+| tests/unit/architecture.test.ts:102 | for (const file of files("retired migrations", /\.sql$/)) { | M2/M5/M10 |
+| tests/unit/architecture.test.ts:108 | const names = files("retired migrations", /\.sql$/).map((file) => path.basename(file)) | M2/M5/M10 |
+| tests/unit/orders.test.ts:13 | it("matches the transition table in transition_order (retired migrations)", () => { | M2/M5/M10 |
 | tests/unit/orders.test.ts:14 | const sql = fs.readFileSync(path.resolve(import.meta.dirname, "../../(retired migrations)/20261104090200_functions.sql"), "utf8") | M2/M5/M10 |
 | vitest.config.ts:17 | // PGlite boots a WASM Postgres per database suite. | M1/M2/M6/M8 |
 

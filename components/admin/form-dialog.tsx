@@ -43,6 +43,7 @@ export function FormDialog({
             </Dialog.Description>
           ) : null}
           <form
+            method="post"
             noValidate
             className="flex flex-col gap-4"
             onSubmit={(event: FormEvent<HTMLFormElement>) => {

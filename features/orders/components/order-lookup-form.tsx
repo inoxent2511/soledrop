@@ -7,6 +7,7 @@ import { ApiError } from "@/api/http"
 import { buttonVariants } from "@/components/ui/button-variants"
 import { orderLookupSchema } from "@/features/checkout/schemas/checkout"
 import { useOrderLookup } from "@/hooks/api/checkout/mutations"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { cn } from "@/lib/utils"
 
 type Field = "number" | "email"
@@ -17,6 +18,7 @@ const control =
 /** Order number + checkout email → the order's private page. One message for any mismatch (no enumeration). */
 export function OrderLookupForm() {
   const id = useId()
+  const hydrated = useHydrated()
   const router = useRouter()
   const lookup = useOrderLookup()
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
@@ -47,7 +49,7 @@ export function OrderLookupForm() {
   ]
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-busy={lookup.isPending} className="flex flex-col gap-6 md:gap-8">
+    <form method="post" noValidate onSubmit={onSubmit} aria-busy={!hydrated || lookup.isPending} className="flex flex-col gap-6 md:gap-8">
       {fields.map((field) => {
         const inputId = `${id}-${field.name}`
         const error = errors[field.name]
@@ -80,7 +82,7 @@ export function OrderLookupForm() {
           </div>
         )
       })}
-      <button type="submit" disabled={lookup.isPending} className={cn(buttonVariants({ tone: "ink-light", size: "lg" }), "w-full 3xl:h-18")}>
+      <button type="submit" disabled={!hydrated || lookup.isPending} className={cn(buttonVariants({ tone: "ink-light", size: "lg" }), "w-full 3xl:h-18")}>
         {lookup.isPending ? "Finding…" : "Find my order"}
       </button>
       <p role="alert" className="text-16 font-medium text-destructive empty:hidden">
