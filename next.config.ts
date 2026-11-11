@@ -39,8 +39,9 @@ const documentHeaders = [
 export const STOREFRONT = "/:path((?!admin(?:/|$)|_next/static/chunks(?:/|$)).*)"
 
 const nextConfig: NextConfig = {
-  // Self-contained server bundle for the Dockerfile (docs/DEPLOYMENT-RUNBOOK.md).
-  output: "standalone",
+  // Hostinger's older glibc requires a Webpack build run with `next start` from the installed
+  // application tree. Other builds retain the independently verified standalone artifact.
+  output: process.env.SOLEDROP_HOSTINGER_COMPAT === "1" ? undefined : "standalone",
   outputFileTracingExcludes: {
     "/*": ["./.data/**/*", "./.env*", "./.git/**/*", "./.email-outbox/**/*", "./qa/out/**/*"],
   },

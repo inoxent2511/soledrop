@@ -681,3 +681,19 @@ JavaScript, within its 256,000-byte budget. The internal `/admin/dev/gallery` sa
 merchant admin routes in the acceptance manifest pass. GEO-01, missing source-design material,
 actual Hostinger/Linux setup, external services and owner-device checks remain as documented in
 the [migration report](../MIGRATION-REPORT.md).
+
+### Hostinger glibc compatibility (2026-11-11)
+
+The owner's first managed Web App build reported `GLIBC_2.29` missing while Next.js 16.4.3
+Turbopack loaded native SWC. The suggested hashed `*.next.config.ts` artifact is not present in
+the repository or its history; `next.config.ts` is the only root config and imports no generated
+file. Hostinger's current Next.js 16 guidance requires Webpack for 16.3.3 and newer on its build
+servers.
+
+The managed Hostinger path now runs `pnpm build:hostinger` (Webpack, native TypeScript config
+loading, normal `.next` output) and `pnpm start:hostinger` (Next's installed server). The exact
+build command completes locally, and the production server returns HTTP 200 for health,
+readiness, storefront, admin login and a static JavaScript chunk against the local MariaDB copy.
+The normal `pnpm verify` gate still passes: type checking, zero-warning lint, 1,729 application
+tests and portable standalone packaging. The Hostinger Webpack path has targeted local smoke
+evidence; the actual managed Linux runtime and full browser/performance matrix remain unverified.

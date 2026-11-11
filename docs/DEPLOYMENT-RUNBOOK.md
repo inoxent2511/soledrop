@@ -33,24 +33,30 @@ by that snapshot. Retake the handoff if the merchant source has changed since va
 
 Hostinger documents GitHub-backed Node applications and Node 24. Select a **server-side Node.js
 Web App**, repository `inoxent2511/soledrop`, branch `main`, root `./`, and Node **24.x**. This
-project pins pnpm **12.16.1**. Install with `pnpm install --frozen-lockfile`, build with `pnpm build`.
-Use the Next.js preset and `pnpm start` where a start command is offered. Its output is `.next`;
-the self-contained release lives at `.next/standalone`. [Hostinger setup](https://www.hostinger.com/support/how-to-deploy-a-nodejs-website-in-hostinger/),
-[Node version selection](https://www.hostinger.com/support/how-to-select-the-node-js-version-for-your-application/).
+project pins pnpm **12.16.1**. Install with `pnpm install --frozen-lockfile`. In Hostinger's
+deployment settings choose the **Next.js** preset and set:
 
-For a custom/Other configuration that launches the output directly, select output directory
-`.next/standalone` and entry file `server.js` relative to that output. Confirm the resolved entry
-in build/start logs; dashboard field behavior is account-specific. The equivalent shell command
-from the repository root is `node .next/standalone/server.js`. `pnpm start` is the repository
-wrapper and uses that same server in one process. Both respect the host-supplied `PORT`; default
-is 3000, with `HOSTNAME=0.0.0.0`. Do not pin a custom public listening port in hPanel.
+| Setting | Value |
+| --- | --- |
+| Build command | `pnpm build:hostinger` |
+| Start command | `pnpm start:hostinger` |
+| Output directory, if requested | `.next` |
 
-`pnpm build` packages `public` and `.next/static` into the standalone tree. Startup does not copy
-or delete assets. Packaging fails on private runtime paths, embedded real environment secrets or
-dependency links outside the artifact. Dependencies in the output are runtime-only traces; build/test tools stay in
-the source/build environment. Native Sharp libraries must be installed for the build's Linux
-platform. If a host build exceeds its resources, build the same commit on compatible Linux CI
-and privately upload the standalone output through the supported Node application flow.
+The Hostinger build uses Webpack and Node's native TypeScript config loader. This is required
+because Hostinger documents a glibc incompatibility with Turbopack for Next.js 16.3.3 and newer;
+this project uses 16.4.3. The Hostinger path uses a normal Next server with installed
+dependencies and does not make a standalone copy. The start command respects the host-supplied
+`PORT`; do not pin a public listening port. Do not select `.next/standalone` or `server.js` as
+the entry for this path. [Hostinger setup](https://www.hostinger.com/support/how-to-deploy-a-nodejs-website-in-hostinger/),
+[Node version selection](https://www.hostinger.com/support/how-to-select-the-node-js-version-for-your-application/),
+[Next.js 16 build guidance](https://www.hostinger.com/support/how-to-fix-next-js-16-turbopack-build-errors-on-hostinger/).
+
+`pnpm build` and `pnpm start` remain the portable standalone build/start path for compatible
+Linux CI, VPS and the local release acceptance. That build packages `public` and `.next/static`
+into `.next/standalone`, rejects private runtime paths, embedded real secrets and links outside
+the artifact, then tests a relocated runtime copy. Native Sharp libraries must match the
+deployment platform. If the managed Hostinger build still fails, inspect its build log and
+share the exact new error before changing the application or database.
 
 Set `NEXT_PUBLIC_SITE_URL` before building; public metadata is build-time configuration.
 Set `SITE_URL` at runtime to that same canonical HTTPS origin. Server CSRF, payment return,

@@ -8,8 +8,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "node scripts/generate-cn.mjs && next build && node scripts/package-standalone.mjs",
+    "build:hostinger": "node scripts/generate-cn.mjs && node scripts/hostinger-next.mjs build",
     "cn:generate": "node scripts/generate-cn.mjs",
     "start": "node scripts/serve.mjs",
+    "start:hostinger": "node scripts/hostinger-next.mjs start",
     "admin:migrate-catalogue": "node --conditions=react-server --import ./scripts/register.mjs scripts/migrate-catalogue.ts",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write \"**/*.{ts,tsx}\"",

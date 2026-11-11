@@ -1,11 +1,11 @@
 # Sole Drop migration release report
 
-Local release acceptance is complete for application commit `d8d9e88`. Two consecutive complete
-production-build rounds passed against MySQL and MariaDB on the same source digest. The
-[public acceptance record](../qa/out/migration-acceptance.json) contains the per-round results,
+Portable standalone release acceptance is complete for application commit `d8d9e88`. Two
+consecutive complete production-build rounds passed against MySQL and MariaDB on the same source
+digest. The [public acceptance record](../qa/out/migration-acceptance.json) contains the per-round results,
 budgets and preservation evidence. Interrupted and failed development rounds are excluded.
 
-The final source fixes the form hydration race and WebKit first-hover timing issue found during
+That accepted source fixes the form hydration race and WebKit first-hover timing issue found during
 earlier full sweeps. Packaging now materializes traced runtime aliases and verifies that a
 standalone copy relocated outside the repository loads Next's server modules. A separate local
 merchant preview built from that copy boots against the preserved MariaDB handoff; health,
@@ -125,6 +125,14 @@ performance budgets pass on both engines in each round. Queued HTTP requests bey
 five-connection pool and actual engine shutdown/recovery during a request pass in both rounds.
 The independent clean build and relocated standalone load check pass in each round.
 
+After that acceptance, an owner Hostinger build reported `GLIBC_2.29` unavailable for Next.js
+16.4.3 Turbopack. The additive Hostinger path selects Webpack, Node's native TypeScript config
+loader and normal `.next` output with `next start`. Its exact build command and local production
+startup passed; health, readiness, storefront, admin login and a static JavaScript asset returned
+HTTP 200 against the local MariaDB copy. The full two-round browser/visual evidence above covers
+the portable standalone path, not this separate Webpack bundle or the actual Hostinger runtime.
+The regular `pnpm verify` gate also passes after the compatibility path was added.
+
 The measured mobile profile is 390 px, 4× CPU, 150 ms RTT and 1.6 Mbps. The release limits are
 LCP 2,500 ms, CLS 0.1, INP 200 ms and initial JavaScript 200 KiB. The measured admin initial
 JavaScript is 245–247 KiB on the three accepted routes against their 250 KiB budget. An
@@ -160,5 +168,5 @@ pixel differences, equal heights and no masks.
 Use [the deployment runbook](DEPLOYMENT-RUNBOOK.md) and
 [account checklist](app/hostinger-checklist.md) for import, environment, private transfer,
 readiness, smoke checks and rollback. No remote database, hosting account, domain/DNS, real
-email/payment or deployment has been touched. The locally accepted repository is prepared for
-GitHub publication and owner import.
+email/payment or deployment has been touched by the migration runner. The code is published on
+GitHub main; the owner's Hostinger import and redeployment require the account checks above.
