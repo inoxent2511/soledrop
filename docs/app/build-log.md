@@ -656,3 +656,7 @@ preview made from the relocated output boots against the preserved MariaDB copy 
 200 for `/api/health`, `/api/ready`, `/` and `/admin/login`. This package-script change
 requires two fresh complete acceptance rounds before GitHub publication. The earlier rounds
 remain valid evidence for their source but do not sign off this changed release.
+
+The first attempted rerun stopped in lint before any browser execution because the package
+smoke check used a local variable named `module`, which Next's lint rule disallows. Renaming
+that variable passes lint; this interrupted attempt is retained and the full round restarts.

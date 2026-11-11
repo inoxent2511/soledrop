@@ -44,10 +44,10 @@ try {
   const copy = path.join(portableRoot, "standalone")
   fs.cpSync(standalone, copy, { recursive: true, dereference: true })
   const requireRuntime = createRequire(path.join(copy, "server.js"))
-  for (const module of ["next/dist/server/config.js", "next/dist/server/next.js"]) {
-    const resolved = requireRuntime.resolve(module)
-    if (!resolved.startsWith(copy + path.sep)) throw new Error("Runtime dependency resolved outside the artifact: " + module)
-    requireRuntime(module)
+  for (const specifier of ["next/dist/server/config.js", "next/dist/server/next.js"]) {
+    const resolved = requireRuntime.resolve(specifier)
+    if (!resolved.startsWith(copy + path.sep)) throw new Error("Runtime dependency resolved outside the artifact: " + specifier)
+    requireRuntime(specifier)
   }
 } finally {
   const temp = fs.realpathSync(os.tmpdir())
