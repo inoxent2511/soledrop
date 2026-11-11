@@ -25,6 +25,8 @@
 
 # next.js
 /.next/
+*.next.config.*
+next.config.compiled.js
 /out/
 
 # production
