@@ -24,7 +24,7 @@ Public references checked for planning: [Node app setup](https://www.hostinger.c
 | Outbound HTTPS to PSP/webhooks/object storage | External integrations need network access | Plan docs/support and owner-only post-deploy smoke tests | Config-gated adapters, timeouts, outbox retry and local reference payment/console behavior (M6/M9) |
 | Process restarts, deployment behavior and log location | In-memory jobs/cache cannot be durable | Node app logs, restart controls and deployment history | MySQL/outbox remain authoritative; graceful pool shutdown; structured errors without secrets (M1/M6/M9) |
 | Upload/body/request time limits | Proxy limits may precede application validation | Node limits/plan support; owner test with permitted image sizes | App byte/pixel checks, capped encoding and batch size; clear errors, no DB orphan on failure (M6/M9) |
-| Build and start command support | Hostinger's glibc is too old for Next.js 16.4.3 Turbopack | Node app deployment settings and build logs | Use `pnpm build:hostinger` (Webpack, normal `.next`) and `pnpm start:hostinger`; keep the portable standalone path for compatible Linux CI/VPS |
+| Build and start command support | Hostinger's glibc is too old for Next.js 16.4.3 Turbopack | Node app deployment settings and build logs | The available `pnpm run build` option now selects Webpack and normal `.next`; `pnpm run start` uses Next's installed server. Portable standalone scripts are separate. |
 | Backup retention and restore permissions | Recovery must include DB and uploads | Backups → database/files, phpMyAdmin export/import | Document hPanel backups, mysqldump and an isolated restore drill; keep previous artifact, never roll migrations backward (M9/M10) |
 
 ## Local environment observed

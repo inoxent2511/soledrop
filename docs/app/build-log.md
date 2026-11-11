@@ -690,10 +690,18 @@ the repository or its history; `next.config.ts` is the only root config and impo
 file. Hostinger's current Next.js 16 guidance requires Webpack for 16.3.3 and newer on its build
 servers.
 
-The managed Hostinger path now runs `pnpm build:hostinger` (Webpack, native TypeScript config
+The initial managed Hostinger path used `pnpm build:hostinger` (Webpack, native TypeScript config
 loading, normal `.next` output) and `pnpm start:hostinger` (Next's installed server). The exact
-build command completes locally, and the production server returns HTTP 200 for health,
+build command completed locally, and the production server returned HTTP 200 for health,
 readiness, storefront, admin login and a static JavaScript chunk against the local MariaDB copy.
 The normal `pnpm verify` gate still passes: type checking, zero-warning lint, 1,729 application
 tests and portable standalone packaging. The Hostinger Webpack path has targeted local smoke
 evidence; the actual managed Linux runtime and full browser/performance matrix remain unverified.
+
+The owner then showed that Hostinger's build dropdown offers only `pnpm run build`. The default
+build script now invokes the same Webpack compatibility path, and the default start script uses
+the matching installed Next server. The portable release path is explicitly named
+`pnpm build:standalone` and `pnpm start:standalone`. The exact dropdown build command completes
+locally, and `pnpm run start` returns HTTP 200 for health, readiness, storefront and admin login.
+`pnpm verify` also passes after this default-script change, including the 1,729 application tests
+and portable standalone packaging.

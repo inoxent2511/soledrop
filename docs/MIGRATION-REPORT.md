@@ -133,6 +133,12 @@ HTTP 200 against the local MariaDB copy. The full two-round browser/visual evide
 the portable standalone path, not this separate Webpack bundle or the actual Hostinger runtime.
 The regular `pnpm verify` gate also passes after the compatibility path was added.
 
+Hostinger's build dropdown was then shown to offer only `pnpm run build`, so the default build
+now selects the Webpack path and `pnpm run start` starts its normal `.next` output. The portable
+standalone commands are `pnpm build:standalone` and `pnpm start:standalone`. The exact dropdown
+build and default start commands pass local smoke checks; the managed Hostinger redeployment
+still requires owner verification. `pnpm verify` passes after this script change.
+
 The measured mobile profile is 390 px, 4× CPU, 150 ms RTT and 1.6 Mbps. The release limits are
 LCP 2,500 ms, CLS 0.1, INP 200 ms and initial JavaScript 200 KiB. The measured admin initial
 JavaScript is 245–247 KiB on the three accepted routes against their 250 KiB budget. An

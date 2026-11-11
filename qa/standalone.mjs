@@ -5,7 +5,7 @@ import path from "node:path"
 export function prepareStandalone(label, fixtures = false) {
   if (!/^[a-z0-9-]+$/.test(label)) throw new Error("Invalid QA label.")
   const built = path.resolve(".next/standalone")
-  if (!fs.existsSync(path.join(built, "server.js"))) throw new Error("Run pnpm build first.")
+  if (!fs.existsSync(path.join(built, "server.js"))) throw new Error("Run pnpm build:standalone first.")
   const directory = path.resolve(`.data/qa-build-${label}-${process.pid}`)
   if (fs.existsSync(directory)) throw new Error("QA output already exists; never overwriting an active server.")
   fs.cpSync(built, directory, { recursive: true, filter: (source) => path.basename(source) !== "node_modules" && source !== path.join(built, "public") })

@@ -6,15 +6,16 @@ Use Node **24.x** and pnpm **12.16.1**. Read [AGENTS.md](AGENTS.md) before chang
 
 - Install: `pnpm install --frozen-lockfile`.
 - Configure private runtime values using `.env.example` and the [deployment runbook](docs/DEPLOYMENT-RUNBOOK.md).
-- Build and package: `pnpm build`.
-- Start: `pnpm start` (host-supplied `PORT`, default 3000).
+- Hostinger build and start: `pnpm run build`, `pnpm run start` (host-supplied `PORT`).
+- Portable standalone build and start on compatible Linux: `pnpm build:standalone`, `pnpm start:standalone`.
 - Application checks: `pnpm verify`.
 - Native database checks: `pnpm db:test`; local engine/test setup is in [db/README.md](db/README.md).
 
-For Hostinger, import the code repository as a Node.js Web App and use `pnpm build:hostinger` and
-`pnpm start:hostinger`. This selects the Webpack build required by Hostinger's current glibc
-environment. Transfer the private SQL/media handoff separately. GitHub does not contain merchant
-data, uploads or credentials. Preserve the existing session key, Owner password and enrolled
+For Hostinger, import the code repository as a Node.js Web App and select its available
+`pnpm run build` command. The default build script selects Webpack for Hostinger's current glibc
+environment; the default start script runs the matching Next server. Transfer the private SQL/media
+handoff separately. GitHub does not contain merchant data, uploads or credentials. Preserve the
+existing session key, Owner password and enrolled
 authenticator when importing this store; do not seed over it or create a replacement Owner.
 
 The [migration report](docs/MIGRATION-REPORT.md) records implementation checkpoints, validation status and the checks that require the actual hosting account.

@@ -43,7 +43,7 @@ The local catalogue import utility remains available for its specific private pr
 
 ## Verification
 
-Run `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm db:lint`, `pnpm db:test` and `pnpm build` with the guarded local test setup. The [verification record](./verification.md) distinguishes automated evidence from hosted/manual checks. Isolated browser QA uses separate stores and per-test staff accounts; it never resets the merchant Owner.
+Run `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm db:lint`, `pnpm db:test` and `pnpm build:standalone` with the guarded local test setup. The [verification record](./verification.md) distinguishes automated evidence from hosted/manual checks. Isolated browser QA uses separate stores and per-test staff accounts; it never resets the merchant Owner.
 
 ## Historical local import
 

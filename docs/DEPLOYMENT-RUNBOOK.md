@@ -38,11 +38,11 @@ deployment settings choose the **Next.js** preset and set:
 
 | Setting | Value |
 | --- | --- |
-| Build command | `pnpm build:hostinger` |
-| Start command | `pnpm start:hostinger` |
+| Build command | `pnpm run build` (select the available dropdown option) |
+| Start command, if offered | `pnpm run start` |
 | Output directory, if requested | `.next` |
 
-The Hostinger build uses Webpack and Node's native TypeScript config loader. This is required
+The default build uses Webpack and Node's native TypeScript config loader. This is required
 because Hostinger documents a glibc incompatibility with Turbopack for Next.js 16.3.3 and newer;
 this project uses 16.4.3. The Hostinger path uses a normal Next server with installed
 dependencies and does not make a standalone copy. The start command respects the host-supplied
@@ -51,7 +51,7 @@ the entry for this path. [Hostinger setup](https://www.hostinger.com/support/how
 [Node version selection](https://www.hostinger.com/support/how-to-select-the-node-js-version-for-your-application/),
 [Next.js 16 build guidance](https://www.hostinger.com/support/how-to-fix-next-js-16-turbopack-build-errors-on-hostinger/).
 
-`pnpm build` and `pnpm start` remain the portable standalone build/start path for compatible
+`pnpm build:standalone` and `pnpm start:standalone` remain the portable build/start path for compatible
 Linux CI, VPS and the local release acceptance. That build packages `public` and `.next/static`
 into `.next/standalone`, rejects private runtime paths, embedded real secrets and links outside
 the artifact, then tests a relocated runtime copy. Native Sharp libraries must match the
