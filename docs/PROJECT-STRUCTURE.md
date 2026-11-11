@@ -52,7 +52,7 @@ project-root/
 ├── tests/                            unit tests + architecture.test.ts
 ├── e2e/                              Playwright flows, axe checks
 ├── components.json                   shadcn CLI config (aliases, style, css path)
-├── next.config.ts                    security headers, images, build options
+├── next.config.mjs                   security headers, images, build options
 └── docs/                             these contracts + docs/app/ for product-specific docs
 ```
 

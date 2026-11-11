@@ -42,9 +42,10 @@ deployment settings choose the **Next.js** preset and set:
 | Start command, if offered | `pnpm run start` |
 | Output directory, if requested | `.next` |
 
-The default build uses Webpack and Node's native TypeScript config loader. This is required
+The default build uses Webpack and loads the plain JavaScript `next.config.mjs`. This is required
 because Hostinger documents a glibc incompatibility with Turbopack for Next.js 16.3.3 and newer;
-this project uses 16.4.3. The Hostinger path uses a normal Next server with installed
+this project uses 16.4.3. The JavaScript config also avoids the TypeScript config loader that
+failed on Hostinger's Linux build host. The Hostinger path uses a normal Next server with installed
 dependencies and does not make a standalone copy. The start command respects the host-supplied
 `PORT`; do not pin a public listening port. Do not select `.next/standalone` or `server.js` as
 the entry for this path. [Hostinger setup](https://www.hostinger.com/support/how-to-deploy-a-nodejs-website-in-hostinger/),

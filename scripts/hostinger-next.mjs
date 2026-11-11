@@ -8,7 +8,7 @@ if (command !== "build" && command !== "start") throw new Error("Choose build or
 const cli = path.resolve("node_modules/next/dist/bin/next")
 if (!fs.existsSync(cli)) throw new Error("Install dependencies before running Next.js.")
 
-const args = [cli, command, ...(command === "build" ? ["--webpack"] : []), "--experimental-next-config-strip-types"]
+const args = [cli, command, ...(command === "build" ? ["--webpack"] : [])]
 const child = spawn(process.execPath, args, {
   stdio: "inherit",
   env: { ...process.env, SOLEDROP_HOSTINGER_COMPAT: "1" },

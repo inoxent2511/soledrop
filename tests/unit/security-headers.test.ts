@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { secureCookies } from "@/lib/env.server"
 import { forwardedClient } from "@/server/http/client-key"
 
-import nextConfig, { STOREFRONT } from "../../next.config"
+import nextConfig, { STOREFRONT } from "../../next.config.mjs"
 
 async function headerValue(source: string, key: string) {
   const rules = (await nextConfig.headers?.()) ?? []

@@ -139,6 +139,14 @@ standalone commands are `pnpm build:standalone` and `pnpm start:standalone`. The
 build and default start commands pass local smoke checks; the managed Hostinger redeployment
 still requires owner verification. `pnpm verify` passes after this script change.
 
+A later managed build on commit `33709cc` confirmed that Webpack was selected but failed while
+Next loaded `next.config.ts`: both the native TypeScript resolver and its fallback tried to import
+a generated hashed module that did not exist. The config is now plain `next.config.mjs` and the
+Hostinger wrapper no longer invokes TypeScript config stripping. The exact Webpack build and
+default production startup pass locally. This change still needs a managed Hostinger build to
+confirm compatibility with its older Linux runtime. `pnpm verify` passes with 1,729 application
+tests and portable standalone packaging.
+
 The measured mobile profile is 390 px, 4× CPU, 150 ms RTT and 1.6 Mbps. The release limits are
 LCP 2,500 ms, CLS 0.1, INP 200 ms and initial JavaScript 200 KiB. The measured admin initial
 JavaScript is 245–247 KiB on the three accepted routes against their 250 KiB budget. An

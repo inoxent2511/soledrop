@@ -68,7 +68,7 @@ i. **Public client keys:** Only `NEXT_PUBLIC_*` variables are bundled into the b
 ii. **Server env:** secrets are read **only** in `lib/env.server.ts` (`server-only`), parsed with Zod at start-up so a missing variable fails fast. `process.env` is read nowhere else (an architecture test enforces it). Commit `.env.example`, never real `.env*` files.
 iii. **Carding & fraud prevention (PSP integrations):** any payment/checkout flow (Stripe, Adyen, PayPal) MUST validate a server-issued checkout session and a bot-verification token (Turnstile / reCAPTCHA v3 rendered in the browser) **in the route handler** before dispatching to the PSP. Never call PSP secret APIs from the browser. Webhooks verify the vendor signature and are idempotent. A browser cannot rate-limit itself — enforcement lives server-side (edge/WAF or the handler).
 iv. **Domain/origin locking:** scope public client keys to this app's production and preview origins in vendor dashboards. Mutating handlers that rely on cookie auth check `Origin` (and use `sameSite`); Server Actions get an origin check from Next.js.
-v. **Security headers & output:** CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy` and `frame-ancestors` are configured in `next.config.ts` (`headers()`) or `proxy.ts`. No `dangerouslySetInnerHTML` with unsanitised content; validate any user-supplied URL before rendering it as `href`/`src`.
+v. **Security headers & output:** CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy` and `frame-ancestors` are configured in `next.config.mjs` (`headers()`) or `proxy.ts`. No `dangerouslySetInnerHTML` with unsanitised content; validate any user-supplied URL before rendering it as `href`/`src`.
 
 ## 7. Web Route Chrome (what a route owns besides rendering a feature)
 

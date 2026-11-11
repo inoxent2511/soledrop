@@ -24,7 +24,7 @@ Built (details in design-decisions D-001…D-036 and journey-audit J-01…J-25):
 - Database: `the former platform/migrations` (42 tables, RLS deny by default, SECURITY DEFINER staff-role pair with `search_path=''`, all RPCs), and `the former seed SQL` generated from the fixtures.
 - Platform: outbox + signed webhooks, flags, rate limits, idempotency, audit, `/api/health`, `/api/ready`, `/api/jobs/*`, `/api/v1` + OpenAPI, CSV import/export, B2B price list behind a flag.
 - Hardening:
-  - `next.config.ts`: standalone output, CSP without nonces (D-033), HSTS, nosniff, Referrer-Policy, Permissions-Policy, COOP.
+  - `next.config.mjs`: standalone output, CSP without nonces (D-033), HSTS, nosniff, Referrer-Policy, Permissions-Policy, COOP.
   - `instrumentation.ts`: production exits on an invalid environment; JSON error logs carry digests.
   - Bank transfer is hidden in production until real details are set.
   - Products and content pages use ISR, with real 404/307 statuses; `loading.tsx` only where safe.
@@ -705,3 +705,19 @@ the matching installed Next server. The portable release path is explicitly name
 locally, and `pnpm run start` returns HTTP 200 for health, readiness, storefront and admin login.
 `pnpm verify` also passes after this default-script change, including the 1,729 application tests
 and portable standalone packaging.
+
+### Hostinger TypeScript config loader failure (2026-11-11)
+
+The next Hostinger build checked out `33709cc` and ran the default Webpack command on Node 24.
+It generated the class tables, then failed while importing `next.config.ts`: the Node native
+TypeScript resolver and legacy fallback both tried to import a generated hashed module that did
+not exist. The same log reported that native SWC required `GLIBC_2.29`; Hostinger used cached WASM
+SWC. No hashed config file was present in the repository, so adding ignore patterns did not fix
+the loader failure.
+
+The config is now plain `next.config.mjs` with the same settings and JSDoc type information.
+The Hostinger wrapper no longer requests TypeScript config stripping. The exact `pnpm run build`
+command completes locally with Webpack and reports that it loaded `next.config.mjs` directly.
+`pnpm run start` serves health, readiness, storefront and admin login with HTTP 200. A real
+Hostinger redeployment remains necessary to verify the older Linux build host. `pnpm verify`
+also passes: type checking, lint, 1,729 application tests and portable standalone packaging.

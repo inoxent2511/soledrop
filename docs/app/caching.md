@@ -25,7 +25,7 @@ that 404s or redirects would commit status 200 first, and search must work witho
 ## HTTP headers
 
 - Dynamic pages send private/no-store headers; no CDN page cache is assumed.
-- `/api/*`: `no-store` (from `next.config.ts`, plus `private, no-store` in `server/http/route.ts`).
+- `/api/*`: `no-store` (from `next.config.mjs`, plus `private, no-store` in `server/http/route.ts`).
   Headless `/api/v1/*` defaults to `no-store`.
 - `/_next/static/*`: immutable, hashed file names (Next default).
 - Images: uploaded photos use prepared immutable WebP/AVIF variants matched to responsive widths. Product/banner originals use `/media/{id}.webp`; a replacement gets a new ID. HTTP reads do not encode images. Explanatory/brand assets remain in `public/images`, and sample merchandising assets belong to isolated QA.

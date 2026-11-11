@@ -1,5 +1,3 @@
-import type { NextConfig } from "next"
-
 const isDev = process.env.NODE_ENV === "development"
 
 /**
@@ -38,7 +36,8 @@ const documentHeaders = [
 /** Storefront documents; scripts/styles use their embedding document's protections. */
 export const STOREFRONT = "/:path((?!admin(?:/|$)|_next/static/chunks(?:/|$)).*)"
 
-const nextConfig: NextConfig = {
+/** @type {import("next").NextConfig} */
+const nextConfig = {
   // Hostinger's older glibc requires a Webpack build run with `next start` from the installed
   // application tree. Other builds retain the independently verified standalone artifact.
   output: process.env.SOLEDROP_HOSTINGER_COMPAT === "1" ? undefined : "standalone",
