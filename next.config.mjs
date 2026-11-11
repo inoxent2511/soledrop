@@ -34,7 +34,7 @@ const documentHeaders = [
 ]
 
 /** Storefront documents; scripts/styles use their embedding document's protections. */
-export const STOREFRONT = "/:path((?!admin(?:/|$)|_next/static/chunks(?:/|$)).*)"
+const STOREFRONT = "/:path((?!admin(?:/|$)|_next/static/chunks(?:/|$)).*)"
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {

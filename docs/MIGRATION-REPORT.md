@@ -147,6 +147,15 @@ default production startup pass locally. This change still needs a managed Hosti
 confirm compatibility with its older Linux runtime. `pnpm verify` passes with 1,729 application
 tests and portable standalone packaging.
 
+The next Hostinger build on `5c10d7a` loaded the JavaScript config and compiled successfully.
+Its TypeScript check then failed because a unit test imported a named export from the `.mjs`
+config that the clean Linux resolution did not expose. The test now imports only the default
+config; the extra named export was removed. Local cold type checking, the focused test and the
+exact Hostinger command pass locally, including a build without `.env.local` and production
+smoke responses. A fresh managed build remains the final validation.
+The full `pnpm verify` gate passes after this change, including 1,729 tests and standalone
+packaging.
+
 The measured mobile profile is 390 px, 4× CPU, 150 ms RTT and 1.6 Mbps. The release limits are
 LCP 2,500 ms, CLS 0.1, INP 200 ms and initial JavaScript 200 KiB. The measured admin initial
 JavaScript is 245–247 KiB on the three accepted routes against their 250 KiB budget. An

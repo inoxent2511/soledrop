@@ -721,3 +721,17 @@ command completes locally with Webpack and reports that it loaded `next.config.m
 `pnpm run start` serves health, readiness, storefront and admin login with HTTP 200. A real
 Hostinger redeployment remains necessary to verify the older Linux build host. `pnpm verify`
 also passes: type checking, lint, 1,729 application tests and portable standalone packaging.
+
+### Hostinger clean-install type check (2026-11-12)
+
+Hostinger checked out `5c10d7a`, loaded `next.config.mjs` successfully and completed the Webpack
+compilation using WASM SWC after the expected `GLIBC_2.29` warning. Its subsequent TypeScript
+check failed with TS2614: the security-header test imported the `STOREFRONT` named export from
+the `.mjs` config, but the host's fresh TypeScript resolution exposed only the default export.
+The test now imports only the default config and asserts the expected storefront header source
+locally. The config no longer exports an extra named value. A cold TypeScript check, the focused
+test and a clean Webpack build pass locally. A second Webpack build without `.env.local` also
+passes TypeScript and 120 static pages. The private file was restored, and the resulting
+production server returns HTTP 200 for health, readiness, storefront and admin login.
+`pnpm verify` passes after the fix: type checking, zero-warning lint, 1,729 tests and standalone
+packaging with a relocated dependency check.
