@@ -1,0 +1,62 @@
+﻿{
+    "generatedAt":  "2026-11-11T06:01:23.4101533Z",
+    "profile":  "390px, 4x CPU, 150ms RTT, 1.6Mbps",
+    "budgetBytes":  256000,
+    "note":  "Additional release diagnostic; the component gallery is an internal developer sample page outside the acceptance manifest.",
+    "engines":  [
+                    {
+                        "engine":  "mysql",
+                        "results":  [
+                                        {
+                                            "route":  "/admin/media",
+                                            "samplesBytes":  [
+                                                                 255374,
+                                                                 255374,
+                                                                 255374
+                                                             ],
+                                            "jsBytes":  255374,
+                                            "jsKb":  249,
+                                            "pass":  true
+                                        },
+                                        {
+                                            "route":  "/admin/dev/gallery",
+                                            "samplesBytes":  [
+                                                                 256195,
+                                                                 256195,
+                                                                 256195
+                                                             ],
+                                            "jsBytes":  256195,
+                                            "jsKb":  250,
+                                            "pass":  false
+                                        }
+                                    ]
+                    },
+                    {
+                        "engine":  "mariadb",
+                        "results":  [
+                                        {
+                                            "route":  "/admin/media",
+                                            "samplesBytes":  [
+                                                                 255374,
+                                                                 255374,
+                                                                 255374
+                                                             ],
+                                            "jsBytes":  255374,
+                                            "jsKb":  249,
+                                            "pass":  true
+                                        },
+                                        {
+                                            "route":  "/admin/dev/gallery",
+                                            "samplesBytes":  [
+                                                                 256195,
+                                                                 256195,
+                                                                 256195
+                                                             ],
+                                            "jsBytes":  256195,
+                                            "jsKb":  250,
+                                            "pass":  false
+                                        }
+                                    ]
+                    }
+                ]
+}

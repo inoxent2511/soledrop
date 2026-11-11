@@ -1,21 +1,16 @@
 # Sole Drop migration release report
 
-Release acceptance is in progress. Publication remains pending until two consecutive complete
-production-build rounds pass on both engines. The interrupted workstation round is not counted.
-This report will be updated with the final evidence and repository revision before handoff.
+Local release acceptance is complete for application commit `d8d9e88`. Two consecutive complete
+production-build rounds passed against MySQL and MariaDB on the same source digest. The
+[public acceptance record](../qa/out/migration-acceptance.json) contains the per-round results,
+budgets and preservation evidence. Interrupted and failed development rounds are excluded.
 
-A previous complete round passed 5,940 browser checks, 80 frozen-reference comparisons,
-1,728 application tests and 1,473 native tests, plus performance and HTTP recovery drills.
-Later rounds exposed browser resource limits and a form hydration race, so that earlier pass
-does not establish acceptance of the current source. The runner now uses bounded workers and
-four sequential public shards. Forms wait for their own submission handlers; delayed-code
-regressions pass 60/60 across both databases and all three browsers. A subsequent full sweep
-found one WebKit first-hover timing failure; its route-effect cancellation has been corrected,
-and the exact case passes 120/120 targeted repetitions across both engines. Two fresh complete
-rounds of the corrected source remain required. The navigation-fixed source subsequently
-passed both rounds, but an independent local merchant preview exposed a missing runtime
-dependency in a relocated standalone copy. The package step now checks that relocation;
-release acceptance is being repeated for this changed package source.
+The final source fixes the form hydration race and WebKit first-hover timing issue found during
+earlier full sweeps. Packaging now materializes traced runtime aliases and verifies that a
+standalone copy relocated outside the repository loads Next's server modules. A separate local
+merchant preview built from that copy boots against the preserved MariaDB handoff; health,
+readiness, storefront and admin sign-in routes each return HTTP 200. Hosted deployment still
+requires the owner's Hostinger import and account-specific checks below.
 
 ## Stages and checkpoints
 
@@ -31,7 +26,7 @@ release acceptance is being repeated for this changed package source.
 | M7 atomic admin writes and provider refund recovery | `3683ecd` | Complete |
 | M8 legacy removal and readiness | `032e32e` | Complete |
 | M9 Hostinger artifact and private restore | `e4fddca` | Complete |
-| M10 complete regression and performance loop | `3fb02c7`, `a2de210`, `d5500c6`, `c5c50dc` | Final acceptance running |
+| M10 complete regression and performance loop | `3fb02c7`, `a2de210`, `d5500c6`, `c5c50dc`, `26d3abd`, `80ee3d0`, `7931e6c`, `d8d9e88` | Accepted locally in two complete rounds |
 
 The initial inventory mapped all 13 domains, 154 existing repository capabilities and 52 former
 SQL functions/helpers. Transactional operations and pure guards replace those helpers; the count
@@ -116,18 +111,28 @@ the orientation inventory found no vendor-specific lines requiring an exception 
 
 ## Validation status
 
-The current application suite passes **1,729/1,729** and native suite **1,473/1,473**, with zero
-pending cases. Each complete native round includes **10 races × 50 iterations × two engines**.
+Each accepted round passes **1,729/1,729 application tests** and **1,473/1,473 native tests**, with
+zero pending cases. Across both rounds that is **3,458 application** and **2,946 native** passes.
+Each complete native round includes **10 races × 50 iterations × two engines**.
 Failure coverage includes migrator locks/checksum refusal, physical schema drift, runtime
 deadlines, storage errors, SMTP retry, duplicate/late jobs, webhook replay and backup restore.
 
-Complete release rounds additionally require all public, commerce, admin and banner browsers;
-accessibility, containment and interaction checks; frozen-reference comparisons; fixed mobile,
-admin, repository and HTTP performance budgets; queued HTTP requests beyond the five-connection
-pool; and actual engine shutdown/recovery during a request. Each current browser round requires
-2,838 public, 36 commerce, 90 admin and 12 banner checks per database (5,952 total). Final counts
-and measurements remain pending. Targeted reruns and interrupted rounds do not substitute for
-these clean rounds.
+Both release rounds also pass all public, commerce, admin and banner browser suites: **2,838
+public, 36 commerce, 90 admin and 12 banner checks per database per round**, or **11,904 browser
+passes** in total, with zero failures, skips or flaky cases. The **160 frozen-reference comparisons**
+have zero measured pixel differences and equal heights. Fixed mobile, admin, repository and HTTP
+performance budgets pass on both engines in each round. Queued HTTP requests beyond the
+five-connection pool and actual engine shutdown/recovery during a request pass in both rounds.
+The independent clean build and relocated standalone load check pass in each round.
+
+The measured mobile profile is 390 px, 4× CPU, 150 ms RTT and 1.6 Mbps. The release limits are
+LCP 2,500 ms, CLS 0.1, INP 200 ms and initial JavaScript 200 KiB. The measured admin initial
+JavaScript is 245–247 KiB on the three accepted routes against their 250 KiB budget. An
+[additional diagnostic](../qa/out/admin-extra-perf.json) measures Media at 255,374 bytes (pass)
+and the internal component gallery at 256,195 bytes (195 bytes over). The gallery is a developer
+sample page outside the merchant navigation and acceptance manifest. PERF-01 and PERF-02 pass
+their current measured budgets; PERF-03 remains open for that developer page. Hosted and
+real-device performance remain separate checks.
 
 Findings and root fixes are recorded in [the defect log](../qa/bugs.md); chronological evidence
 is in [the build log](app/build-log.md). Test deadlines and budgets have not been raised to hide
@@ -155,5 +160,5 @@ pixel differences, equal heights and no masks.
 Use [the deployment runbook](DEPLOYMENT-RUNBOOK.md) and
 [account checklist](app/hostinger-checklist.md) for import, environment, private transfer,
 readiness, smoke checks and rollback. No remote database, hosting account, domain/DNS, real
-email/payment or deployment has been touched. GitHub publication is authorized once the local
-release checks are complete; it remains pending at the time of this draft.
+email/payment or deployment has been touched. The locally accepted repository is prepared for
+GitHub publication and owner import.

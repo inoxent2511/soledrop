@@ -44,14 +44,24 @@ working tree; current admin commits and verification are recorded in `docs/app/b
 BUG-018–BUG-023 are fixed in local commit `8777e34`. Full A12 run results and remaining verification
 limits are recorded in `docs/app/build-log.md`.
 
-## Open findings (not fixed in this round)
+## Historical A12 findings and current release status
 
-| ID | Area | Measurement | Analysis | Next step |
+| ID | Area | Original measurement | Original analysis | Original next step |
 | --- | --- | --- | --- | --- |
 | PERF-01 | INP opening the menu drawer / search overlay | `qa/perf.mjs` (390 px, 4× CPU): 248–432 ms vs a 200 ms budget; 2× CPU 120–168 ms; unthrottled 48–80 ms | ~130 ms (4×) in React + Base UI dialog mount handlers, ~115 ms presentation (two layouts of ~200 objects, scroll lock, animation start). Only ~53 nodes are added, so there is no oversized tree | Profile Base UI's focus manager / scroll lock; consider opening the panel on `pointerdown` and deferring non-critical content with `startTransition` (docs/app/phase-2.md build item 9) |
 | PERF-02 | First-load JS on every route | 287–290 KB gzip vs a 200 KB budget | react-dom 72 KB, Base UI 50 + 8 KB, Next runtime 44 + 11 + 9 KB, zod 31 KB. zod reaches every route through the footer newsletter form and `lib/site` → `lib/env` | Move client-side schemas to `zod/mini` and read public env without zod in the browser (build item 10) |
 | PERF-03 | Admin initial JavaScript | A12 (2026-11-06), final code: dashboard 338.5 KiB, orders/products 339.9 KiB, gallery 343.2 KiB vs the brief's 250 KiB budget | Sum of gzip-compressed `script[src]` response bodies after each document load, as a Read-only staff member; excludes response headers and later interaction chunks. Report: local `qa/out/a12-admin-js.json`. This is a bundle-size measurement, not INP or large-data throughput. | Analyse shared and admin chunks, split optional editors/dialogs and remove unused client dependencies; remeasure before claiming the performance target passes. |
 | GEO-01 | Header nav at 1920, closed | Geometry audit: New Arrival +1.39 px, Men +0.5, Women −0.27, Sale −0.92 (x); widths exact | The design spaces fixed-width, centre-aligned Figma text boxes 74 px apart; the build spaces the glyph runs 74 px apart, so the sub-pixel box padding accumulates. No pre-mega-menu geometry baseline exists to prove "0 px change" | Designer confirmation: keep (≤ 1.4 px) or size each trigger to its Figma box width (build item 13) |
+
+The M12 local acceptance record remeasures the menu/search interaction and initial storefront
+JavaScript under the fixed 390 px, 4× CPU profile: all measured routes pass the 200 ms INP and
+200 KiB initial JavaScript budgets in both complete rounds. PERF-01 and PERF-02 are closed for
+that profile. The merchant admin routes `/admin`, `/admin/orders`, `/admin/products` and an extra
+`/admin/media` diagnostic pass the 250 KiB initial JavaScript budget. PERF-03 remains open only
+for `/admin/dev/gallery`, an internal component sample page outside merchant navigation: its
+256,195 bytes exceed the 256,000-byte budget by 195 bytes on both databases. See the
+[release record](out/migration-acceptance.json) and [extra admin measurement](out/admin-extra-perf.json).
+GEO-01 still needs the source designer's decision; local frozen-reference parity does not close it.
 
 ## Catalogue and banner continuation (2026-11-07)
 
@@ -206,6 +216,13 @@ traced virtual-store aliases at the output's top level and loads Next's server/c
 from a separately copied artifact during every build. A corrected copy boots against the
 preserved MariaDB merchant data: health, readiness, storefront and admin login all return 200.
 Because the package script changed, two new complete release rounds are required before handoff.
+
+Final closure: two consecutive complete rounds on `d8d9e88` passed the unchanged assertions on
+both engines. The combined result is 11,904 browser passes, 160 zero-difference visuals, 3,458
+application and 2,946 native passes, with zero failures, skips or flaky cases. The relocated
+merchant artifact also booted independently against the preserved MariaDB handoff. This closes
+MIG-053, MIG-054 and MIG-055 for the local release; the earlier failure narratives remain as
+development evidence. See the [acceptance record](out/migration-acceptance.json).
 
 ### Acceptance environment interruption (2026-11-10)
 

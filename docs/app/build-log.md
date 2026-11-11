@@ -660,3 +660,24 @@ remain valid evidence for their source but do not sign off this changed release.
 The first attempted rerun stopped in lint before any browser execution because the package
 smoke check used a local variable named `module`, which Next's lint rule disallows. Renaming
 that variable passes lint; this interrupted attempt is retained and the full round restarts.
+
+### Final local migration acceptance (2026-11-11)
+
+Two consecutive complete release rounds on application commit `d8d9e88` and source digest
+`3a8d48e08d50cd8d64d058555c44ad8041af4b1b0c0eac6f3b80fbb441f1f1eb` pass on MySQL
+8.0.46 and MariaDB 10.11.15. Totals: **3,458 application tests, 2,946 native tests, 11,904 browser
+checks and 160 zero-difference visual comparisons**; failures, skips and flaky cases are zero.
+Both rounds also pass the independent clean build, fixed performance pipeline and queued/restart
+HTTP drills. The [public evidence](../../qa/out/migration-acceptance.json) records each gate.
+
+The final standalone output is copied away from the repository and booted against the preserved
+MariaDB merchant handoff. `/api/health`, `/api/ready`, `/` and `/admin/login` all return HTTP 200.
+The original source envelope and all twelve protected contracts remain unchanged. The private
+SQL/media handoff and credentials stay outside Git.
+
+An extra performance diagnostic measures the merchant Media page at 255,374 bytes of initial
+JavaScript, within its 256,000-byte budget. The internal `/admin/dev/gallery` sample page measures
+256,195 bytes on both engines, 195 bytes over. PERF-03 remains open for that developer page;
+merchant admin routes in the acceptance manifest pass. GEO-01, missing source-design material,
+actual Hostinger/Linux setup, external services and owner-device checks remain as documented in
+the [migration report](../MIGRATION-REPORT.md).

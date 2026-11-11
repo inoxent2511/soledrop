@@ -1,0 +1,5382 @@
+{
+  "generatedAt": "2026-11-11T05:56:12.963Z",
+  "applicationCommit": "d8d9e882eded5e0367886a984e020f2407194460",
+  "sourceDigest": "3a8d48e08d50cd8d64d058555c44ad8041af4b1b0c0eac6f3b80fbb441f1f1eb",
+  "node": "v24.22.2",
+  "environment": "Windows loopback production-build acceptance; actual Hostinger/Linux deployment remains unverified",
+  "schema": [
+    {
+      "engine": "mysql",
+      "version": "8.0.46",
+      "tables": 87,
+      "indexes": 232,
+      "constraints": [
+        {
+          "type": "UNIQUE",
+          "total": 30
+        },
+        {
+          "type": "PRIMARY KEY",
+          "total": 87
+        },
+        {
+          "type": "FOREIGN KEY",
+          "total": 109
+        },
+        {
+          "type": "CHECK",
+          "total": 203
+        }
+      ]
+    },
+    {
+      "engine": "mariadb",
+      "version": "10.11.15-MariaDB",
+      "tables": 87,
+      "indexes": 232,
+      "constraints": [
+        {
+          "type": "CHECK",
+          "total": 230
+        },
+        {
+          "type": "FOREIGN KEY",
+          "total": 109
+        },
+        {
+          "type": "PRIMARY KEY",
+          "total": 87
+        },
+        {
+          "type": "UNIQUE",
+          "total": 30
+        }
+      ]
+    }
+  ],
+  "rounds": [
+    {
+      "pass": 1,
+      "accepted": true,
+      "startedAt": "2026-11-11T03:46:44.161Z",
+      "finishedAt": "2026-11-11T04:50:23.130Z",
+      "resourcePolicy": {
+        "browserWorkersPerEngine": 2,
+        "bannerWorkersPerEngine": 1,
+        "publicSequentialShards": 4,
+        "stopIdleServers": true
+      },
+      "minimumObservedBrowserFreeGiB": 1.0035476684570312,
+      "applicationTests": {
+        "passed": 1729,
+        "failed": 0,
+        "pending": 0
+      },
+      "nativeTests": {
+        "passed": 1473,
+        "failed": 0,
+        "pending": 0,
+        "repeatedRaces": 1000
+      },
+      "independentCleanBuild": true,
+      "visuals": [
+        {
+          "engine": "mysql",
+          "width": 1920,
+          "theme": "light",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mysql",
+          "width": 390,
+          "theme": "light",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mysql",
+          "width": 1920,
+          "theme": "dark",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mysql",
+          "width": 390,
+          "theme": "dark",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mariadb",
+          "width": 1920,
+          "theme": "light",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mariadb",
+          "width": 390,
+          "theme": "light",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mariadb",
+          "width": 1920,
+          "theme": "dark",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mariadb",
+          "width": 390,
+          "theme": "dark",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        }
+      ],
+      "browsers": [
+        {
+          "engine": "mysql",
+          "phase": "public",
+          "workers": 2,
+          "shards": 4,
+          "uniqueCases": 2838,
+          "caseKeysSha256": "a039afe1eb1e72dc1653db104aa004de6dfb2610d28486344057e18a2e8fde43",
+          "passed": 2838,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mariadb",
+          "phase": "public",
+          "workers": 2,
+          "shards": 4,
+          "uniqueCases": 2838,
+          "caseKeysSha256": "a039afe1eb1e72dc1653db104aa004de6dfb2610d28486344057e18a2e8fde43",
+          "passed": 2838,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mysql",
+          "phase": "journeys",
+          "workers": 2,
+          "shards": 1,
+          "uniqueCases": 36,
+          "passed": 36,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mariadb",
+          "phase": "journeys",
+          "workers": 2,
+          "shards": 1,
+          "uniqueCases": 36,
+          "passed": 36,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mariadb",
+          "phase": "admin",
+          "workers": 2,
+          "shards": 1,
+          "uniqueCases": 90,
+          "passed": 90,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mysql",
+          "phase": "admin",
+          "workers": 2,
+          "shards": 1,
+          "uniqueCases": 90,
+          "passed": 90,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mysql",
+          "phase": "banners",
+          "workers": 1,
+          "shards": 1,
+          "uniqueCases": 12,
+          "passed": 12,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mariadb",
+          "phase": "banners",
+          "workers": 1,
+          "shards": 1,
+          "uniqueCases": 12,
+          "passed": 12,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        }
+      ],
+      "performance": {
+        "mysql": {
+          "mobile": {
+            "budget": {
+              "lcp": 2500,
+              "cls": 0.1,
+              "inp": 200,
+              "js": 204800
+            },
+            "runs": 3,
+            "profile": "390px, 4x CPU, 150ms RTT, 1.6Mbps",
+            "results": [
+              {
+                "route": "/",
+                "lcp": 1456,
+                "cls": 0,
+                "inp": 120,
+                "jsBytes": 202905,
+                "jsKb": 198,
+                "jsAfterInteractionKb": 277,
+                "pass": true
+              },
+              {
+                "route": "/collections/new-arrivals",
+                "lcp": 1192,
+                "cls": 0.039,
+                "inp": 88,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/products/asics-gel-kayano-30-black-silver",
+                "lcp": 1192,
+                "cls": 0,
+                "inp": 40,
+                "jsBytes": 200426,
+                "jsKb": 196,
+                "jsAfterInteractionKb": 275,
+                "pass": true
+              },
+              {
+                "route": "/pre-loved",
+                "lcp": 1184,
+                "cls": 0.04,
+                "inp": 88,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/search?q=nike",
+                "lcp": 1164,
+                "cls": 0,
+                "inp": 104,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/cart",
+                "lcp": 1084,
+                "cls": 0.002,
+                "inp": 144,
+                "jsBytes": 201601,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 256,
+                "pass": true
+              },
+              {
+                "route": "/contact",
+                "lcp": 1108,
+                "cls": 0,
+                "inp": 48,
+                "jsBytes": 192028,
+                "jsKb": 188,
+                "jsAfterInteractionKb": 293,
+                "pass": true
+              }
+            ]
+          },
+          "admin": {
+            "budgetKb": 250,
+            "runs": 3,
+            "profile": "390px, 4x CPU, 150ms RTT, 1.6Mbps",
+            "results": [
+              {
+                "route": "/admin",
+                "samplesBytes": [
+                  250801,
+                  250801,
+                  250801
+                ],
+                "jsBytes": 250801,
+                "jsKb": 245,
+                "pass": true
+              },
+              {
+                "route": "/admin/orders",
+                "samplesBytes": [
+                  252851,
+                  252851,
+                  252851
+                ],
+                "jsBytes": 252851,
+                "jsKb": 247,
+                "pass": true
+              },
+              {
+                "route": "/admin/products",
+                "samplesBytes": [
+                  252851,
+                  252851,
+                  252851
+                ],
+                "jsBytes": 252851,
+                "jsKb": 247,
+                "pass": true
+              }
+            ]
+          },
+          "http": {
+            "budgets": {
+              "dataset": {
+                "products": 100000,
+                "variants": 300000,
+                "orders": 500000
+              },
+              "poolMax": 5,
+              "warmups": 3,
+              "samples": 20,
+              "p95Ms": {
+                "productListing": 500,
+                "productSearch": 500,
+                "orderListing": 300,
+                "orderSearch": 500
+              },
+              "note": "Local data-layer acceptance budgets fixed before measurement. Hosted latency and HTTP/auth/rendering are measured separately."
+            },
+            "results": [
+              {
+                "path": "/pre-loved",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  1732.5,
+                  104.11,
+                  109.55
+                ],
+                "samplesMs": [
+                  103.41,
+                  79.04,
+                  98.59,
+                  78.98,
+                  88.67,
+                  87.63,
+                  75.5,
+                  86.05,
+                  86.14,
+                  72.27,
+                  84.14,
+                  82.89,
+                  69.01,
+                  80.56,
+                  89.76,
+                  79.61,
+                  88.13,
+                  78.85,
+                  104.75,
+                  88.13
+                ],
+                "pass": true,
+                "p95Ms": 103.41
+              },
+              {
+                "path": "/pre-loved?sort=price-asc",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  244.2,
+                  119.32,
+                  141.19
+                ],
+                "samplesMs": [
+                  126.61,
+                  117.95,
+                  135.17,
+                  127.95,
+                  114.25,
+                  135.78,
+                  123.54,
+                  112.54,
+                  141.32,
+                  127.39,
+                  111.09,
+                  131.22,
+                  129.17,
+                  112.95,
+                  131.76,
+                  123.71,
+                  110.81,
+                  133.39,
+                  126.39,
+                  113.65
+                ],
+                "pass": true,
+                "p95Ms": 135.78
+              },
+              {
+                "path": "/search?q=nike",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  379.75,
+                  90.37,
+                  103.68
+                ],
+                "samplesMs": [
+                  88.69,
+                  103.31,
+                  90.19,
+                  99.22,
+                  89.12,
+                  100.51,
+                  98.33,
+                  89.83,
+                  102.45,
+                  88.99,
+                  98.62,
+                  87.07,
+                  102.31,
+                  86.16,
+                  91.2,
+                  108.21,
+                  88.84,
+                  100.75,
+                  86.92,
+                  107.16
+                ],
+                "pass": true,
+                "p95Ms": 107.16
+              },
+              {
+                "path": "/search?q=PF-50000-0",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  67,
+                  56.56,
+                  58.43
+                ],
+                "samplesMs": [
+                  64.93,
+                  56.13,
+                  70.11,
+                  58.33,
+                  59.1,
+                  62.45,
+                  57.54,
+                  55.25,
+                  58.97,
+                  59.26,
+                  56.77,
+                  58.94,
+                  57.04,
+                  57.82,
+                  55.83,
+                  56.7,
+                  55.84,
+                  60.96,
+                  53.91,
+                  54.43
+                ],
+                "pass": true,
+                "p95Ms": 64.93
+              },
+              {
+                "path": "/api/search/suggest?q=nike",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  227.94,
+                  53.01,
+                  50.42
+                ],
+                "samplesMs": [
+                  50.29,
+                  49.25,
+                  48.96,
+                  48.13,
+                  48.52,
+                  48.39,
+                  54.52,
+                  60.07,
+                  63.33,
+                  49.75,
+                  52.2,
+                  53.02,
+                  47.03,
+                  47.04,
+                  48.06,
+                  49.98,
+                  51.43,
+                  49.34,
+                  47.91,
+                  47.19
+                ],
+                "pass": true,
+                "p95Ms": 60.07
+              },
+              {
+                "path": "/api/search/suggest?q=unfindablezzzz",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  599.09,
+                  47.47,
+                  50.68
+                ],
+                "samplesMs": [
+                  46.9,
+                  47.38,
+                  49.56,
+                  47.24,
+                  48.27,
+                  47.53,
+                  54.54,
+                  53.55,
+                  47.41,
+                  48.42,
+                  46.94,
+                  46.85,
+                  48.08,
+                  47.69,
+                  47.64,
+                  47.69,
+                  47.44,
+                  46.91,
+                  47.79,
+                  48.64
+                ],
+                "pass": true,
+                "p95Ms": 53.55
+              },
+              {
+                "path": "/api/search/suggest?q=zzzz",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  49.49,
+                  48.75,
+                  47.01
+                ],
+                "samplesMs": [
+                  48.07,
+                  48.47,
+                  48.44,
+                  49.43,
+                  48.55,
+                  48.51,
+                  50.52,
+                  50.04,
+                  48.73,
+                  48.77,
+                  48.47,
+                  50.09,
+                  48.63,
+                  48.52,
+                  50.04,
+                  49.84,
+                  48.19,
+                  50.9,
+                  47.29,
+                  52.39
+                ],
+                "pass": true,
+                "p95Ms": 50.9
+              },
+              {
+                "path": "/api/search/suggest?q=unfindable",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  561.16,
+                  352.15,
+                  351.24
+                ],
+                "samplesMs": [
+                  351.15,
+                  353.24,
+                  365.57,
+                  348.51,
+                  347.78,
+                  345.76,
+                  353.41,
+                  350.79,
+                  352.68,
+                  349.37,
+                  353.96,
+                  350.58,
+                  349.22,
+                  348.02,
+                  351.4,
+                  347.19,
+                  350.74,
+                  349.26,
+                  353.52,
+                  352.77
+                ],
+                "pass": true,
+                "p95Ms": 353.96
+              },
+              {
+                "path": "/api/admin/orders?size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  274.56,
+                  84.97,
+                  84.99
+                ],
+                "samplesMs": [
+                  83.19,
+                  83.1,
+                  82.61,
+                  83.53,
+                  82.34,
+                  84.01,
+                  83.11,
+                  85.79,
+                  83.37,
+                  84.41,
+                  81.55,
+                  81.68,
+                  81.33,
+                  92.26,
+                  81.96,
+                  81.92,
+                  82.6,
+                  82.46,
+                  81.11,
+                  81.72
+                ],
+                "pass": true,
+                "p95Ms": 85.79
+              },
+              {
+                "path": "/api/admin/orders?status=confirmed&size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  84.56,
+                  40.35,
+                  37.93
+                ],
+                "samplesMs": [
+                  38.89,
+                  38.25,
+                  38.42,
+                  43.13,
+                  38.99,
+                  37.88,
+                  38.34,
+                  39.02,
+                  38.5,
+                  38,
+                  38.04,
+                  37.77,
+                  38.23,
+                  37.57,
+                  37.49,
+                  38.53,
+                  39.68,
+                  38.48,
+                  38.35,
+                  37.79
+                ],
+                "pass": true,
+                "p95Ms": 39.68
+              },
+              {
+                "path": "/api/admin/orders?sort=total_desc&size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  84.05,
+                  82.34,
+                  81.39
+                ],
+                "samplesMs": [
+                  81.13,
+                  83.53,
+                  82.1,
+                  82.08,
+                  81.68,
+                  82.01,
+                  81.1,
+                  82.21,
+                  81.23,
+                  81.45,
+                  82.58,
+                  82.97,
+                  81.32,
+                  81.72,
+                  80.95,
+                  83.14,
+                  92.93,
+                  86.09,
+                  90.85,
+                  86.11
+                ],
+                "pass": true,
+                "p95Ms": 90.85
+              },
+              {
+                "path": "/api/admin/orders?q=SD500001&size=50",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  321.48,
+                  21.56,
+                  23.71
+                ],
+                "samplesMs": [
+                  25.51,
+                  27.71,
+                  26.73,
+                  22.32,
+                  16.06,
+                  15.6,
+                  15.44,
+                  16.34,
+                  15.91,
+                  14.92,
+                  14.98,
+                  15.78,
+                  15.82,
+                  14.99,
+                  15.31,
+                  14.76,
+                  14.9,
+                  17.97,
+                  15.77,
+                  16.08
+                ],
+                "pass": true,
+                "p95Ms": 26.73
+              },
+              {
+                "path": "/api/admin/orders?q=buyer4999%40performance.example.test&size=50",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  223.65,
+                  26.2,
+                  26.36
+                ],
+                "samplesMs": [
+                  29.93,
+                  32.95,
+                  30.89,
+                  27.61,
+                  20.28,
+                  20.13,
+                  20.65,
+                  19.88,
+                  21.96,
+                  19.89,
+                  19.04,
+                  19.76,
+                  19.56,
+                  18.97,
+                  19.73,
+                  18.13,
+                  19.17,
+                  18.54,
+                  19.73,
+                  18.56
+                ],
+                "pass": true,
+                "p95Ms": 30.89
+              }
+            ],
+            "sitemaps": {
+              "pass": true,
+              "products": 100000,
+              "shards": [
+                {
+                  "path": "/products/sitemap/0.xml",
+                  "count": 5000,
+                  "elapsedMs": 99
+                },
+                {
+                  "path": "/products/sitemap/1.xml",
+                  "count": 5000,
+                  "elapsedMs": 84
+                },
+                {
+                  "path": "/products/sitemap/2.xml",
+                  "count": 5000,
+                  "elapsedMs": 104
+                },
+                {
+                  "path": "/products/sitemap/3.xml",
+                  "count": 5000,
+                  "elapsedMs": 86
+                },
+                {
+                  "path": "/products/sitemap/4.xml",
+                  "count": 5000,
+                  "elapsedMs": 83
+                },
+                {
+                  "path": "/products/sitemap/5.xml",
+                  "count": 5000,
+                  "elapsedMs": 85
+                },
+                {
+                  "path": "/products/sitemap/6.xml",
+                  "count": 5000,
+                  "elapsedMs": 91
+                },
+                {
+                  "path": "/products/sitemap/7.xml",
+                  "count": 5000,
+                  "elapsedMs": 88
+                },
+                {
+                  "path": "/products/sitemap/8.xml",
+                  "count": 5000,
+                  "elapsedMs": 103
+                },
+                {
+                  "path": "/products/sitemap/9.xml",
+                  "count": 5000,
+                  "elapsedMs": 94
+                },
+                {
+                  "path": "/products/sitemap/10.xml",
+                  "count": 5000,
+                  "elapsedMs": 111
+                },
+                {
+                  "path": "/products/sitemap/11.xml",
+                  "count": 5000,
+                  "elapsedMs": 101
+                },
+                {
+                  "path": "/products/sitemap/12.xml",
+                  "count": 5000,
+                  "elapsedMs": 101
+                },
+                {
+                  "path": "/products/sitemap/13.xml",
+                  "count": 5000,
+                  "elapsedMs": 104
+                },
+                {
+                  "path": "/products/sitemap/14.xml",
+                  "count": 5000,
+                  "elapsedMs": 130
+                },
+                {
+                  "path": "/products/sitemap/15.xml",
+                  "count": 5000,
+                  "elapsedMs": 107
+                },
+                {
+                  "path": "/products/sitemap/16.xml",
+                  "count": 5000,
+                  "elapsedMs": 105
+                },
+                {
+                  "path": "/products/sitemap/17.xml",
+                  "count": 5000,
+                  "elapsedMs": 132
+                },
+                {
+                  "path": "/products/sitemap/18.xml",
+                  "count": 5000,
+                  "elapsedMs": 121
+                },
+                {
+                  "path": "/products/sitemap/19.xml",
+                  "count": 5000,
+                  "elapsedMs": 112
+                }
+              ]
+            }
+          },
+          "repository": {
+            "budgets": {
+              "dataset": {
+                "products": 100000,
+                "variants": 300000,
+                "orders": 500000
+              },
+              "poolMax": 5,
+              "warmups": 3,
+              "samples": 20,
+              "p95Ms": {
+                "productListing": 500,
+                "productSearch": 500,
+                "orderListing": 300,
+                "orderSearch": 500
+              },
+              "note": "Local data-layer acceptance budgets fixed before measurement. Hosted latency and HTTP/auth/rendering are measured separately."
+            },
+            "dataset": {
+              "products": 100000,
+              "variants": 300000,
+              "orders": 500000
+            },
+            "results": [
+              {
+                "name": "products-featured",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 8.25,
+                "p50Ms": 5.6,
+                "warmupsMs": [
+                  523.74,
+                  8.7,
+                  7.63
+                ],
+                "samplesMs": [
+                  8.31,
+                  6.75,
+                  8.25,
+                  5.6,
+                  6.38,
+                  5.8,
+                  5.49,
+                  5.44,
+                  5.79,
+                  5.5,
+                  6.18,
+                  5.75,
+                  5.48,
+                  5.32,
+                  5.4,
+                  5.55,
+                  5.67,
+                  5.35,
+                  6.03,
+                  5.38
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "products-newest",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 6.11,
+                "p50Ms": 5.15,
+                "warmupsMs": [
+                  37.49,
+                  5.71,
+                  6
+                ],
+                "samplesMs": [
+                  6.41,
+                  6.01,
+                  5.43,
+                  6.11,
+                  4.81,
+                  5.81,
+                  5.62,
+                  5.15,
+                  4.86,
+                  5.83,
+                  5.74,
+                  4.78,
+                  5.08,
+                  4.67,
+                  4.91,
+                  5.15,
+                  4.86,
+                  5.1,
+                  5.22,
+                  5.63
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "products-price",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 55.94,
+                "p50Ms": 47.86,
+                "warmupsMs": [
+                  178.69,
+                  78.79,
+                  58.74
+                ],
+                "samplesMs": [
+                  50.13,
+                  49.2,
+                  55.94,
+                  53.04,
+                  53.28,
+                  50.62,
+                  47.62,
+                  47.86,
+                  56.76,
+                  46.64,
+                  48.31,
+                  47.32,
+                  46.68,
+                  46.78,
+                  48.75,
+                  46.56,
+                  49.56,
+                  47.05,
+                  46.08,
+                  45.46
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-brand",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 40.58,
+                "p50Ms": 39.41,
+                "warmupsMs": [
+                  194.73,
+                  41.63,
+                  40.76
+                ],
+                "samplesMs": [
+                  40.31,
+                  40,
+                  39.3,
+                  40.62,
+                  39.37,
+                  38.86,
+                  40.47,
+                  39.52,
+                  38.88,
+                  39.41,
+                  40.58,
+                  39.35,
+                  39.32,
+                  39.65,
+                  39.51,
+                  39.88,
+                  39.27,
+                  40.55,
+                  39.09,
+                  39.34
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-sku",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 41.44,
+                "p50Ms": 40.03,
+                "warmupsMs": [
+                  47.54,
+                  40.52,
+                  40.22
+                ],
+                "samplesMs": [
+                  40.03,
+                  40.93,
+                  40.1,
+                  40.18,
+                  41.46,
+                  40.64,
+                  40.15,
+                  39.94,
+                  40.53,
+                  39.71,
+                  39.99,
+                  40.94,
+                  40.36,
+                  39.59,
+                  39.17,
+                  41.44,
+                  39.29,
+                  39.51,
+                  39.63,
+                  39.61
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-typo",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 40.22,
+                "p50Ms": 38.7,
+                "warmupsMs": [
+                  648.76,
+                  40.72,
+                  38.93
+                ],
+                "samplesMs": [
+                  38.8,
+                  39.45,
+                  38.83,
+                  38.64,
+                  38.41,
+                  38.44,
+                  40.22,
+                  38.1,
+                  38.72,
+                  38.3,
+                  38.42,
+                  39.28,
+                  42.23,
+                  38.59,
+                  39.28,
+                  38.44,
+                  38.7,
+                  39.13,
+                  38.36,
+                  39.24
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-newest",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 90.02,
+                "p50Ms": 73.2,
+                "warmupsMs": [
+                  75.68,
+                  72.98,
+                  72.27
+                ],
+                "samplesMs": [
+                  73.28,
+                  73.2,
+                  72.89,
+                  72.23,
+                  73.69,
+                  72.06,
+                  86.44,
+                  90.02,
+                  92.2,
+                  74.58,
+                  87.51,
+                  72.06,
+                  73.57,
+                  71.78,
+                  75.12,
+                  71.42,
+                  73.7,
+                  71.76,
+                  72.66,
+                  72.27
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-status",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 29.42,
+                "p50Ms": 29.11,
+                "warmupsMs": [
+                  87.68,
+                  29.8,
+                  29.3
+                ],
+                "samplesMs": [
+                  29.07,
+                  29,
+                  29.25,
+                  29.24,
+                  29.39,
+                  29.66,
+                  29.11,
+                  29.26,
+                  29.02,
+                  29.06,
+                  29.15,
+                  29.12,
+                  28.73,
+                  29.42,
+                  29.07,
+                  29.32,
+                  28.84,
+                  29.27,
+                  29.02,
+                  28.96
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-number",
+                "category": "orderSearch",
+                "budgetMs": 500,
+                "p95Ms": 22.12,
+                "p50Ms": 9.55,
+                "warmupsMs": [
+                  253.14,
+                  15.17,
+                  17.83
+                ],
+                "samplesMs": [
+                  21.28,
+                  22.12,
+                  22.32,
+                  17.93,
+                  9.3,
+                  9.91,
+                  9.55,
+                  8.58,
+                  8.72,
+                  9.14,
+                  8.36,
+                  8.94,
+                  8.78,
+                  9.54,
+                  10.85,
+                  10.31,
+                  10.23,
+                  9.33,
+                  13.5,
+                  10.05
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-email",
+                "category": "orderSearch",
+                "budgetMs": 500,
+                "p95Ms": 28.07,
+                "p50Ms": 13.37,
+                "warmupsMs": [
+                  241.51,
+                  20.99,
+                  21.57
+                ],
+                "samplesMs": [
+                  26.1,
+                  31.81,
+                  28.07,
+                  22.66,
+                  13.17,
+                  17.08,
+                  13.27,
+                  14.18,
+                  13.35,
+                  13.73,
+                  14.2,
+                  13.15,
+                  13.37,
+                  13.36,
+                  13.15,
+                  13.53,
+                  12.89,
+                  13.42,
+                  13.23,
+                  13.29
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-total",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 73.99,
+                "p50Ms": 72.29,
+                "warmupsMs": [
+                  77.59,
+                  79.13,
+                  72.34
+                ],
+                "samplesMs": [
+                  72.25,
+                  71.69,
+                  73.18,
+                  71.23,
+                  73.45,
+                  71.42,
+                  72.73,
+                  71.76,
+                  73.42,
+                  71.86,
+                  73.59,
+                  72.29,
+                  73.99,
+                  71.89,
+                  72.87,
+                  72.93,
+                  75.1,
+                  72.23,
+                  72.56,
+                  71.94
+                ],
+                "pass": true,
+                "unindexedScans": []
+              }
+            ]
+          }
+        },
+        "mariadb": {
+          "mobile": {
+            "budget": {
+              "lcp": 2500,
+              "cls": 0.1,
+              "inp": 200,
+              "js": 204800
+            },
+            "runs": 3,
+            "profile": "390px, 4x CPU, 150ms RTT, 1.6Mbps",
+            "results": [
+              {
+                "route": "/",
+                "lcp": 1472,
+                "cls": 0,
+                "inp": 120,
+                "jsBytes": 202905,
+                "jsKb": 198,
+                "jsAfterInteractionKb": 277,
+                "pass": true
+              },
+              {
+                "route": "/collections/new-arrivals",
+                "lcp": 1164,
+                "cls": 0.039,
+                "inp": 88,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/products/asics-gel-kayano-30-black-silver",
+                "lcp": 1196,
+                "cls": 0,
+                "inp": 40,
+                "jsBytes": 200426,
+                "jsKb": 196,
+                "jsAfterInteractionKb": 275,
+                "pass": true
+              },
+              {
+                "route": "/pre-loved",
+                "lcp": 1184,
+                "cls": 0.04,
+                "inp": 88,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/search?q=nike",
+                "lcp": 1156,
+                "cls": 0,
+                "inp": 104,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/cart",
+                "lcp": 1084,
+                "cls": 0.002,
+                "inp": 144,
+                "jsBytes": 201601,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 256,
+                "pass": true
+              },
+              {
+                "route": "/contact",
+                "lcp": 1120,
+                "cls": 0,
+                "inp": 48,
+                "jsBytes": 192028,
+                "jsKb": 188,
+                "jsAfterInteractionKb": 293,
+                "pass": true
+              }
+            ]
+          },
+          "admin": {
+            "budgetKb": 250,
+            "runs": 3,
+            "profile": "390px, 4x CPU, 150ms RTT, 1.6Mbps",
+            "results": [
+              {
+                "route": "/admin",
+                "samplesBytes": [
+                  250801,
+                  250801,
+                  250801
+                ],
+                "jsBytes": 250801,
+                "jsKb": 245,
+                "pass": true
+              },
+              {
+                "route": "/admin/orders",
+                "samplesBytes": [
+                  252851,
+                  252851,
+                  252851
+                ],
+                "jsBytes": 252851,
+                "jsKb": 247,
+                "pass": true
+              },
+              {
+                "route": "/admin/products",
+                "samplesBytes": [
+                  252851,
+                  252851,
+                  252851
+                ],
+                "jsBytes": 252851,
+                "jsKb": 247,
+                "pass": true
+              }
+            ]
+          },
+          "http": {
+            "budgets": {
+              "dataset": {
+                "products": 100000,
+                "variants": 300000,
+                "orders": 500000
+              },
+              "poolMax": 5,
+              "warmups": 3,
+              "samples": 20,
+              "p95Ms": {
+                "productListing": 500,
+                "productSearch": 500,
+                "orderListing": 300,
+                "orderSearch": 500
+              },
+              "note": "Local data-layer acceptance budgets fixed before measurement. Hosted latency and HTTP/auth/rendering are measured separately."
+            },
+            "results": [
+              {
+                "path": "/pre-loved",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  1376.26,
+                  121.5,
+                  97.56
+                ],
+                "samplesMs": [
+                  104.95,
+                  101.52,
+                  87.97,
+                  94.87,
+                  79.96,
+                  92.26,
+                  108.87,
+                  93.07,
+                  90.36,
+                  90.05,
+                  73.77,
+                  99.41,
+                  89.53,
+                  75.81,
+                  89.95,
+                  74.66,
+                  93.91,
+                  89.07,
+                  75.74,
+                  88.98
+                ],
+                "pass": true,
+                "p95Ms": 104.95
+              },
+              {
+                "path": "/pre-loved?sort=price-asc",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  407.15,
+                  141.21,
+                  124.9
+                ],
+                "samplesMs": [
+                  118.67,
+                  128.05,
+                  123.01,
+                  110.09,
+                  125.29,
+                  126.18,
+                  109.28,
+                  119.64,
+                  122.8,
+                  109.97,
+                  121.87,
+                  123.21,
+                  110.22,
+                  124.97,
+                  121.26,
+                  109.23,
+                  120.99,
+                  120.79,
+                  106.73,
+                  123.28
+                ],
+                "pass": true,
+                "p95Ms": 126.18
+              },
+              {
+                "path": "/search?q=nike",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  257.71,
+                  59.74,
+                  84.03
+                ],
+                "samplesMs": [
+                  58.22,
+                  75.33,
+                  58.47,
+                  78.63,
+                  64.91,
+                  78.67,
+                  58.21,
+                  64.33,
+                  92.33,
+                  63.34,
+                  76.27,
+                  57.76,
+                  69.2,
+                  56.16,
+                  73.28,
+                  57.74,
+                  60.04,
+                  64.21,
+                  51.97,
+                  68.32
+                ],
+                "pass": true,
+                "p95Ms": 78.67
+              },
+              {
+                "path": "/search?q=PF-50000-0",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  25.22,
+                  17.1,
+                  17.2
+                ],
+                "samplesMs": [
+                  16.96,
+                  17.21,
+                  16.51,
+                  17.84,
+                  26.86,
+                  17.05,
+                  16.37,
+                  16.54,
+                  16.1,
+                  16.8,
+                  16.69,
+                  16.75,
+                  16.34,
+                  17.87,
+                  16.39,
+                  23.46,
+                  16.32,
+                  17.14,
+                  16.9,
+                  18.48
+                ],
+                "pass": true,
+                "p95Ms": 23.46
+              },
+              {
+                "path": "/api/search/suggest?q=nike",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  169.87,
+                  17.21,
+                  13.01
+                ],
+                "samplesMs": [
+                  13.01,
+                  13.14,
+                  12.23,
+                  18.59,
+                  12.89,
+                  13.31,
+                  13.56,
+                  11.55,
+                  12.25,
+                  12.95,
+                  13.07,
+                  13.19,
+                  11.38,
+                  13.4,
+                  11.79,
+                  11.16,
+                  11.85,
+                  11.16,
+                  12.06,
+                  14.19
+                ],
+                "pass": true,
+                "p95Ms": 14.19
+              },
+              {
+                "path": "/api/search/suggest?q=unfindablezzzz",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  463.7,
+                  12.08,
+                  12.33
+                ],
+                "samplesMs": [
+                  12.68,
+                  13.09,
+                  12.73,
+                  12.12,
+                  12.99,
+                  12.77,
+                  12.65,
+                  12.46,
+                  12.88,
+                  12.6,
+                  13.43,
+                  11.67,
+                  12.91,
+                  13.26,
+                  15.93,
+                  13.71,
+                  13.34,
+                  14.48,
+                  13.78,
+                  13.16
+                ],
+                "pass": true,
+                "p95Ms": 14.48
+              },
+              {
+                "path": "/api/search/suggest?q=zzzz",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  15.4,
+                  13.26,
+                  14.41
+                ],
+                "samplesMs": [
+                  12.97,
+                  13.11,
+                  13.67,
+                  13.5,
+                  14.56,
+                  13.48,
+                  13.98,
+                  13.16,
+                  12.65,
+                  13.87,
+                  13.16,
+                  12.94,
+                  13.49,
+                  13.04,
+                  13.61,
+                  13.78,
+                  12.86,
+                  13.85,
+                  14.22,
+                  13.82
+                ],
+                "pass": true,
+                "p95Ms": 14.22
+              },
+              {
+                "path": "/api/search/suggest?q=unfindable",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  575.73,
+                  334.73,
+                  347.77
+                ],
+                "samplesMs": [
+                  334.7,
+                  333.2,
+                  333.6,
+                  355.58,
+                  335.95,
+                  331.96,
+                  331.42,
+                  336.17,
+                  357.86,
+                  335.76,
+                  338.18,
+                  333.52,
+                  335.32,
+                  332.86,
+                  332.51,
+                  331.03,
+                  335.17,
+                  330.97,
+                  333.77,
+                  336.17
+                ],
+                "pass": true,
+                "p95Ms": 355.58
+              },
+              {
+                "path": "/api/admin/orders?size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  334.98,
+                  113.62,
+                  81.6
+                ],
+                "samplesMs": [
+                  82.64,
+                  82.06,
+                  81.82,
+                  81.89,
+                  82.33,
+                  83.33,
+                  87.96,
+                  90.85,
+                  85.57,
+                  80.05,
+                  80.32,
+                  79.62,
+                  79.7,
+                  80.59,
+                  80.16,
+                  81.14,
+                  79.11,
+                  79.64,
+                  80.6,
+                  78.5
+                ],
+                "pass": true,
+                "p95Ms": 87.96
+              },
+              {
+                "path": "/api/admin/orders?status=confirmed&size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  85.08,
+                  33.86,
+                  33.15
+                ],
+                "samplesMs": [
+                  33.22,
+                  33.63,
+                  33.4,
+                  33.82,
+                  32.38,
+                  33.14,
+                  33.19,
+                  33.51,
+                  33.97,
+                  33.62,
+                  35.88,
+                  33.42,
+                  33.16,
+                  33.12,
+                  32.45,
+                  33,
+                  33.48,
+                  33.23,
+                  33.91,
+                  33.05
+                ],
+                "pass": true,
+                "p95Ms": 33.97
+              },
+              {
+                "path": "/api/admin/orders?sort=total_desc&size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  80.03,
+                  79.37,
+                  78.29
+                ],
+                "samplesMs": [
+                  79.17,
+                  78.9,
+                  80.34,
+                  78.67,
+                  77.98,
+                  80.05,
+                  78.61,
+                  77.76,
+                  79.25,
+                  80.92,
+                  78.13,
+                  78.53,
+                  79.73,
+                  78.61,
+                  80.04,
+                  78.57,
+                  79.75,
+                  78.69,
+                  79.07,
+                  79.57
+                ],
+                "pass": true,
+                "p95Ms": 80.34
+              },
+              {
+                "path": "/api/admin/orders?q=SD500001&size=50",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  263.27,
+                  17.27,
+                  17.9
+                ],
+                "samplesMs": [
+                  16.55,
+                  16.92,
+                  17.98,
+                  16.76,
+                  16.23,
+                  16.93,
+                  16.98,
+                  17.44,
+                  17.14,
+                  17.08,
+                  15.88,
+                  16.26,
+                  16.79,
+                  17.36,
+                  16.96,
+                  17.1,
+                  16.92,
+                  17.44,
+                  16.5,
+                  17.71
+                ],
+                "pass": true,
+                "p95Ms": 17.71
+              },
+              {
+                "path": "/api/admin/orders?q=buyer4999%40performance.example.test&size=50",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  204.91,
+                  19.12,
+                  18.1
+                ],
+                "samplesMs": [
+                  18.86,
+                  19.01,
+                  20.56,
+                  19.38,
+                  19.07,
+                  19.8,
+                  20.1,
+                  19.68,
+                  18.82,
+                  19.43,
+                  20.13,
+                  19.18,
+                  18.87,
+                  18.82,
+                  19.56,
+                  19.03,
+                  19.18,
+                  19.55,
+                  19.02,
+                  20.22
+                ],
+                "pass": true,
+                "p95Ms": 20.22
+              }
+            ],
+            "sitemaps": {
+              "pass": true,
+              "products": 100000,
+              "shards": [
+                {
+                  "path": "/products/sitemap/0.xml",
+                  "count": 5000,
+                  "elapsedMs": 105
+                },
+                {
+                  "path": "/products/sitemap/1.xml",
+                  "count": 5000,
+                  "elapsedMs": 79
+                },
+                {
+                  "path": "/products/sitemap/2.xml",
+                  "count": 5000,
+                  "elapsedMs": 84
+                },
+                {
+                  "path": "/products/sitemap/3.xml",
+                  "count": 5000,
+                  "elapsedMs": 87
+                },
+                {
+                  "path": "/products/sitemap/4.xml",
+                  "count": 5000,
+                  "elapsedMs": 75
+                },
+                {
+                  "path": "/products/sitemap/5.xml",
+                  "count": 5000,
+                  "elapsedMs": 69
+                },
+                {
+                  "path": "/products/sitemap/6.xml",
+                  "count": 5000,
+                  "elapsedMs": 74
+                },
+                {
+                  "path": "/products/sitemap/7.xml",
+                  "count": 5000,
+                  "elapsedMs": 72
+                },
+                {
+                  "path": "/products/sitemap/8.xml",
+                  "count": 5000,
+                  "elapsedMs": 74
+                },
+                {
+                  "path": "/products/sitemap/9.xml",
+                  "count": 5000,
+                  "elapsedMs": 80
+                },
+                {
+                  "path": "/products/sitemap/10.xml",
+                  "count": 5000,
+                  "elapsedMs": 76
+                },
+                {
+                  "path": "/products/sitemap/11.xml",
+                  "count": 5000,
+                  "elapsedMs": 80
+                },
+                {
+                  "path": "/products/sitemap/12.xml",
+                  "count": 5000,
+                  "elapsedMs": 79
+                },
+                {
+                  "path": "/products/sitemap/13.xml",
+                  "count": 5000,
+                  "elapsedMs": 81
+                },
+                {
+                  "path": "/products/sitemap/14.xml",
+                  "count": 5000,
+                  "elapsedMs": 81
+                },
+                {
+                  "path": "/products/sitemap/15.xml",
+                  "count": 5000,
+                  "elapsedMs": 85
+                },
+                {
+                  "path": "/products/sitemap/16.xml",
+                  "count": 5000,
+                  "elapsedMs": 83
+                },
+                {
+                  "path": "/products/sitemap/17.xml",
+                  "count": 5000,
+                  "elapsedMs": 85
+                },
+                {
+                  "path": "/products/sitemap/18.xml",
+                  "count": 5000,
+                  "elapsedMs": 89
+                },
+                {
+                  "path": "/products/sitemap/19.xml",
+                  "count": 5000,
+                  "elapsedMs": 87
+                }
+              ]
+            }
+          },
+          "repository": {
+            "budgets": {
+              "dataset": {
+                "products": 100000,
+                "variants": 300000,
+                "orders": 500000
+              },
+              "poolMax": 5,
+              "warmups": 3,
+              "samples": 20,
+              "p95Ms": {
+                "productListing": 500,
+                "productSearch": 500,
+                "orderListing": 300,
+                "orderSearch": 500
+              },
+              "note": "Local data-layer acceptance budgets fixed before measurement. Hosted latency and HTTP/auth/rendering are measured separately."
+            },
+            "dataset": {
+              "products": 100000,
+              "variants": 300000,
+              "orders": 500000
+            },
+            "results": [
+              {
+                "name": "products-featured",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 6.16,
+                "p50Ms": 5.2,
+                "warmupsMs": [
+                  519.23,
+                  7.3,
+                  6.44
+                ],
+                "samplesMs": [
+                  6.69,
+                  6.16,
+                  5.76,
+                  5.11,
+                  5.45,
+                  5.81,
+                  5.16,
+                  5.51,
+                  4.85,
+                  4.86,
+                  4.86,
+                  5.12,
+                  5.07,
+                  5.34,
+                  5.2,
+                  5.55,
+                  5.03,
+                  4.92,
+                  5.61,
+                  5.33
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "products-newest",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 5.2,
+                "p50Ms": 4.78,
+                "warmupsMs": [
+                  31.33,
+                  6.15,
+                  5.2
+                ],
+                "samplesMs": [
+                  4.55,
+                  5.2,
+                  4.78,
+                  6.07,
+                  4.45,
+                  4.46,
+                  4.44,
+                  4.8,
+                  4.99,
+                  4.93,
+                  5.11,
+                  5.06,
+                  4.9,
+                  4.36,
+                  4.38,
+                  5.06,
+                  4.56,
+                  4.17,
+                  4.38,
+                  4.78
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "products-price",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 44.42,
+                "p50Ms": 40.02,
+                "warmupsMs": [
+                  316.46,
+                  41.74,
+                  41.4
+                ],
+                "samplesMs": [
+                  40.75,
+                  39.38,
+                  40.86,
+                  54.08,
+                  39.86,
+                  40.62,
+                  40.02,
+                  40.06,
+                  39.77,
+                  39.07,
+                  41.38,
+                  42.06,
+                  41.06,
+                  39.23,
+                  39.18,
+                  40.09,
+                  39.35,
+                  38.84,
+                  39.18,
+                  44.42
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-brand",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 6.41,
+                "p50Ms": 5.37,
+                "warmupsMs": [
+                  169.8,
+                  6.12,
+                  6.13
+                ],
+                "samplesMs": [
+                  6.41,
+                  5.91,
+                  5.47,
+                  5.28,
+                  5.92,
+                  5.55,
+                  5.51,
+                  5.51,
+                  4.85,
+                  5.11,
+                  5.2,
+                  5.61,
+                  5.41,
+                  5.29,
+                  5.35,
+                  4.82,
+                  5.35,
+                  6.83,
+                  5.37,
+                  5.33
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-sku",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 4.14,
+                "p50Ms": 3.65,
+                "warmupsMs": [
+                  11.59,
+                  3.86,
+                  3.69
+                ],
+                "samplesMs": [
+                  3.54,
+                  3.59,
+                  3.4,
+                  3.9,
+                  3.87,
+                  4.14,
+                  4.59,
+                  3.58,
+                  3.65,
+                  3.38,
+                  3.96,
+                  3.65,
+                  3.92,
+                  3.79,
+                  4,
+                  3.53,
+                  3.6,
+                  3.42,
+                  3.66,
+                  3.62
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-typo",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 6.08,
+                "p50Ms": 5.62,
+                "warmupsMs": [
+                  476.24,
+                  5.99,
+                  5.89
+                ],
+                "samplesMs": [
+                  6.35,
+                  5.96,
+                  6.03,
+                  6.03,
+                  6.06,
+                  5.54,
+                  6.08,
+                  5.36,
+                  5.85,
+                  5.49,
+                  5.29,
+                  5.44,
+                  5.29,
+                  5.62,
+                  5.78,
+                  5.76,
+                  5.57,
+                  5.74,
+                  5.54,
+                  5.5
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-newest",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 74.64,
+                "p50Ms": 71.86,
+                "warmupsMs": [
+                  123.33,
+                  71.59,
+                  77.63
+                ],
+                "samplesMs": [
+                  79.06,
+                  74.64,
+                  72.79,
+                  73.22,
+                  72.14,
+                  70.67,
+                  72.32,
+                  72.99,
+                  71.54,
+                  70.48,
+                  71.57,
+                  72.53,
+                  70.64,
+                  71.23,
+                  71.19,
+                  71.86,
+                  70.68,
+                  71.35,
+                  71.88,
+                  71.89
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-status",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 25.59,
+                "p50Ms": 25.21,
+                "warmupsMs": [
+                  76.51,
+                  26.72,
+                  25.28
+                ],
+                "samplesMs": [
+                  25.84,
+                  25.26,
+                  25.25,
+                  24.97,
+                  25.17,
+                  25.23,
+                  24.99,
+                  24.92,
+                  25.39,
+                  25.34,
+                  24.85,
+                  25.59,
+                  24.85,
+                  24.92,
+                  25.55,
+                  25.24,
+                  25.1,
+                  24.86,
+                  25.24,
+                  25.21
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-number",
+                "category": "orderSearch",
+                "budgetMs": 500,
+                "p95Ms": 10.05,
+                "p50Ms": 9.68,
+                "warmupsMs": [
+                  252.13,
+                  11.59,
+                  10.68
+                ],
+                "samplesMs": [
+                  10.33,
+                  9.24,
+                  9.89,
+                  9.68,
+                  9.23,
+                  9.66,
+                  9.92,
+                  9.42,
+                  9.43,
+                  9.48,
+                  9.23,
+                  9.81,
+                  9.54,
+                  9.92,
+                  9.82,
+                  9.93,
+                  9.72,
+                  10.05,
+                  9.54,
+                  9.81
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-email",
+                "category": "orderSearch",
+                "budgetMs": 500,
+                "p95Ms": 12.84,
+                "p50Ms": 12.28,
+                "warmupsMs": [
+                  196.41,
+                  13.27,
+                  12.3
+                ],
+                "samplesMs": [
+                  12.84,
+                  12.17,
+                  12.23,
+                  12.59,
+                  12.26,
+                  12.28,
+                  12.62,
+                  13.61,
+                  12.54,
+                  12.15,
+                  12.14,
+                  12.51,
+                  12.04,
+                  12.34,
+                  11.99,
+                  12.26,
+                  12.29,
+                  12.37,
+                  12.12,
+                  12.43
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-total",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 71.41,
+                "p50Ms": 70.66,
+                "warmupsMs": [
+                  71.43,
+                  72.35,
+                  70.68
+                ],
+                "samplesMs": [
+                  70.94,
+                  70.73,
+                  70.39,
+                  71.41,
+                  70.66,
+                  70.21,
+                  70.29,
+                  70.68,
+                  70.59,
+                  70.4,
+                  70.6,
+                  70.28,
+                  71.1,
+                  71.16,
+                  81.44,
+                  70.53,
+                  70.22,
+                  71.35,
+                  71.22,
+                  70.82
+                ],
+                "pass": true,
+                "unindexedScans": []
+              }
+            ]
+          }
+        }
+      },
+      "recovery": [
+        {
+          "engine": "mysql",
+          "mode": "queue",
+          "pass": true
+        },
+        {
+          "engine": "mysql",
+          "mode": "restart",
+          "pass": true
+        },
+        {
+          "engine": "mariadb",
+          "mode": "queue",
+          "pass": true
+        },
+        {
+          "engine": "mariadb",
+          "mode": "restart",
+          "pass": true
+        }
+      ],
+      "actions": [
+        {
+          "name": "stop-qa",
+          "exitCode": 0,
+          "elapsedMs": 536
+        },
+        {
+          "name": "full-verify",
+          "exitCode": 0,
+          "elapsedMs": 119731
+        },
+        {
+          "name": "native-full",
+          "exitCode": 0,
+          "elapsedMs": 123094
+        },
+        {
+          "name": "independent-clean-build",
+          "exitCode": 0,
+          "elapsedMs": 101625
+        },
+        {
+          "name": "archive-qa",
+          "exitCode": 0,
+          "elapsedMs": 68
+        },
+        {
+          "name": "prepare-qa",
+          "exitCode": 0,
+          "elapsedMs": 39257
+        },
+        {
+          "name": "provision-qa",
+          "exitCode": 0,
+          "elapsedMs": 33277
+        },
+        {
+          "name": "start-qa",
+          "exitCode": 0,
+          "elapsedMs": 16141
+        },
+        {
+          "name": "start-reference",
+          "exitCode": 0,
+          "elapsedMs": 15592
+        },
+        {
+          "name": "visual-mysql-1920-light",
+          "exitCode": 0,
+          "elapsedMs": 54923
+        },
+        {
+          "name": "visual-mysql-390-light",
+          "exitCode": 0,
+          "elapsedMs": 45043
+        },
+        {
+          "name": "visual-mysql-1920-dark",
+          "exitCode": 0,
+          "elapsedMs": 51928
+        },
+        {
+          "name": "visual-mysql-390-dark",
+          "exitCode": 0,
+          "elapsedMs": 44833
+        },
+        {
+          "name": "visual-mariadb-1920-light",
+          "exitCode": 0,
+          "elapsedMs": 53003
+        },
+        {
+          "name": "visual-mariadb-390-light",
+          "exitCode": 0,
+          "elapsedMs": 44856
+        },
+        {
+          "name": "visual-mariadb-1920-dark",
+          "exitCode": 0,
+          "elapsedMs": 51729
+        },
+        {
+          "name": "visual-mariadb-390-dark",
+          "exitCode": 0,
+          "elapsedMs": 45042
+        },
+        {
+          "name": "stop-reference",
+          "exitCode": 0,
+          "elapsedMs": 542
+        },
+        {
+          "name": "performance",
+          "exitCode": 0,
+          "elapsedMs": 460624
+        },
+        {
+          "name": "stop-idle-performance-servers",
+          "exitCode": 0,
+          "elapsedMs": 713
+        },
+        {
+          "name": "browser-public-mysql",
+          "exitCode": 0,
+          "elapsedMs": 1806323
+        },
+        {
+          "name": "browser-public-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 1808588
+        },
+        {
+          "name": "browser-journeys-mysql",
+          "exitCode": 0,
+          "elapsedMs": 52023
+        },
+        {
+          "name": "browser-journeys-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 52167
+        },
+        {
+          "name": "browser-admin-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 477376
+        },
+        {
+          "name": "browser-admin-mysql",
+          "exitCode": 0,
+          "elapsedMs": 477913
+        },
+        {
+          "name": "browser-banners-mysql",
+          "exitCode": 0,
+          "elapsedMs": 124026
+        },
+        {
+          "name": "browser-banners-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 124185
+        },
+        {
+          "name": "start-recovery-servers",
+          "exitCode": 0,
+          "elapsedMs": 23001
+        },
+        {
+          "name": "recovery-session-mysql",
+          "exitCode": 0,
+          "elapsedMs": 1037
+        },
+        {
+          "name": "http-queue-mysql",
+          "exitCode": 0,
+          "elapsedMs": 1235
+        },
+        {
+          "name": "http-restart-mysql",
+          "exitCode": 0,
+          "elapsedMs": 16949
+        },
+        {
+          "name": "recovery-session-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 766
+        },
+        {
+          "name": "http-queue-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 1308
+        },
+        {
+          "name": "http-restart-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 1603
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "accepted": true,
+      "startedAt": "2026-11-11T04:50:31.005Z",
+      "finishedAt": "2026-11-11T05:55:20.527Z",
+      "resourcePolicy": {
+        "browserWorkersPerEngine": 2,
+        "bannerWorkersPerEngine": 1,
+        "publicSequentialShards": 4,
+        "stopIdleServers": true
+      },
+      "minimumObservedBrowserFreeGiB": 1.3008918762207031,
+      "applicationTests": {
+        "passed": 1729,
+        "failed": 0,
+        "pending": 0
+      },
+      "nativeTests": {
+        "passed": 1473,
+        "failed": 0,
+        "pending": 0,
+        "repeatedRaces": 1000
+      },
+      "independentCleanBuild": true,
+      "visuals": [
+        {
+          "engine": "mysql",
+          "width": 1920,
+          "theme": "light",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mysql",
+          "width": 390,
+          "theme": "light",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mysql",
+          "width": 1920,
+          "theme": "dark",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mysql",
+          "width": 390,
+          "theme": "dark",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mariadb",
+          "width": 1920,
+          "theme": "light",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mariadb",
+          "width": 390,
+          "theme": "light",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mariadb",
+          "width": 1920,
+          "theme": "dark",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        },
+        {
+          "engine": "mariadb",
+          "width": 390,
+          "theme": "dark",
+          "screens": 10,
+          "mismatchedPixels": 0,
+          "equalHeights": true
+        }
+      ],
+      "browsers": [
+        {
+          "engine": "mariadb",
+          "phase": "public",
+          "workers": 2,
+          "shards": 4,
+          "uniqueCases": 2838,
+          "caseKeysSha256": "a039afe1eb1e72dc1653db104aa004de6dfb2610d28486344057e18a2e8fde43",
+          "passed": 2838,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mysql",
+          "phase": "public",
+          "workers": 2,
+          "shards": 4,
+          "uniqueCases": 2838,
+          "caseKeysSha256": "a039afe1eb1e72dc1653db104aa004de6dfb2610d28486344057e18a2e8fde43",
+          "passed": 2838,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mysql",
+          "phase": "journeys",
+          "workers": 2,
+          "shards": 1,
+          "uniqueCases": 36,
+          "passed": 36,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mariadb",
+          "phase": "journeys",
+          "workers": 2,
+          "shards": 1,
+          "uniqueCases": 36,
+          "passed": 36,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mysql",
+          "phase": "admin",
+          "workers": 2,
+          "shards": 1,
+          "uniqueCases": 90,
+          "passed": 90,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mariadb",
+          "phase": "admin",
+          "workers": 2,
+          "shards": 1,
+          "uniqueCases": 90,
+          "passed": 90,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mariadb",
+          "phase": "banners",
+          "workers": 1,
+          "shards": 1,
+          "uniqueCases": 12,
+          "passed": 12,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        },
+        {
+          "engine": "mysql",
+          "phase": "banners",
+          "workers": 1,
+          "shards": 1,
+          "uniqueCases": 12,
+          "passed": 12,
+          "failed": 0,
+          "skipped": 0,
+          "flaky": 0
+        }
+      ],
+      "performance": {
+        "mysql": {
+          "mobile": {
+            "budget": {
+              "lcp": 2500,
+              "cls": 0.1,
+              "inp": 200,
+              "js": 204800
+            },
+            "runs": 3,
+            "profile": "390px, 4x CPU, 150ms RTT, 1.6Mbps",
+            "results": [
+              {
+                "route": "/",
+                "lcp": 1468,
+                "cls": 0,
+                "inp": 120,
+                "jsBytes": 202905,
+                "jsKb": 198,
+                "jsAfterInteractionKb": 277,
+                "pass": true
+              },
+              {
+                "route": "/collections/new-arrivals",
+                "lcp": 1184,
+                "cls": 0.039,
+                "inp": 88,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/products/asics-gel-kayano-30-black-silver",
+                "lcp": 1196,
+                "cls": 0,
+                "inp": 40,
+                "jsBytes": 200426,
+                "jsKb": 196,
+                "jsAfterInteractionKb": 275,
+                "pass": true
+              },
+              {
+                "route": "/pre-loved",
+                "lcp": 1180,
+                "cls": 0.04,
+                "inp": 88,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/search?q=nike",
+                "lcp": 1160,
+                "cls": 0,
+                "inp": 96,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/cart",
+                "lcp": 1096,
+                "cls": 0.002,
+                "inp": 144,
+                "jsBytes": 201601,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 256,
+                "pass": true
+              },
+              {
+                "route": "/contact",
+                "lcp": 1112,
+                "cls": 0,
+                "inp": 48,
+                "jsBytes": 192028,
+                "jsKb": 188,
+                "jsAfterInteractionKb": 293,
+                "pass": true
+              }
+            ]
+          },
+          "admin": {
+            "budgetKb": 250,
+            "runs": 3,
+            "profile": "390px, 4x CPU, 150ms RTT, 1.6Mbps",
+            "results": [
+              {
+                "route": "/admin",
+                "samplesBytes": [
+                  250801,
+                  250801,
+                  250801
+                ],
+                "jsBytes": 250801,
+                "jsKb": 245,
+                "pass": true
+              },
+              {
+                "route": "/admin/orders",
+                "samplesBytes": [
+                  252851,
+                  252851,
+                  252851
+                ],
+                "jsBytes": 252851,
+                "jsKb": 247,
+                "pass": true
+              },
+              {
+                "route": "/admin/products",
+                "samplesBytes": [
+                  252851,
+                  252851,
+                  252851
+                ],
+                "jsBytes": 252851,
+                "jsKb": 247,
+                "pass": true
+              }
+            ]
+          },
+          "http": {
+            "budgets": {
+              "dataset": {
+                "products": 100000,
+                "variants": 300000,
+                "orders": 500000
+              },
+              "poolMax": 5,
+              "warmups": 3,
+              "samples": 20,
+              "p95Ms": {
+                "productListing": 500,
+                "productSearch": 500,
+                "orderListing": 300,
+                "orderSearch": 500
+              },
+              "note": "Local data-layer acceptance budgets fixed before measurement. Hosted latency and HTTP/auth/rendering are measured separately."
+            },
+            "results": [
+              {
+                "path": "/pre-loved",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  1905.21,
+                  103.34,
+                  108.98
+                ],
+                "samplesMs": [
+                  103.33,
+                  80.72,
+                  101.05,
+                  76.55,
+                  87.37,
+                  90.03,
+                  74,
+                  86.31,
+                  86.9,
+                  71.9,
+                  84.21,
+                  97.43,
+                  71.72,
+                  82.58,
+                  82.79,
+                  70.03,
+                  86.35,
+                  82.89,
+                  71.07,
+                  83.94
+                ],
+                "pass": true,
+                "p95Ms": 101.05
+              },
+              {
+                "path": "/pre-loved?sort=price-asc",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  245.04,
+                  135.65,
+                  121.73
+                ],
+                "samplesMs": [
+                  145.93,
+                  134.02,
+                  144.72,
+                  148.03,
+                  115.02,
+                  126.96,
+                  134.72,
+                  124.07,
+                  133.38,
+                  115.92,
+                  126.7,
+                  127.51,
+                  116.26,
+                  122.85,
+                  123.98,
+                  111.61,
+                  130.7,
+                  142.94,
+                  133.1,
+                  136.13
+                ],
+                "pass": true,
+                "p95Ms": 145.93
+              },
+              {
+                "path": "/search?q=nike",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  378.68,
+                  91.78,
+                  102.84
+                ],
+                "samplesMs": [
+                  90.01,
+                  101.56,
+                  89.32,
+                  95.69,
+                  103.14,
+                  96.45,
+                  103.7,
+                  89.62,
+                  101.05,
+                  87.28,
+                  98.89,
+                  88.19,
+                  85.84,
+                  95.66,
+                  85.45,
+                  100.55,
+                  86.21,
+                  100.79,
+                  87.61,
+                  96.9
+                ],
+                "pass": true,
+                "p95Ms": 103.14
+              },
+              {
+                "path": "/search?q=PF-50000-0",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  61.16,
+                  54.17,
+                  53.62
+                ],
+                "samplesMs": [
+                  54.05,
+                  54.06,
+                  52.32,
+                  53.58,
+                  53.5,
+                  54.32,
+                  54.77,
+                  57.54,
+                  52.99,
+                  54.31,
+                  55.05,
+                  53.69,
+                  53.91,
+                  54.46,
+                  52.76,
+                  52.7,
+                  53.96,
+                  53.2,
+                  57.49,
+                  56.57
+                ],
+                "pass": true,
+                "p95Ms": 57.49
+              },
+              {
+                "path": "/api/search/suggest?q=nike",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  237.74,
+                  52.18,
+                  48.79
+                ],
+                "samplesMs": [
+                  49.92,
+                  50.16,
+                  47.68,
+                  48.38,
+                  48.29,
+                  49.78,
+                  49.91,
+                  52.51,
+                  48.15,
+                  47.69,
+                  47.75,
+                  47.59,
+                  47.23,
+                  48.25,
+                  47.04,
+                  46.75,
+                  46.98,
+                  47.41,
+                  47.03,
+                  47.09
+                ],
+                "pass": true,
+                "p95Ms": 50.16
+              },
+              {
+                "path": "/api/search/suggest?q=unfindablezzzz",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  638.66,
+                  47.76,
+                  48.55
+                ],
+                "samplesMs": [
+                  47.49,
+                  48.66,
+                  48.54,
+                  48.08,
+                  49.16,
+                  47.05,
+                  47.22,
+                  46.14,
+                  47.03,
+                  47.45,
+                  47.7,
+                  46.92,
+                  46.9,
+                  47.56,
+                  49.03,
+                  47.38,
+                  47.47,
+                  49.47,
+                  47.38,
+                  47.34
+                ],
+                "pass": true,
+                "p95Ms": 49.16
+              },
+              {
+                "path": "/api/search/suggest?q=zzzz",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  48.98,
+                  47.71,
+                  48.88
+                ],
+                "samplesMs": [
+                  47.79,
+                  47.19,
+                  48.34,
+                  47.68,
+                  48.82,
+                  48.07,
+                  50.15,
+                  51.42,
+                  48.34,
+                  48.55,
+                  47.42,
+                  48.28,
+                  48.88,
+                  48.8,
+                  48.11,
+                  47.81,
+                  48,
+                  48.56,
+                  49.56,
+                  52.68
+                ],
+                "pass": true,
+                "p95Ms": 51.42
+              },
+              {
+                "path": "/api/search/suggest?q=unfindable",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  556.98,
+                  349.24,
+                  349.24
+                ],
+                "samplesMs": [
+                  363.03,
+                  346.51,
+                  356.74,
+                  359.26,
+                  363.7,
+                  347.85,
+                  349.04,
+                  351.42,
+                  350.38,
+                  362.15,
+                  347.4,
+                  347.21,
+                  344.19,
+                  359.79,
+                  431.48,
+                  412.72,
+                  364.98,
+                  346.61,
+                  345.48,
+                  351.41
+                ],
+                "pass": true,
+                "p95Ms": 412.72
+              },
+              {
+                "path": "/api/admin/orders?size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  272.88,
+                  84.23,
+                  82.82
+                ],
+                "samplesMs": [
+                  82.19,
+                  83.99,
+                  82.12,
+                  83.43,
+                  82.64,
+                  97.8,
+                  84.37,
+                  81.62,
+                  82.6,
+                  81.24,
+                  80.82,
+                  81.91,
+                  80.56,
+                  82.81,
+                  80.17,
+                  80.91,
+                  82.94,
+                  84.78,
+                  81.5,
+                  82.3
+                ],
+                "pass": true,
+                "p95Ms": 84.78
+              },
+              {
+                "path": "/api/admin/orders?status=confirmed&size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  85.62,
+                  38.44,
+                  40.08
+                ],
+                "samplesMs": [
+                  39.84,
+                  39.61,
+                  38.8,
+                  39,
+                  40.81,
+                  40.43,
+                  37.47,
+                  38.82,
+                  38.15,
+                  38.61,
+                  38.69,
+                  39.04,
+                  38.91,
+                  37.67,
+                  37.61,
+                  38.72,
+                  39,
+                  39.15,
+                  37.9,
+                  38.73
+                ],
+                "pass": true,
+                "p95Ms": 40.43
+              },
+              {
+                "path": "/api/admin/orders?sort=total_desc&size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  83.05,
+                  80.27,
+                  80.79
+                ],
+                "samplesMs": [
+                  81.16,
+                  82.66,
+                  81.38,
+                  79.76,
+                  80.97,
+                  81.5,
+                  80.47,
+                  81.04,
+                  80.59,
+                  83.87,
+                  80.69,
+                  82.64,
+                  82.46,
+                  80.45,
+                  82.33,
+                  82.92,
+                  81.24,
+                  80.84,
+                  81.16,
+                  92.35
+                ],
+                "pass": true,
+                "p95Ms": 83.87
+              },
+              {
+                "path": "/api/admin/orders?q=SD500001&size=50",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  292.24,
+                  21.51,
+                  24.96
+                ],
+                "samplesMs": [
+                  24.98,
+                  25.97,
+                  26.36,
+                  23.21,
+                  16.08,
+                  15.89,
+                  16.64,
+                  15.93,
+                  15,
+                  16.06,
+                  15.58,
+                  15.67,
+                  14.99,
+                  15.43,
+                  15.69,
+                  14.82,
+                  16.76,
+                  14.85,
+                  16.35,
+                  14.84
+                ],
+                "pass": true,
+                "p95Ms": 25.97
+              },
+              {
+                "path": "/api/admin/orders?q=buyer4999%40performance.example.test&size=50",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  220.44,
+                  25.76,
+                  26.15
+                ],
+                "samplesMs": [
+                  30.1,
+                  33.51,
+                  30.12,
+                  26.26,
+                  20.02,
+                  18.55,
+                  19.34,
+                  20.25,
+                  20.09,
+                  19.19,
+                  19.99,
+                  22.11,
+                  18.66,
+                  18.85,
+                  19.17,
+                  18.94,
+                  18.68,
+                  18.65,
+                  18.79,
+                  18.43
+                ],
+                "pass": true,
+                "p95Ms": 30.12
+              }
+            ],
+            "sitemaps": {
+              "pass": true,
+              "products": 100000,
+              "shards": [
+                {
+                  "path": "/products/sitemap/0.xml",
+                  "count": 5000,
+                  "elapsedMs": 99
+                },
+                {
+                  "path": "/products/sitemap/1.xml",
+                  "count": 5000,
+                  "elapsedMs": 82
+                },
+                {
+                  "path": "/products/sitemap/2.xml",
+                  "count": 5000,
+                  "elapsedMs": 84
+                },
+                {
+                  "path": "/products/sitemap/3.xml",
+                  "count": 5000,
+                  "elapsedMs": 85
+                },
+                {
+                  "path": "/products/sitemap/4.xml",
+                  "count": 5000,
+                  "elapsedMs": 84
+                },
+                {
+                  "path": "/products/sitemap/5.xml",
+                  "count": 5000,
+                  "elapsedMs": 87
+                },
+                {
+                  "path": "/products/sitemap/6.xml",
+                  "count": 5000,
+                  "elapsedMs": 89
+                },
+                {
+                  "path": "/products/sitemap/7.xml",
+                  "count": 5000,
+                  "elapsedMs": 89
+                },
+                {
+                  "path": "/products/sitemap/8.xml",
+                  "count": 5000,
+                  "elapsedMs": 90
+                },
+                {
+                  "path": "/products/sitemap/9.xml",
+                  "count": 5000,
+                  "elapsedMs": 92
+                },
+                {
+                  "path": "/products/sitemap/10.xml",
+                  "count": 5000,
+                  "elapsedMs": 95
+                },
+                {
+                  "path": "/products/sitemap/11.xml",
+                  "count": 5000,
+                  "elapsedMs": 97
+                },
+                {
+                  "path": "/products/sitemap/12.xml",
+                  "count": 5000,
+                  "elapsedMs": 99
+                },
+                {
+                  "path": "/products/sitemap/13.xml",
+                  "count": 5000,
+                  "elapsedMs": 103
+                },
+                {
+                  "path": "/products/sitemap/14.xml",
+                  "count": 5000,
+                  "elapsedMs": 102
+                },
+                {
+                  "path": "/products/sitemap/15.xml",
+                  "count": 5000,
+                  "elapsedMs": 104
+                },
+                {
+                  "path": "/products/sitemap/16.xml",
+                  "count": 5000,
+                  "elapsedMs": 105
+                },
+                {
+                  "path": "/products/sitemap/17.xml",
+                  "count": 5000,
+                  "elapsedMs": 107
+                },
+                {
+                  "path": "/products/sitemap/18.xml",
+                  "count": 5000,
+                  "elapsedMs": 113
+                },
+                {
+                  "path": "/products/sitemap/19.xml",
+                  "count": 5000,
+                  "elapsedMs": 112
+                }
+              ]
+            }
+          },
+          "repository": {
+            "budgets": {
+              "dataset": {
+                "products": 100000,
+                "variants": 300000,
+                "orders": 500000
+              },
+              "poolMax": 5,
+              "warmups": 3,
+              "samples": 20,
+              "p95Ms": {
+                "productListing": 500,
+                "productSearch": 500,
+                "orderListing": 300,
+                "orderSearch": 500
+              },
+              "note": "Local data-layer acceptance budgets fixed before measurement. Hosted latency and HTTP/auth/rendering are measured separately."
+            },
+            "dataset": {
+              "products": 100000,
+              "variants": 300000,
+              "orders": 500000
+            },
+            "results": [
+              {
+                "name": "products-featured",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 6.7,
+                "p50Ms": 5.63,
+                "warmupsMs": [
+                  608.49,
+                  8.69,
+                  7.92
+                ],
+                "samplesMs": [
+                  7.97,
+                  6.7,
+                  6,
+                  6.1,
+                  5.86,
+                  5.64,
+                  5.63,
+                  6.48,
+                  5.45,
+                  5.41,
+                  5.3,
+                  5.53,
+                  4.86,
+                  5.68,
+                  5.46,
+                  5.23,
+                  5.23,
+                  5.4,
+                  6.21,
+                  5.64
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "products-newest",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 6.38,
+                "p50Ms": 5.35,
+                "warmupsMs": [
+                  38.91,
+                  5.88,
+                  6.02
+                ],
+                "samplesMs": [
+                  6.5,
+                  5.98,
+                  5,
+                  6.17,
+                  5,
+                  6,
+                  5.48,
+                  4.87,
+                  5.12,
+                  5.29,
+                  6.38,
+                  5.17,
+                  6,
+                  5.35,
+                  4.99,
+                  5.91,
+                  4.95,
+                  4.87,
+                  5.59,
+                  5.44
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "products-price",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 51.44,
+                "p50Ms": 48,
+                "warmupsMs": [
+                  173.04,
+                  77.29,
+                  59.9
+                ],
+                "samplesMs": [
+                  51.44,
+                  48.06,
+                  48.41,
+                  48.95,
+                  48.29,
+                  48.52,
+                  48.08,
+                  47.22,
+                  55.47,
+                  47.6,
+                  48.13,
+                  48,
+                  46.57,
+                  47.55,
+                  47.23,
+                  46.69,
+                  46.56,
+                  47.48,
+                  46.25,
+                  49.09
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-brand",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 40.46,
+                "p50Ms": 39.59,
+                "warmupsMs": [
+                  205.36,
+                  40.04,
+                  40.58
+                ],
+                "samplesMs": [
+                  40.68,
+                  40.46,
+                  39.78,
+                  39.96,
+                  39.2,
+                  39.6,
+                  39.79,
+                  38.73,
+                  38.76,
+                  40.29,
+                  39.5,
+                  39.59,
+                  38.84,
+                  39.28,
+                  39.94,
+                  39.12,
+                  39.66,
+                  40.28,
+                  39.21,
+                  39.57
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-sku",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 44.13,
+                "p50Ms": 40.69,
+                "warmupsMs": [
+                  47.98,
+                  41.66,
+                  40.16
+                ],
+                "samplesMs": [
+                  40.67,
+                  40.92,
+                  41.86,
+                  40.43,
+                  40.62,
+                  40.1,
+                  40.11,
+                  40.58,
+                  40.63,
+                  40.69,
+                  43.1,
+                  42.06,
+                  43.85,
+                  45.25,
+                  43.85,
+                  44.13,
+                  41.49,
+                  40.46,
+                  40.41,
+                  41.11
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-typo",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 41.99,
+                "p50Ms": 38.88,
+                "warmupsMs": [
+                  694.59,
+                  39.26,
+                  39.2
+                ],
+                "samplesMs": [
+                  38.82,
+                  39.38,
+                  39.62,
+                  38.68,
+                  38.43,
+                  38.48,
+                  40.01,
+                  38.88,
+                  38.5,
+                  39.34,
+                  38.75,
+                  38.86,
+                  43.83,
+                  40.92,
+                  41.99,
+                  38.4,
+                  38.85,
+                  38.98,
+                  39.72,
+                  39.85
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-newest",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 75.57,
+                "p50Ms": 73.87,
+                "warmupsMs": [
+                  82.2,
+                  74.5,
+                  71.64
+                ],
+                "samplesMs": [
+                  74.88,
+                  71.69,
+                  75.31,
+                  71.71,
+                  74.72,
+                  73.71,
+                  74.22,
+                  72.71,
+                  75.2,
+                  73.21,
+                  76.17,
+                  74.18,
+                  73.87,
+                  71.6,
+                  75.57,
+                  72.32,
+                  74.56,
+                  71.98,
+                  75.21,
+                  72.04
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-status",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 30.04,
+                "p50Ms": 29.04,
+                "warmupsMs": [
+                  86.56,
+                  29.96,
+                  29.4
+                ],
+                "samplesMs": [
+                  31.66,
+                  29.63,
+                  29.17,
+                  29,
+                  29.21,
+                  30.04,
+                  28.94,
+                  28.95,
+                  28.95,
+                  29.34,
+                  28.9,
+                  29.23,
+                  28.9,
+                  29.02,
+                  29.04,
+                  29.41,
+                  28.84,
+                  29.45,
+                  28.9,
+                  29.25
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-number",
+                "category": "orderSearch",
+                "budgetMs": 500,
+                "p95Ms": 21.75,
+                "p50Ms": 8.77,
+                "warmupsMs": [
+                  256.19,
+                  15.62,
+                  17.33
+                ],
+                "samplesMs": [
+                  21.03,
+                  21.75,
+                  22.19,
+                  18.42,
+                  8.74,
+                  8.98,
+                  9.18,
+                  8.67,
+                  8.86,
+                  8.77,
+                  8.78,
+                  8.85,
+                  8.75,
+                  8.22,
+                  8.52,
+                  9.16,
+                  8.2,
+                  8.35,
+                  8.72,
+                  7.59
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-email",
+                "category": "orderSearch",
+                "budgetMs": 500,
+                "p95Ms": 24.7,
+                "p50Ms": 12.44,
+                "warmupsMs": [
+                  221.89,
+                  20.38,
+                  20.21
+                ],
+                "samplesMs": [
+                  24.7,
+                  27.01,
+                  24.19,
+                  21.23,
+                  12.59,
+                  13.55,
+                  12.81,
+                  12.35,
+                  12.39,
+                  12.02,
+                  12.33,
+                  12.16,
+                  11.56,
+                  12.44,
+                  11.89,
+                  11.96,
+                  12.45,
+                  12.46,
+                  11.81,
+                  12.59
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-total",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 74.14,
+                "p50Ms": 73.68,
+                "warmupsMs": [
+                  72.56,
+                  74.55,
+                  71.45
+                ],
+                "samplesMs": [
+                  74.26,
+                  71.81,
+                  73.86,
+                  71.89,
+                  73.83,
+                  72.07,
+                  73.68,
+                  72.35,
+                  73.99,
+                  72.73,
+                  73.99,
+                  73.03,
+                  73.84,
+                  72.62,
+                  74.09,
+                  72.5,
+                  73.98,
+                  74.14,
+                  74,
+                  71.98
+                ],
+                "pass": true,
+                "unindexedScans": []
+              }
+            ]
+          }
+        },
+        "mariadb": {
+          "mobile": {
+            "budget": {
+              "lcp": 2500,
+              "cls": 0.1,
+              "inp": 200,
+              "js": 204800
+            },
+            "runs": 3,
+            "profile": "390px, 4x CPU, 150ms RTT, 1.6Mbps",
+            "results": [
+              {
+                "route": "/",
+                "lcp": 1480,
+                "cls": 0,
+                "inp": 120,
+                "jsBytes": 202905,
+                "jsKb": 198,
+                "jsAfterInteractionKb": 277,
+                "pass": true
+              },
+              {
+                "route": "/collections/new-arrivals",
+                "lcp": 1184,
+                "cls": 0.039,
+                "inp": 88,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/products/asics-gel-kayano-30-black-silver",
+                "lcp": 1212,
+                "cls": 0,
+                "inp": 40,
+                "jsBytes": 200426,
+                "jsKb": 196,
+                "jsAfterInteractionKb": 275,
+                "pass": true
+              },
+              {
+                "route": "/pre-loved",
+                "lcp": 1176,
+                "cls": 0.04,
+                "inp": 88,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/search?q=nike",
+                "lcp": 1160,
+                "cls": 0,
+                "inp": 104,
+                "jsBytes": 201478,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 292,
+                "pass": true
+              },
+              {
+                "route": "/cart",
+                "lcp": 1088,
+                "cls": 0.002,
+                "inp": 144,
+                "jsBytes": 201601,
+                "jsKb": 197,
+                "jsAfterInteractionKb": 256,
+                "pass": true
+              },
+              {
+                "route": "/contact",
+                "lcp": 1108,
+                "cls": 0,
+                "inp": 48,
+                "jsBytes": 192028,
+                "jsKb": 188,
+                "jsAfterInteractionKb": 293,
+                "pass": true
+              }
+            ]
+          },
+          "admin": {
+            "budgetKb": 250,
+            "runs": 3,
+            "profile": "390px, 4x CPU, 150ms RTT, 1.6Mbps",
+            "results": [
+              {
+                "route": "/admin",
+                "samplesBytes": [
+                  250801,
+                  250801,
+                  250801
+                ],
+                "jsBytes": 250801,
+                "jsKb": 245,
+                "pass": true
+              },
+              {
+                "route": "/admin/orders",
+                "samplesBytes": [
+                  252851,
+                  252851,
+                  252851
+                ],
+                "jsBytes": 252851,
+                "jsKb": 247,
+                "pass": true
+              },
+              {
+                "route": "/admin/products",
+                "samplesBytes": [
+                  252851,
+                  252851,
+                  252851
+                ],
+                "jsBytes": 252851,
+                "jsKb": 247,
+                "pass": true
+              }
+            ]
+          },
+          "http": {
+            "budgets": {
+              "dataset": {
+                "products": 100000,
+                "variants": 300000,
+                "orders": 500000
+              },
+              "poolMax": 5,
+              "warmups": 3,
+              "samples": 20,
+              "p95Ms": {
+                "productListing": 500,
+                "productSearch": 500,
+                "orderListing": 300,
+                "orderSearch": 500
+              },
+              "note": "Local data-layer acceptance budgets fixed before measurement. Hosted latency and HTTP/auth/rendering are measured separately."
+            },
+            "results": [
+              {
+                "path": "/pre-loved",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  1304,
+                  127.97,
+                  101.62
+                ],
+                "samplesMs": [
+                  97.94,
+                  99.62,
+                  82.36,
+                  95.98,
+                  80.15,
+                  108.22,
+                  94.68,
+                  76.55,
+                  99.6,
+                  73.24,
+                  95.74,
+                  87.91,
+                  75.35,
+                  93.1,
+                  77.47,
+                  98.07,
+                  92.13,
+                  75.63,
+                  93.19,
+                  74.31
+                ],
+                "pass": true,
+                "p95Ms": 99.62
+              },
+              {
+                "path": "/pre-loved?sort=price-asc",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  451.51,
+                  128.96,
+                  110.85
+                ],
+                "samplesMs": [
+                  127.59,
+                  112.54,
+                  136.82,
+                  125.04,
+                  125.63,
+                  113.81,
+                  134.51,
+                  122.61,
+                  107.67,
+                  123.05,
+                  109.93,
+                  130.13,
+                  124.2,
+                  108.47,
+                  127.26,
+                  109.2,
+                  142.45,
+                  122.41,
+                  104.7,
+                  122.16
+                ],
+                "pass": true,
+                "p95Ms": 136.82
+              },
+              {
+                "path": "/search?q=nike",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  265.3,
+                  68.23,
+                  54.11
+                ],
+                "samplesMs": [
+                  70.02,
+                  55.19,
+                  56.02,
+                  72.22,
+                  52.96,
+                  70.71,
+                  54.22,
+                  68.54,
+                  53.23,
+                  53.76,
+                  70.13,
+                  52.48,
+                  65.41,
+                  52.72,
+                  67.8,
+                  52.78,
+                  54.41,
+                  68.71,
+                  54.1,
+                  67.96
+                ],
+                "pass": true,
+                "p95Ms": 70.71
+              },
+              {
+                "path": "/search?q=PF-50000-0",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  25.35,
+                  17.08,
+                  18.09
+                ],
+                "samplesMs": [
+                  17.85,
+                  16.83,
+                  17.59,
+                  16.86,
+                  21.81,
+                  17.68,
+                  24.49,
+                  16.85,
+                  16.7,
+                  16.75,
+                  16.95,
+                  17.41,
+                  16.72,
+                  17.39,
+                  16.48,
+                  16.84,
+                  17.37,
+                  27.5,
+                  30.36,
+                  18.31
+                ],
+                "pass": true,
+                "p95Ms": 27.5
+              },
+              {
+                "path": "/api/search/suggest?q=nike",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  169.16,
+                  17.62,
+                  13.5
+                ],
+                "samplesMs": [
+                  13.06,
+                  13.16,
+                  12.62,
+                  12.73,
+                  12.74,
+                  13.25,
+                  13.07,
+                  12.02,
+                  14.39,
+                  12.31,
+                  12.49,
+                  11.59,
+                  10.96,
+                  12.22,
+                  11.54,
+                  12.63,
+                  11.53,
+                  11.17,
+                  11.12,
+                  11.29
+                ],
+                "pass": true,
+                "p95Ms": 13.25
+              },
+              {
+                "path": "/api/search/suggest?q=unfindablezzzz",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  472.98,
+                  13.73,
+                  13.39
+                ],
+                "samplesMs": [
+                  13.02,
+                  14.32,
+                  12.72,
+                  13.03,
+                  12.31,
+                  12.48,
+                  13.19,
+                  12.73,
+                  13.1,
+                  12.8,
+                  13.01,
+                  12.42,
+                  12.56,
+                  13.62,
+                  12.63,
+                  12,
+                  12.44,
+                  14.52,
+                  13.22,
+                  12.41
+                ],
+                "pass": true,
+                "p95Ms": 14.32
+              },
+              {
+                "path": "/api/search/suggest?q=zzzz",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  14.43,
+                  13.19,
+                  12.4
+                ],
+                "samplesMs": [
+                  13.12,
+                  13.42,
+                  12.76,
+                  13.17,
+                  12.03,
+                  12.28,
+                  12.57,
+                  12.57,
+                  12.88,
+                  13.43,
+                  12.31,
+                  13.25,
+                  12.16,
+                  12.41,
+                  12.58,
+                  11.58,
+                  12.65,
+                  12.53,
+                  12.43,
+                  13.07
+                ],
+                "pass": true,
+                "p95Ms": 13.42
+              },
+              {
+                "path": "/api/search/suggest?q=unfindable",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  562.9,
+                  335.6,
+                  335.25
+                ],
+                "samplesMs": [
+                  335.28,
+                  336.3,
+                  332.45,
+                  339.92,
+                  335.64,
+                  331.09,
+                  335.6,
+                  340.15,
+                  333.99,
+                  333.31,
+                  341.46,
+                  338.13,
+                  330.79,
+                  334.74,
+                  333.61,
+                  339.04,
+                  355.85,
+                  334.15,
+                  334.97,
+                  335.13
+                ],
+                "pass": true,
+                "p95Ms": 341.46
+              },
+              {
+                "path": "/api/admin/orders?size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  336.67,
+                  127.1,
+                  90.55
+                ],
+                "samplesMs": [
+                  86.65,
+                  101.06,
+                  117.96,
+                  87.84,
+                  89.04,
+                  97.14,
+                  110.25,
+                  84.54,
+                  80.3,
+                  80.18,
+                  80.03,
+                  80.88,
+                  81.78,
+                  81.51,
+                  96.73,
+                  79.67,
+                  79.67,
+                  79.47,
+                  80.4,
+                  79.13
+                ],
+                "pass": true,
+                "p95Ms": 110.25
+              },
+              {
+                "path": "/api/admin/orders?status=confirmed&size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  84.18,
+                  34.79,
+                  33.15
+                ],
+                "samplesMs": [
+                  33.7,
+                  32.82,
+                  33.63,
+                  33.49,
+                  33.38,
+                  33.35,
+                  33.64,
+                  33.95,
+                  33.77,
+                  33.86,
+                  33.28,
+                  33.17,
+                  33.7,
+                  32.76,
+                  33.22,
+                  33.44,
+                  34.57,
+                  33.61,
+                  33.49,
+                  33.12
+                ],
+                "pass": true,
+                "p95Ms": 33.95
+              },
+              {
+                "path": "/api/admin/orders?sort=total_desc&size=50",
+                "budgetMs": 300,
+                "warmupsMs": [
+                  80.54,
+                  81.5,
+                  78.73
+                ],
+                "samplesMs": [
+                  80.36,
+                  79.66,
+                  79.11,
+                  78.71,
+                  79.73,
+                  79.69,
+                  79.32,
+                  78.69,
+                  78.85,
+                  79.1,
+                  80.9,
+                  80.21,
+                  79.91,
+                  79.43,
+                  79.91,
+                  79.48,
+                  79.72,
+                  78.88,
+                  79.04,
+                  79.95
+                ],
+                "pass": true,
+                "p95Ms": 80.36
+              },
+              {
+                "path": "/api/admin/orders?q=SD500001&size=50",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  263.83,
+                  17.16,
+                  18.16
+                ],
+                "samplesMs": [
+                  17.27,
+                  17.69,
+                  16.74,
+                  16.97,
+                  17.08,
+                  17.21,
+                  17.28,
+                  17.08,
+                  16.68,
+                  16.26,
+                  16.95,
+                  18.59,
+                  17.36,
+                  16.79,
+                  16.71,
+                  16.9,
+                  17.23,
+                  16.64,
+                  16.87,
+                  17.1
+                ],
+                "pass": true,
+                "p95Ms": 17.69
+              },
+              {
+                "path": "/api/admin/orders?q=buyer4999%40performance.example.test&size=50",
+                "budgetMs": 500,
+                "warmupsMs": [
+                  206.63,
+                  18.97,
+                  19.02
+                ],
+                "samplesMs": [
+                  20.09,
+                  19.74,
+                  18.93,
+                  19.27,
+                  19.41,
+                  19.2,
+                  19.46,
+                  18.78,
+                  20.68,
+                  18.72,
+                  19.62,
+                  19.23,
+                  18.81,
+                  18.93,
+                  18.2,
+                  18.81,
+                  19.13,
+                  19.39,
+                  19.56,
+                  18.61
+                ],
+                "pass": true,
+                "p95Ms": 20.09
+              }
+            ],
+            "sitemaps": {
+              "pass": true,
+              "products": 100000,
+              "shards": [
+                {
+                  "path": "/products/sitemap/0.xml",
+                  "count": 5000,
+                  "elapsedMs": 80
+                },
+                {
+                  "path": "/products/sitemap/1.xml",
+                  "count": 5000,
+                  "elapsedMs": 71
+                },
+                {
+                  "path": "/products/sitemap/2.xml",
+                  "count": 5000,
+                  "elapsedMs": 71
+                },
+                {
+                  "path": "/products/sitemap/3.xml",
+                  "count": 5000,
+                  "elapsedMs": 74
+                },
+                {
+                  "path": "/products/sitemap/4.xml",
+                  "count": 5000,
+                  "elapsedMs": 72
+                },
+                {
+                  "path": "/products/sitemap/5.xml",
+                  "count": 5000,
+                  "elapsedMs": 70
+                },
+                {
+                  "path": "/products/sitemap/6.xml",
+                  "count": 5000,
+                  "elapsedMs": 73
+                },
+                {
+                  "path": "/products/sitemap/7.xml",
+                  "count": 5000,
+                  "elapsedMs": 73
+                },
+                {
+                  "path": "/products/sitemap/8.xml",
+                  "count": 5000,
+                  "elapsedMs": 76
+                },
+                {
+                  "path": "/products/sitemap/9.xml",
+                  "count": 5000,
+                  "elapsedMs": 79
+                },
+                {
+                  "path": "/products/sitemap/10.xml",
+                  "count": 5000,
+                  "elapsedMs": 101
+                },
+                {
+                  "path": "/products/sitemap/11.xml",
+                  "count": 5000,
+                  "elapsedMs": 83
+                },
+                {
+                  "path": "/products/sitemap/12.xml",
+                  "count": 5000,
+                  "elapsedMs": 91
+                },
+                {
+                  "path": "/products/sitemap/13.xml",
+                  "count": 5000,
+                  "elapsedMs": 83
+                },
+                {
+                  "path": "/products/sitemap/14.xml",
+                  "count": 5000,
+                  "elapsedMs": 81
+                },
+                {
+                  "path": "/products/sitemap/15.xml",
+                  "count": 5000,
+                  "elapsedMs": 85
+                },
+                {
+                  "path": "/products/sitemap/16.xml",
+                  "count": 5000,
+                  "elapsedMs": 84
+                },
+                {
+                  "path": "/products/sitemap/17.xml",
+                  "count": 5000,
+                  "elapsedMs": 87
+                },
+                {
+                  "path": "/products/sitemap/18.xml",
+                  "count": 5000,
+                  "elapsedMs": 90
+                },
+                {
+                  "path": "/products/sitemap/19.xml",
+                  "count": 5000,
+                  "elapsedMs": 87
+                }
+              ]
+            }
+          },
+          "repository": {
+            "budgets": {
+              "dataset": {
+                "products": 100000,
+                "variants": 300000,
+                "orders": 500000
+              },
+              "poolMax": 5,
+              "warmups": 3,
+              "samples": 20,
+              "p95Ms": {
+                "productListing": 500,
+                "productSearch": 500,
+                "orderListing": 300,
+                "orderSearch": 500
+              },
+              "note": "Local data-layer acceptance budgets fixed before measurement. Hosted latency and HTTP/auth/rendering are measured separately."
+            },
+            "dataset": {
+              "products": 100000,
+              "variants": 300000,
+              "orders": 500000
+            },
+            "results": [
+              {
+                "name": "products-featured",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 5.94,
+                "p50Ms": 5.07,
+                "warmupsMs": [
+                  519.54,
+                  7.13,
+                  6.27
+                ],
+                "samplesMs": [
+                  6.68,
+                  5.86,
+                  5.94,
+                  5.57,
+                  5.53,
+                  5.18,
+                  5.02,
+                  5.41,
+                  5.11,
+                  4.87,
+                  4.82,
+                  4.93,
+                  4.69,
+                  4.68,
+                  5.07,
+                  4.97,
+                  5.1,
+                  4.67,
+                  5.54,
+                  4.87
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "products-newest",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 5.22,
+                "p50Ms": 4.52,
+                "warmupsMs": [
+                  31.37,
+                  5.28,
+                  5.13
+                ],
+                "samplesMs": [
+                  4.47,
+                  4.89,
+                  4.32,
+                  5.35,
+                  4.99,
+                  5.22,
+                  4.39,
+                  4.96,
+                  4.32,
+                  4.46,
+                  5.04,
+                  4.58,
+                  5.18,
+                  4.26,
+                  4.45,
+                  4.59,
+                  4.16,
+                  4.2,
+                  4.52,
+                  4.57
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "products-price",
+                "category": "productListing",
+                "budgetMs": 500,
+                "p95Ms": 41.62,
+                "p50Ms": 40.19,
+                "warmupsMs": [
+                  305.99,
+                  46.55,
+                  41.19
+                ],
+                "samplesMs": [
+                  40.02,
+                  39.82,
+                  40.34,
+                  41.71,
+                  40.71,
+                  40.34,
+                  40.21,
+                  40,
+                  39.41,
+                  40.76,
+                  41.62,
+                  40.64,
+                  39.99,
+                  40.78,
+                  40.19,
+                  39.75,
+                  40.42,
+                  39.01,
+                  39.3,
+                  39.17
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-brand",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 6.09,
+                "p50Ms": 5.55,
+                "warmupsMs": [
+                  169.86,
+                  6.06,
+                  6.28
+                ],
+                "samplesMs": [
+                  6.09,
+                  5.94,
+                  5.92,
+                  5.47,
+                  5.41,
+                  5.86,
+                  5.66,
+                  5.17,
+                  5.45,
+                  5.27,
+                  5.11,
+                  5.78,
+                  5.73,
+                  5.45,
+                  5.64,
+                  5.02,
+                  5.29,
+                  6.65,
+                  5.84,
+                  5.55
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-sku",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 4.16,
+                "p50Ms": 3.7,
+                "warmupsMs": [
+                  12.97,
+                  3.97,
+                  3.76
+                ],
+                "samplesMs": [
+                  3.59,
+                  3.81,
+                  3.75,
+                  3.73,
+                  4.12,
+                  3.7,
+                  4.45,
+                  3.81,
+                  4.16,
+                  3.45,
+                  3.38,
+                  3.77,
+                  3.57,
+                  3.65,
+                  3.46,
+                  3.71,
+                  3.51,
+                  3.68,
+                  3.55,
+                  3.73
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "search-typo",
+                "category": "productSearch",
+                "budgetMs": 500,
+                "p95Ms": 10.43,
+                "p50Ms": 6.31,
+                "warmupsMs": [
+                  477.84,
+                  6.16,
+                  5.68
+                ],
+                "samplesMs": [
+                  5.3,
+                  5.91,
+                  5.4,
+                  6.12,
+                  6.47,
+                  5.81,
+                  6.2,
+                  10.43,
+                  8.26,
+                  10.66,
+                  8.13,
+                  8.33,
+                  7.24,
+                  9.54,
+                  8.54,
+                  6.5,
+                  6.31,
+                  6.18,
+                  5.84,
+                  6.2
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-newest",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 72.23,
+                "p50Ms": 70.93,
+                "warmupsMs": [
+                  130.41,
+                  71.96,
+                  71.03
+                ],
+                "samplesMs": [
+                  70.89,
+                  71.32,
+                  71.73,
+                  70.5,
+                  70.14,
+                  70.62,
+                  71.99,
+                  72.23,
+                  72.04,
+                  72.46,
+                  70.11,
+                  70.93,
+                  71.04,
+                  70.34,
+                  70.25,
+                  71.23,
+                  71.43,
+                  70.28,
+                  71,
+                  70.88
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-status",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 25.63,
+                "p50Ms": 24.92,
+                "warmupsMs": [
+                  75.3,
+                  25.75,
+                  24.93
+                ],
+                "samplesMs": [
+                  24.76,
+                  24.92,
+                  24.24,
+                  25.63,
+                  25.3,
+                  24.73,
+                  24.79,
+                  24.37,
+                  24.99,
+                  24.76,
+                  24.71,
+                  24.92,
+                  25.15,
+                  24.54,
+                  24.81,
+                  25.23,
+                  25,
+                  26.15,
+                  25.39,
+                  25.32
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-number",
+                "category": "orderSearch",
+                "budgetMs": 500,
+                "p95Ms": 10.56,
+                "p50Ms": 9.84,
+                "warmupsMs": [
+                  246.77,
+                  11.15,
+                  10.46
+                ],
+                "samplesMs": [
+                  10.39,
+                  10.28,
+                  9.42,
+                  10.21,
+                  9.84,
+                  9.6,
+                  10.18,
+                  9.49,
+                  10.56,
+                  9.29,
+                  9.84,
+                  9.86,
+                  10.32,
+                  9.73,
+                  10.17,
+                  9.71,
+                  10,
+                  9.76,
+                  9.84,
+                  10.56
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-email",
+                "category": "orderSearch",
+                "budgetMs": 500,
+                "p95Ms": 13.05,
+                "p50Ms": 12.56,
+                "warmupsMs": [
+                  195.8,
+                  13.66,
+                  12.94
+                ],
+                "samplesMs": [
+                  12.91,
+                  12.1,
+                  13,
+                  12.64,
+                  12.2,
+                  12.17,
+                  12.43,
+                  12.69,
+                  12.56,
+                  12.2,
+                  12.35,
+                  13,
+                  12.24,
+                  12.77,
+                  12.35,
+                  12.12,
+                  12.65,
+                  13.05,
+                  13.43,
+                  12.7
+                ],
+                "pass": true,
+                "unindexedScans": []
+              },
+              {
+                "name": "orders-total",
+                "category": "orderListing",
+                "budgetMs": 300,
+                "p95Ms": 78.12,
+                "p50Ms": 72.59,
+                "warmupsMs": [
+                  71.08,
+                  69.75,
+                  86.88
+                ],
+                "samplesMs": [
+                  75.71,
+                  72.97,
+                  88.94,
+                  74.35,
+                  73.4,
+                  75.83,
+                  78.12,
+                  72.09,
+                  75.17,
+                  77.26,
+                  76.8,
+                  70.53,
+                  72.59,
+                  70.93,
+                  71.48,
+                  70.49,
+                  70.13,
+                  71.37,
+                  71.53,
+                  72.4
+                ],
+                "pass": true,
+                "unindexedScans": []
+              }
+            ]
+          }
+        }
+      },
+      "recovery": [
+        {
+          "engine": "mysql",
+          "mode": "queue",
+          "pass": true
+        },
+        {
+          "engine": "mysql",
+          "mode": "restart",
+          "pass": true
+        },
+        {
+          "engine": "mariadb",
+          "mode": "queue",
+          "pass": true
+        },
+        {
+          "engine": "mariadb",
+          "mode": "restart",
+          "pass": true
+        }
+      ],
+      "actions": [
+        {
+          "name": "stop-qa",
+          "exitCode": 0,
+          "elapsedMs": 1121
+        },
+        {
+          "name": "full-verify",
+          "exitCode": 0,
+          "elapsedMs": 183216
+        },
+        {
+          "name": "native-full",
+          "exitCode": 0,
+          "elapsedMs": 122737
+        },
+        {
+          "name": "independent-clean-build",
+          "exitCode": 0,
+          "elapsedMs": 100886
+        },
+        {
+          "name": "archive-qa",
+          "exitCode": 0,
+          "elapsedMs": 91
+        },
+        {
+          "name": "prepare-qa",
+          "exitCode": 0,
+          "elapsedMs": 40346
+        },
+        {
+          "name": "provision-qa",
+          "exitCode": 0,
+          "elapsedMs": 33102
+        },
+        {
+          "name": "start-qa",
+          "exitCode": 0,
+          "elapsedMs": 16258
+        },
+        {
+          "name": "start-reference",
+          "exitCode": 0,
+          "elapsedMs": 15746
+        },
+        {
+          "name": "visual-mysql-1920-light",
+          "exitCode": 0,
+          "elapsedMs": 54663
+        },
+        {
+          "name": "visual-mysql-390-light",
+          "exitCode": 0,
+          "elapsedMs": 44845
+        },
+        {
+          "name": "visual-mysql-1920-dark",
+          "exitCode": 0,
+          "elapsedMs": 51741
+        },
+        {
+          "name": "visual-mysql-390-dark",
+          "exitCode": 0,
+          "elapsedMs": 44963
+        },
+        {
+          "name": "visual-mariadb-1920-light",
+          "exitCode": 0,
+          "elapsedMs": 52689
+        },
+        {
+          "name": "visual-mariadb-390-light",
+          "exitCode": 0,
+          "elapsedMs": 45044
+        },
+        {
+          "name": "visual-mariadb-1920-dark",
+          "exitCode": 0,
+          "elapsedMs": 51663
+        },
+        {
+          "name": "visual-mariadb-390-dark",
+          "exitCode": 0,
+          "elapsedMs": 44733
+        },
+        {
+          "name": "stop-reference",
+          "exitCode": 0,
+          "elapsedMs": 551
+        },
+        {
+          "name": "performance",
+          "exitCode": 0,
+          "elapsedMs": 460518
+        },
+        {
+          "name": "stop-idle-performance-servers",
+          "exitCode": 0,
+          "elapsedMs": 670
+        },
+        {
+          "name": "browser-public-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 1808863
+        },
+        {
+          "name": "browser-public-mysql",
+          "exitCode": 0,
+          "elapsedMs": 1810348
+        },
+        {
+          "name": "browser-journeys-mysql",
+          "exitCode": 0,
+          "elapsedMs": 50950
+        },
+        {
+          "name": "browser-journeys-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 51867
+        },
+        {
+          "name": "browser-admin-mysql",
+          "exitCode": 0,
+          "elapsedMs": 483674
+        },
+        {
+          "name": "browser-admin-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 484106
+        },
+        {
+          "name": "browser-banners-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 124591
+        },
+        {
+          "name": "browser-banners-mysql",
+          "exitCode": 0,
+          "elapsedMs": 124649
+        },
+        {
+          "name": "start-recovery-servers",
+          "exitCode": 0,
+          "elapsedMs": 22396
+        },
+        {
+          "name": "recovery-session-mysql",
+          "exitCode": 0,
+          "elapsedMs": 901
+        },
+        {
+          "name": "http-queue-mysql",
+          "exitCode": 0,
+          "elapsedMs": 1253
+        },
+        {
+          "name": "http-restart-mysql",
+          "exitCode": 0,
+          "elapsedMs": 16987
+        },
+        {
+          "name": "recovery-session-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 797
+        },
+        {
+          "name": "http-queue-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 1326
+        },
+        {
+          "name": "http-restart-mariadb",
+          "exitCode": 0,
+          "elapsedMs": 1562
+        }
+      ]
+    }
+  ],
+  "blockedOrManual": [
+    "The source design export lacks its Theme collection; the source-export design gate remains blocked. Frozen-reference light/dark comparisons do not replace that artifact.",
+    "Frozen screenshot equivalence covers ten representative screens at two widths in both themes; a design baseline for every admin screen/width/theme is unavailable.",
+    "Inherited GEO-01 source text-box differences up to 1.4 px still need design confirmation; exact frozen-production parity does not close that original source-design finding.",
+    "Real Hostinger account limits, database grants, Linux native modules, proxy/HTTPS, storage persistence and hosted backups need owner verification.",
+    "Real SMTP deliverability, provider payments/refunds, an authenticator app, real devices and screen readers were not exercised locally."
+  ],
+  "preservation": {
+    "sourceDigest": "c61ce4d7977f203773a51dd5d03ce404fa4a855e1b3be3531a78a465e44815b0",
+    "originalSourceUnchanged": true,
+    "protectedContracts": [
+      {
+        "file": "docs/ARCHITECTURE.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/PROJECT-STRUCTURE.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/UMDA-architecture-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/state-management-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/shadcn-component-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/layout-and-styling-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/form-and-validation-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/comments-and-jsdoc-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/verification-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/FIGMA-DESIGN-HANDOFF.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/CLAUD_PERMISSIONS.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/DESIGN-GATHERING.md",
+        "unchanged": true
+      }
+    ],
+    "engines": [
+      {
+        "engine": "mysql",
+        "tablesCompared": 87,
+        "fieldChecks": 3758,
+        "differences": 0
+      },
+      {
+        "engine": "mariadb",
+        "tablesCompared": 87,
+        "fieldChecks": 3758,
+        "differences": 0
+      }
+    ],
+    "originalImages": 44,
+    "verifiedStorageObjects": 2244
+  },
+  "totals": {
+    "application": 3458,
+    "native": 2946,
+    "browser": 11904,
+    "visual": 160,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0
+  },
+  "hygiene": {
+    "passed": true,
+    "recordedAt": "2026-11-11T06:02:37.432Z",
+    "textFilesChecked": 1008,
+    "secretMatches": [],
+    "trackedPrivatePaths": [],
+    "forbiddenVendorFiles": [],
+    "runtimeDebugMarkers": [],
+    "runtimeUnsafeAnyAnnotations": [],
+    "protectedContracts": [
+      {
+        "file": "docs/ARCHITECTURE.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/PROJECT-STRUCTURE.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/UMDA-architecture-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/state-management-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/shadcn-component-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/layout-and-styling-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/form-and-validation-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/comments-and-jsdoc-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/verification-contract.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/FIGMA-DESIGN-HANDOFF.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/CLAUD_PERMISSIONS.md",
+        "unchanged": true
+      },
+      {
+        "file": "docs/DESIGN-GATHERING.md",
+        "unchanged": true
+      }
+    ],
+    "originalSourceUnchanged": true
+  }
+}
