@@ -196,6 +196,17 @@ the pathname actually changes. The rebuilt case passes 60/60 repetitions per dat
 total) with two workers each, zero failures, skips or retries. The failed full-round report
 remains evidence. Two complete fresh rounds are required before closure.
 
+### MIG-055: Relocated standalone runtime (2026-11-11)
+
+Two complete rounds of the application source passed, but the first local merchant preview made
+from a relocated standalone copy failed to boot: Next could not resolve a traced `@swc/helpers`
+runtime package. On Windows, the output's pnpm link was materialized while copying, leaving its
+dependency in the virtual store but absent at the top level. Packaging now materializes all
+traced virtual-store aliases at the output's top level and loads Next's server/config modules
+from a separately copied artifact during every build. A corrected copy boots against the
+preserved MariaDB merchant data: health, readiness, storefront and admin login all return 200.
+Because the package script changed, two new complete release rounds are required before handoff.
+
 ### Acceptance environment interruption (2026-11-10)
 
 The first corrected-build round passed verify, all 1,473 native checks, the independent clean

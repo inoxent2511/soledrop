@@ -12,7 +12,10 @@ four sequential public shards. Forms wait for their own submission handlers; del
 regressions pass 60/60 across both databases and all three browsers. A subsequent full sweep
 found one WebKit first-hover timing failure; its route-effect cancellation has been corrected,
 and the exact case passes 120/120 targeted repetitions across both engines. Two fresh complete
-rounds of the corrected source remain required.
+rounds of the corrected source remain required. The navigation-fixed source subsequently
+passed both rounds, but an independent local merchant preview exposed a missing runtime
+dependency in a relocated standalone copy. The package step now checks that relocation;
+release acceptance is being repeated for this changed package source.
 
 ## Stages and checkpoints
 

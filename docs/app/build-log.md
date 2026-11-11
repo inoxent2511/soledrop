@@ -637,3 +637,22 @@ when the pathname actually changes, preserving the first hover while retaining r
 cleanup. Verify rebuilds and passes. The exact WebKit case passes 60/60 on MySQL and 60/60 on
 MariaDB with two workers per engine, zero failures/skips/retries. Two consecutive complete
 fresh rounds of this source remain required; the failed round is retained as diagnostic evidence.
+
+### Relocated standalone package (2026-11-11)
+
+The subsequent two rounds of the navigation-fixed source both pass on the same commit:
+11,904 browser checks, 160 zero-difference frozen-reference comparisons, 3,458 application
+test executions, 2,946 native database tests and the fixed performance/recovery pipelines,
+with no failed, skipped or flaky cases. A local cutover attempt then exposed an untested
+artifact boundary: copying the Windows standalone output away from the repository and
+materializing its pnpm links leaves Next's `@swc/helpers` alias missing from top-level
+`node_modules`. The in-repository QA servers had resolved that helper from the original
+virtual-store path.
+
+The package step now materializes all traced virtual-store aliases at top level and, on every
+build, copies the entire output to a separate temporary directory and loads Next's config and
+server modules there. The corrected artifact passes that check. A second local merchant
+preview made from the relocated output boots against the preserved MariaDB copy and returns
+200 for `/api/health`, `/api/ready`, `/` and `/admin/login`. This package-script change
+requires two fresh complete acceptance rounds before GitHub publication. The earlier rounds
+remain valid evidence for their source but do not sign off this changed release.
