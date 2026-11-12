@@ -150,6 +150,14 @@ export function createFixturesCatalogRepository(): CatalogRepository {
         return structuredClone(brand)
       })
     },
+    async deleteBrand(storeId, id) {
+      transaction((tables) => {
+        const brand = tables.brands.find((row) => row.id === id)
+        if (!brand) throw new DomainError("not_found", "Brand not found.")
+        if (tables.products.some((row) => row.storeId === storeId && row.brand.id === id)) throw new DomainError("conflict", "This brand is used by products. Change those products to another brand first.")
+        tables.brands = tables.brands.filter((row) => row.id !== id)
+      })
+    },
   }
   return fixturePolicy<CatalogOperations>(operations, catalogGuards, catalogProjections)
 }

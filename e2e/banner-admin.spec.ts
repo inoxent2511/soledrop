@@ -4,15 +4,17 @@ import { test } from "./support/test"
 import { signInAs } from "./support/admin"
 import { waitForHydration } from "./support/panels"
 
-test("staff can choose complete artwork for homepage and page banners", async ({ page }) => {
+test("staff can replace homepage hero photos without removing its text or buttons, and publish complete page artwork", async ({ page }) => {
   await signInAs(page, "admin", "/admin/banners")
-  await expect(page.getByText(/complete banner artwork with its words inside the image/i)).toBeVisible()
+  await expect(page.getByText(/Replace homepage hero photos while keeping its text and buttons/i)).toBeVisible()
 
   await page.getByRole("link", { name: "Edit homepage banners" }).click()
   await waitForHydration(page)
-  await expect(page.getByRole("button", { name: "Upload or choose complete banner image" })).toBeVisible()
-  await expect(page.getByLabel("Heading line 1")).toHaveCount(0)
-  await page.getByRole("button", { name: "Upload or choose complete banner image" }).click()
+  await expect(page.getByLabel("Heading line 1")).toBeVisible()
+  await expect(page.getByLabel("Hero description")).toBeVisible()
+  await expect(page.getByLabel("Button 1 label")).toBeVisible()
+  await expect(page.getByRole("button", { name: "Replace hero photo 2" })).toBeVisible()
+  await page.getByRole("button", { name: "Replace hero photo 2" }).click()
   await expect(page.getByRole("dialog").getByLabel("Choose photos to upload")).toBeAttached()
   await page.getByRole("dialog").getByRole("button", { name: "Done" }).click()
 
@@ -36,30 +38,35 @@ test("staff can choose complete artwork for homepage and page banners", async ({
   try {
     await page.goto("/admin/content/home")
     await waitForHydration(page)
-    await page.getByRole("button", { name: "Upload or choose complete banner image" }).click()
+    await page.getByRole("button", { name: "Replace hero photo 2" }).click()
     const upload = page.waitForResponse((response) => response.url().endsWith("/api/admin/media") && response.request().method() === "POST")
     await page.getByRole("dialog").getByLabel("Choose photos to upload").setInputFiles("public/images/site/why-sole-drop.png")
     const uploadResponse = await upload
     expect(uploadResponse.status()).toBe(201)
     const uploaded = (await uploadResponse.json()).item
-    const heroDescription = page.getByLabel(/Banner \d+ image description \(screen readers\)/).first()
-    await expect(heroDescription).toBeVisible()
-    await heroDescription.fill("Sole Drop complete hero artwork")
-    await page.getByRole("dialog").getByRole("button", { name: "Done" }).click()
+    const heroAlt = page.getByLabel("Hero photo 2 alt text")
+    await expect(heroAlt).toBeVisible()
+    await heroAlt.fill("Sole Drop hero shoe photo")
     await page.getByRole("button", { name: "Save & publish homepage" }).click()
     await expect(page.getByText("Homepage saved and published.")).toBeVisible()
 
+    const afterResponse = await page.request.get("/api/admin/content/home")
+    expect(afterResponse.ok()).toBe(true)
+    const after = (await afterResponse.json()).home
+    expect(after.content.heading).toEqual(before.content.heading)
+    expect(after.content.description).toBe(before.content.description)
+    expect(after.content.buttons).toEqual(before.content.buttons)
+    expect(after.content.slides).toHaveLength(before.content.slides.length)
+    expect(after.content.slides[1].src).toBe(uploaded.url)
+    expect(after.content.slides[1].mode).toBeUndefined()
+
     await page.goto("/")
-    const banner = page.locator('section[aria-label="Homepage banners"]')
-    await expect(banner).toBeVisible()
-    await expect(banner.locator("img")).toHaveCount(1)
-    await expect(page.locator('section[aria-labelledby="hero-title"]')).toHaveCount(0)
-    await expect.poll(() => banner.locator("img").evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
-    const ratios = await banner.locator("img").evaluate((image) => {
-      const img = image as HTMLImageElement
-      return { displayed: img.getBoundingClientRect().width / img.getBoundingClientRect().height, original: img.naturalWidth / img.naturalHeight }
-    })
-    expect(Math.abs(ratios.displayed - ratios.original)).toBeLessThan(0.02)
+    const hero = page.locator('section[aria-labelledby="hero-title"]')
+    await expect(hero).toBeVisible()
+    await expect(hero.locator("h1 span")).toHaveText(before.content.heading)
+    await expect(hero.locator("p")).toHaveText(before.content.description)
+    for (const button of before.content.buttons) await expect(hero.getByRole("link", { name: button.label })).toHaveAttribute("href", button.href)
+    await expect(hero.getByRole("region", { name: "Featured shoes" }).getByRole("group", { name: `2 of ${before.content.slides.length}` }).locator("img")).toHaveAttribute("alt", "Sole Drop hero shoe photo")
 
     expect(before.content.categories.length).toBeGreaterThan(0)
     await page.goto("/admin/content/home")

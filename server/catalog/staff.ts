@@ -237,6 +237,15 @@ export function createStaffCatalog(deps: Deps) {
       return brand
     },
 
+    async deleteBrand(staff: StaffContext, meta: RequestMeta, id: string, reason: string | null) {
+      need(staff, "products:write")
+      const brand = (await catalog.listBrands(staff.member.storeId)).find((entry) => entry.id === id)
+      if (!brand) throw new DomainError("not_found", "Brand not found.")
+      await catalog.deleteBrand(staff.member.storeId, id)
+      await deps.audit(staff, meta, { action: "brand.deleted", entity: "brand", entityId: id, before: { name: brand.name, slug: brand.slug }, reason, storeId: staff.member.storeId })
+      deps.revalidate()
+    },
+
     // ─── Collections ─────────────────────────────────────────────────────────
     async collections(staff: StaffContext) {
       need(staff, "collections:read")

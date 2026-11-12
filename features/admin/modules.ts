@@ -43,6 +43,7 @@ export const ADMIN_MODULES: readonly AdminModule[] = [
   { key: "orders", label: "Orders", href: "/admin/orders", group: "Sales", permission: "orders:read", icon: Receipt, keywords: ["fulfil", "refund", "returns"] },
   { key: "customers", label: "Customers", href: "/admin/customers", group: "Sales", permission: "customers:read", icon: Users },
   { key: "products", label: "Products", href: "/admin/products", group: "Catalogue", permission: "products:read", icon: Package, keywords: ["shoes", "variants"] },
+  { key: "brands", label: "Brands", href: "/admin/brands", group: "Catalogue", permission: "products:read", icon: Tag, keywords: ["product brands", "remove brand"] },
   { key: "collections", label: "Collections", href: "/admin/collections", group: "Catalogue", permission: "collections:read", icon: FolderTree },
   { key: "inventory", label: "Inventory", href: "/admin/inventory", group: "Catalogue", permission: "inventory:read", icon: Boxes, keywords: ["stock"] },
   { key: "promotions", label: "Promotions", href: "/admin/promotions", group: "Marketing", permission: "promotions:read", icon: Tag, keywords: ["discount", "codes", "sale"] },

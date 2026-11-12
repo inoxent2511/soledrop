@@ -12,6 +12,7 @@ export const adminCatalogApi = {
   setStatus: (id: string, status: "draft" | "active" | "archived", expectedUpdatedAt?: string) => request<{ status: string; updatedAt: string }>(`/api/admin/products/${id}/status`, { method: "POST", body: { status, expectedUpdatedAt } }),
   deleteProduct: (id: string, reason: string) => request<void>(`/api/admin/products/${id}`, { method: "DELETE", body: { reason } }),
   createBrand: (name: string) => request<{ brand: { id: string; name: string; slug: string } }>("/api/admin/brands", { method: "POST", body: { name } }),
+  deleteBrand: (id: string, reason: string | null) => request<void>(`/api/admin/brands/${id}`, { method: "DELETE", body: { reason } }),
 
   /** Import posts the CSV as text; a 422 still carries the report, so it is returned, not thrown. */
   async importProducts(csv: string, dryRun: boolean): Promise<ImportReport> {

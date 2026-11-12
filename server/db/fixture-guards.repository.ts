@@ -46,7 +46,7 @@ export const catalogGuards: FixtureGuards<CatalogOperations> = {
   },
   deleteProduct: storeGrant("products:delete"),
   saveCollection(actor, storeId, collection, ids) { storeGrant("collections:write")(actor, storeId); requireStore(actor, collection.storeId); if (ids?.some((id) => !db().products.some((row) => row.id === id))) throw new DomainError("validation", "Product not found.") },
-  deleteCollection: storeGrant("collections:write"), collectionProductIds: storeGrant("collections:read"), createBrand: storeGrant("products:write"),
+  deleteCollection: storeGrant("collections:write"), collectionProductIds: storeGrant("collections:read"), createBrand: storeGrant("products:write"), deleteBrand: storeGrant("products:write"),
 }
 
 export const contentGuards: FixtureGuards<ContentOperations> = {

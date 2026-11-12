@@ -1,6 +1,7 @@
 "use client"
 
 import { ArrowDown, ArrowUp, ImagePlus, Plus, Trash2 } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useId, useState } from "react"
 
@@ -407,6 +408,7 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
                   </option>
                 ))}
               </AdminSelect>
+              <Link prefetch={false} href="/admin/brands" className="self-start text-14 font-semibold underline underline-offset-4">Manage brands</Link>
               <div className="flex items-end gap-2">
                 <div className="flex flex-1 flex-col gap-1.5">
                   <label htmlFor={`${id}-new-brand`} className="text-14 font-bold">

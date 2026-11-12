@@ -65,6 +65,20 @@ beforeEach(() => {
 })
 
 describe("staff products", () => {
+  it("removes only unused brands and records the change", async () => {
+    const editor = staffAs("catalogue_editor")
+    const used = db().products[0].brand
+    await expect(catalog().deleteBrand(editor, meta, used.id, null)).rejects.toMatchObject({ code: "conflict" })
+    expect(db().brands.some((brand) => brand.id === used.id)).toBe(true)
+
+    const unused = await catalog().createBrand(editor, meta, "Unused test brand")
+    await catalog().deleteBrand(editor, meta, unused.id, "Duplicate")
+    expect(db().brands.some((brand) => brand.id === unused.id)).toBe(false)
+    expect(audits.map((entry) => entry.action)).toEqual(["brand.created", "brand.deleted"])
+    expect(revalidations).toBe(1)
+    await expect(catalog().deleteBrand(staffAs("support_agent"), meta, used.id, null)).rejects.toMatchObject({ code: "forbidden" })
+  })
+
   it("creates drafts, keeps prices to pricing:write, and saves nothing when a price change is refused", async () => {
     const editor = staffAs("catalogue_editor")
     const before = db().products.length

@@ -1,4 +1,4 @@
-/** A complete uploaded banner uses mode "full"; rows without it retain their legacy layout. */
+/** Category artwork uses mode "full". Homepage hero slides always display beside the saved text. */
 export type HomeImage = { src: string; alt: string; width?: number; height?: number; mode?: "full"; href?: string }
 export type HomeContent = {
   announcement: string

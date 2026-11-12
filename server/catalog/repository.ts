@@ -31,6 +31,8 @@ export interface CatalogOperations {
   deleteCollection(storeId: string, id: string): Promise<void>
   collectionProductIds(storeId: string, collectionId: string): Promise<string[]>
   createBrand(storeId: string, brand: Brand): Promise<Brand>
+  /** Removes an unused brand. Products in any status must be reassigned first. */
+  deleteBrand(storeId: string, id: string): Promise<void>
 }
 
 /** Raw storage boundary; services receive explicitly bound operations. */

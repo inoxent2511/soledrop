@@ -52,5 +52,5 @@ export const staffCatalog = () =>
     audit: (staff, meta, entry) =>
       adminService().recordAudit(staff, meta, entry),
     revalidate: () => refreshStorefront(),
-  }), ["saveProduct", "setStatus", "deleteProduct", "createBrand", "saveCollection", "deleteCollection", "adjustStock"]))
+  }), ["saveProduct", "setStatus", "deleteProduct", "createBrand", "deleteBrand", "saveCollection", "deleteCollection", "adjustStock"]))
 export type * from "@/server/catalog/types"

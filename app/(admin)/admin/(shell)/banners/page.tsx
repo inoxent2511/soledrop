@@ -11,8 +11,8 @@ export default async function BannersPage() {
   const staff = await permissionPage("content:read", "/admin/banners")
   const collections = can(staff, "collections:read") ? await staffCatalog().collections(staff) : []
   return <>
-    <PageHeader title="Banners & images" description="Upload complete banner artwork with its words inside the image. New banners display as a single image without overlaid text." />
-    <AdminCard title="Homepage" description="Manage the main hero slideshow and category banners. Each upload can be one complete design. The announcement strip and Instagram photos are also managed here.">
+    <PageHeader title="Banners & images" description="Replace homepage hero photos while keeping its text and buttons, or upload complete artwork for inner-page banners." />
+    <AdminCard title="Homepage" description="Manage the hero's shoe photos without changing its heading or buttons. Category banners, the announcement strip and Instagram photos are also managed here.">
       <Link prefetch={false} href="/admin/content/home" className={adminButton({ tone: "primary" })}>Edit homepage banners</Link>
     </AdminCard>
     <AdminCard title="Page & collection banners" description="New Arrivals, Pre-Loved, Sale and custom collections each use a complete uploaded banner image. Updating one changes every route that displays that collection.">

@@ -240,5 +240,17 @@ export function createMysqlCatalogRepository(): ActorScoped<CatalogOperations> {
       await db.insert(brands).values({ ...brand, slug: brand.slug.trim().toLowerCase(), storeId })
       return structuredClone(brand)
     },
+    async deleteBrand(actor, storeId, id) {
+      requireStore(actor, storeId); requireGrant(actor, "products:write")
+      await withTransaction(async (db) => {
+        await db.select({ id: stores.id }).from(stores).where(eq(stores.id, actor.storeId)).for("update")
+        const [brand] = await db.select({ id: brands.id }).from(brands).where(and(eq(brands.storeId, actor.storeId), eq(brands.id, id))).for("update")
+        if (!brand) throw new DomainError("not_found", "Brand not found.")
+        const [used] = await db.select({ id: products.id }).from(products).where(and(eq(products.storeId, actor.storeId), eq(products.brandId, id))).limit(1)
+        if (used) throw new DomainError("conflict", "This brand is used by products. Change those products to another brand first.")
+        await db.delete(brands).where(and(eq(brands.storeId, actor.storeId), eq(brands.id, id)))
+        await bumpCatalogueRevision(db, actor)
+      })
+    },
   })
 }

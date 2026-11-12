@@ -40,6 +40,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
         description="Every pair in the catalogue: drafts, live and archived."
         actions={
           <>
+            <Link prefetch={false} href="/admin/brands" className={adminButton({ tone: "secondary", size: "sm" })}>Manage brands</Link>
             {can(staff, "products:export") ? (
               <a href="/api/admin/products/export" download className={adminButton({ tone: "ghost", size: "sm" })}>
                 <Download aria-hidden /> Export

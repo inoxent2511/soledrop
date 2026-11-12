@@ -2,7 +2,6 @@ import { toCardProduct } from "@/features/catalog/types/card"
 import { FeaturedBuyBox } from "@/features/home/components/featured-buy-box"
 import { FeaturedDrops } from "@/features/home/components/featured-drops"
 import { HeroCarousel } from "@/features/home/components/hero-carousel"
-import { FullHeroCarousel } from "@/features/home/components/full-hero-carousel"
 import {
   Hero,
   InstagramStrip,
@@ -26,14 +25,13 @@ export default async function HomePage() {
   const storeId = currentStoreId()
   const [record, brands, reviews] = await Promise.all([contentRepository().home(storeId), catalog().brands(storeId), publicReviews(1, 3)])
   const home = record?.content ?? emptyHome
-  const fullBanners = home.slides.filter((slide) => slide.mode === "full")
   const { newArrivals, newestPreloved, brandNew, preloved, featured } =
     await homeData()
 
   return (
     <>
-      {fullBanners.length ? <FullHeroCarousel slides={fullBanners} /> : home.slides.length ? <Hero content={home}>
-        {home.slides.length ? <HeroCarousel slides={home.slides} initial={Math.min(1, home.slides.length - 1)} /> : null}
+      {home.slides.length ? <Hero content={home}>
+        <HeroCarousel slides={home.slides} initial={Math.min(1, home.slides.length - 1)} />
       </Hero> : <h1 className="sr-only">Sole Drop</h1>}
       {home.categories.length ? <ShopByCategory categories={home.categories} /> : null}
       <NewArrivalSection

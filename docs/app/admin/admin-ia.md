@@ -10,6 +10,7 @@ The back-office lives at `/admin` in the same Next.js app, with its own route gr
 | Sales | Orders | `/admin/orders` | `orders:read` | find an order, fulfil, mark paid, refund, return, cancel, notes, packing slip, export |
 | | Customers | `/admin/customers` | `customers:read` | look up a customer, their orders, addresses, consent; export / anonymise |
 | Catalogue | Products | `/admin/products` | `products:read` | create and edit pairs, variants, prices, media, publish, import/export |
+| | Brands | `/admin/brands` | `products:read` | remove unused brands; reassign products before deleting a brand they use |
 | | Collections | `/admin/collections` | `collections:read` | curate manual collections, build rule-based ones |
 | | Inventory | `/admin/inventory` | `inventory:read` | stock levels, adjustments with reason, movement ledger, reservations |
 | Marketing | Promotions | `/admin/promotions` | `promotions:read` | build and simulate promotions, generate codes, see redemptions |

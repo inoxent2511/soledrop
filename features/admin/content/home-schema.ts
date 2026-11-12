@@ -10,7 +10,7 @@ export const homeInput = z.object({
   heading: z.tuple([z.string().trim().max(30), z.string().trim().max(30), z.string().trim().max(30), z.string().trim().max(30)]),
   description: z.string().trim().max(600),
   buttons: z.array(z.object({ label: z.string().trim().min(1).max(40), href: internalLink })).max(2),
-  slides: z.array(image).max(10),
+  slides: z.array(image.refine((value) => value.mode !== "full", "Homepage hero photos keep the separate heading and buttons")).max(10),
   categories: z.array(z.object({ title: z.tuple([z.string().trim().max(40), z.string().trim().max(40)]).refine((lines) => lines.some(Boolean), "Add a category title"), href: internalLink, image })).max(8),
   instagram: z.object({
     href: z.url().max(300).refine((value) => { const u = new URL(value); return u.protocol === "https:" && ["instagram.com", "www.instagram.com"].includes(u.hostname) && !u.username && !u.password }, "Use an HTTPS Instagram profile link"),
