@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entities = await Promise.all((["collections", "products", "pages"] as const).map((kind) => counts[kind] <= SITEMAP_PAGE_SIZE ? entitySitemap(kind) : []))
 
   const daily = new Set(["/", "/pre-loved", "/sale"])
-  const fixed = ["/", "/pre-loved", "/sale", "/contact", "/faq", "/size-guide", "/condition-guide", "/terms", "/privacy", "/shipping", "/returns"].map((path) => ({
+  const fixed = ["/", "/pre-loved", "/sale", "/reviews", "/contact", "/faq", "/size-guide", "/condition-guide", "/terms", "/privacy", "/shipping", "/returns"].map((path) => ({
     url: url(path),
     changeFrequency: daily.has(path) ? ("daily" as const) : ("monthly" as const),
     priority: path === "/" ? 1 : 0.6,

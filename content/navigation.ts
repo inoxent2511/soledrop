@@ -72,6 +72,7 @@ export const footerColumns: { title: string; links: NavLink[] }[] = [
   {
     title: "Help",
     links: [
+      { label: "Track Your Order", href: "/orders/lookup" },
       { label: "Contact Us", href: "/contact" },
       { label: "FAQ", href: "/faq" },
       { label: "Size Guide", href: "/size-guide" },
@@ -87,6 +88,7 @@ export const footerColumns: { title: string; links: NavLink[] }[] = [
     links: [
       { label: "About Sole Drop", href: "/pages/about" },
       { label: "Our Story", href: "/pages/our-story" },
+      { label: "Customer Reviews", href: "/reviews" },
     ],
   },
 ]

@@ -12,8 +12,8 @@ the owner's input or a staff UI. Each item has a recommendation.
 | --- | --- | --- |
 | P2-01 | **Hosting** for the container | A managed container host near Pakistan (e.g. a Singapore/Mumbai region) with the Dockerfile as is. Put a CDN in front for `/_next/static` and ISR pages. |
 | P2-02 | **the former platform project** region and plan | Pro plan (point-in-time recovery) in the region closest to the app. Run `the retired migration CLI` from a trusted machine (runbook §3). |
-| P2-03 | **Domain and sender email** | Verify the domain in Resend; `EMAIL_FROM=Sole Drop <orders@<domain>>`. |
-| P2-04 | **One support email** (D-023): `Soledropofficial@gmail.com` vs `soledrop@gmail.com` | Use a domain address once P2-03 exists; until then keep the footer's. |
+| P2-03 | **Domain and sender email** | Configure the mailbox provider for `EMAIL_FROM=Sole Drop <support@soledrop.store>` and verify the domain before sending customer email. |
+| P2-04 | **One support email** (D-023) | Owner confirmed `support@soledrop.store` for website contact links. |
 | P2-05 | **Support hours** (D-024) | Set `siteConfig.contact.supportHours`; the Contact box shows them automatically. |
 | P2-06 | **Bank-transfer account** | Set `BANK_NAME`, `BANK_ACCOUNT_TITLE` and `BANK_IBAN`; until then bank transfer is hidden in production. |
 | P2-07 | **Card payments** | Start with COD + bank transfer. Turn on Stripe (or a local PSP via a new adapter in `server/adapters/payments`) when the business has a merchant account; Stripe availability in Pakistan needs a foreign entity. |

@@ -5,7 +5,7 @@ import { useId, useState } from "react"
 import { ApiError, request } from "@/api/http"
 import { adminButton } from "@/components/admin/button"
 import { AdminCard } from "@/components/admin/card"
-import { AdminField, AdminTextarea, FormAlert } from "@/components/admin/form"
+import { AdminField, FormAlert } from "@/components/admin/form"
 import { homeInput } from "@/features/admin/content/home-schema"
 import { MediaPicker } from "@/features/admin/media/components/media-library"
 import type { HomeContent, HomeImage, HomeRecord } from "@/server/content/home-types"
@@ -36,49 +36,44 @@ export function HomeEditor({ initial, canPublish, canUpload }: { initial: HomeRe
 
   function photoList(kind: "slides" | "instagram", title: string, max: number) {
     const rows = images(kind)
-    return <AdminCard title={title} description="Choose library photos or upload new ones. Remove every photo to hide this section.">
+    return <AdminCard title={kind === "slides" ? "Homepage hero banners" : title} description={kind === "slides" ? "Upload finished banner artwork with all words inside the image. The full image appears without text or buttons over it. Add more images for a slideshow. Keep important words readable on phones." : "Choose library photos or upload new ones. Remove every photo to hide this section."}>
       <div className="flex flex-col gap-4">
         {rows.map((image, index) => <div key={`${image.src}-${index}`} className="flex flex-wrap items-center gap-3 rounded-md border border-border p-3">
           {/* eslint-disable-next-line @next/next/no-img-element -- admin library preview */}
           <img src={image.src} alt="" width={120} height={90} className="h-24 w-32 rounded-md bg-surface object-contain" />
-          <div className="min-w-0 flex-1"><AdminField formId={id} name={`${kind}-${index}`} label={`${title} photo ${index + 1} alt text`} value={image.alt} maxLength={300} onChange={(event) => setImages(kind, rows.map((row, at) => at === index ? { ...row, alt: event.target.value } : row))} /></div>
+          <div className="min-w-0 flex-1"><AdminField formId={id} name={`${kind}-${index}`} label={kind === "slides" ? `Banner ${index + 1} image description (screen readers)` : `${title} photo ${index + 1} alt text`} value={image.alt} maxLength={300} onChange={(event) => setImages(kind, rows.map((row, at) => at === index ? { ...row, alt: event.target.value } : row))} />
+            {kind === "slides" ? <AdminField formId={id} name={`slide-link-${index}`} label="Banner destination link (optional)" value={image.href ?? ""} onChange={(event) => setImages(kind, rows.map((row, at) => at === index ? { ...row, href: event.target.value || undefined } : row))} /> : null}
+            {kind === "slides" && image.mode !== "full" ? <p className="text-14 text-subtle-foreground">Legacy banner: replace this photo with complete artwork to remove the separate headline and buttons.</p> : null}
+          </div>
           <button type="button" className={adminButton({ tone: "secondary", size: "sm" })} onClick={() => { setReplacement({ kind, index }); setPicker(kind) }} aria-label={`Replace ${title.toLowerCase()} photo ${index + 1}`}>Replace</button>
           <button type="button" disabled={index === 0} className={adminButton({ tone: "secondary", size: "sm" })} onClick={() => { const next = [...rows]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; setImages(kind, next) }} aria-label={`Move ${title.toLowerCase()} photo ${index + 1} up`}>Up</button>
           <button type="button" className={adminButton({ tone: "ghost", size: "sm" })} onClick={() => setImages(kind, rows.filter((_, at) => at !== index))} aria-label={`Remove ${title.toLowerCase()} photo ${index + 1}`}>Remove</button>
         </div>)}
-        <button type="button" disabled={rows.length >= max} onClick={() => setPicker(kind)} className={adminButton({ tone: "secondary" })}>Add {title.toLowerCase()} photos</button>
+        <button type="button" disabled={rows.length >= max} onClick={() => setPicker(kind)} className={adminButton({ tone: "secondary" })}>{kind === "slides" ? "Upload or choose complete banner image" : `Add ${title.toLowerCase()} photos`}</button>
       </div>
     </AdminCard>
   }
 
   return <div className="flex flex-col gap-5">
     <fieldset disabled={!canPublish || busy} className="flex min-w-0 flex-col gap-5">
-      <AdminCard title="Announcement & hero" description="Save publishes these changes to the storefront immediately.">
+      <AdminCard title="Announcement strip" description="The announcement above the navigation is separate from the image banners.">
         <div className="flex flex-col gap-4">
           <AdminField formId={id} name="announcement" label="Announcement" value={form.announcement} maxLength={300} onChange={(event) => update({ announcement: event.target.value })} />
-          <div className="grid gap-3 sm:grid-cols-2">{form.heading.map((line, index) => <AdminField key={index} formId={id} name={`heading-${index}`} label={`Heading line ${index + 1}`} value={line} maxLength={30} onChange={(event) => update({ heading: form.heading.map((text, at) => at === index ? event.target.value : text) as HomeContent["heading"] })} />)}</div>
-          <AdminTextarea formId={id} name="description" label="Hero description" value={form.description} maxLength={600} onChange={(event) => update({ description: event.target.value })} />
-          {form.buttons.map((button, index) => <div key={index} className="grid gap-3 sm:grid-cols-2">
-            <AdminField formId={id} name={`button-${index}`} label={`Button ${index + 1} label`} value={button.label} maxLength={40} onChange={(event) => update({ buttons: form.buttons.map((row, at) => at === index ? { ...row, label: event.target.value } : row) })} />
-            <AdminField formId={id} name={`button-link-${index}`} label={`Button ${index + 1} link`} value={button.href} onChange={(event) => update({ buttons: form.buttons.map((row, at) => at === index ? { ...row, href: event.target.value } : row) })} />
-            <button type="button" className={adminButton({ tone: "ghost", size: "sm" })} onClick={() => update({ buttons: form.buttons.filter((_, at) => at !== index) })}>Remove button {index + 1}</button>
-          </div>)}
-          {form.buttons.length < 2 ? <button type="button" className={adminButton({ tone: "secondary" })} onClick={() => update({ buttons: [...form.buttons, { label: "Shop", href: "/new-arrivals" }] })}>Add button</button> : null}
         </div>
       </AdminCard>
       {photoList("slides", "Hero", 10)}
-      <AdminCard title="Category cards" description="Choose a photo, then enter the two title lines and a destination link.">
+      <AdminCard title="Category banners" description="Upload each complete category image with its words included. The image links to the destination below; no title or button is placed over new artwork.">
         <div className="flex flex-col gap-4">
           {form.categories.map((category, index) => <div key={index} className="flex flex-col gap-3 rounded-md border border-border p-3">
             {/* eslint-disable-next-line @next/next/no-img-element -- admin library preview */}
             <img src={category.image.src} alt="" width={120} height={90} className="h-24 w-32 rounded-md bg-surface object-contain" />
-            {([0, 1] as const).map((line) => <AdminField key={line} formId={id} name={`category-${index}-${line}`} label={`Category ${index + 1} title line ${line + 1}`} value={category.title[line]} maxLength={40} onChange={(event) => update({ categories: form.categories.map((row, at) => at === index ? { ...row, title: line === 0 ? [event.target.value, row.title[1]] : [row.title[0], event.target.value] } : row) })} />)}
+            {category.image.mode !== "full" ? <p className="text-14 text-subtle-foreground">Legacy card: replace this photo with complete artwork to remove the overlaid title and button.</p> : null}
             <AdminField formId={id} name={`category-link-${index}`} label={`Category ${index + 1} link`} value={category.href} onChange={(event) => update({ categories: form.categories.map((row, at) => at === index ? { ...row, href: event.target.value } : row) })} />
-            <AdminField formId={id} name={`category-alt-${index}`} label={`Category ${index + 1} alt text`} value={category.image.alt} onChange={(event) => update({ categories: form.categories.map((row, at) => at === index ? { ...row, image: { ...row.image, alt: event.target.value } } : row) })} />
-            <button type="button" onClick={() => { setReplacement({ kind: "category", index }); setPicker("category") }} className={adminButton({ tone: "secondary" })}>Replace category {index + 1} photo</button>
+            <AdminField formId={id} name={`category-alt-${index}`} label={`Category ${index + 1} image description (screen readers)`} value={category.image.alt} onChange={(event) => update({ categories: form.categories.map((row, at) => at === index ? { ...row, image: { ...row.image, alt: event.target.value } } : row) })} />
+            <button type="button" onClick={() => { setReplacement({ kind: "category", index }); setPicker("category") }} className={adminButton({ tone: "secondary" })}>Replace category {index + 1} banner</button>
             <button type="button" onClick={() => update({ categories: form.categories.filter((_, at) => at !== index) })} className={adminButton({ tone: "ghost" })}>Remove category {index + 1}</button>
           </div>)}
-          <button type="button" disabled={form.categories.length >= 8} onClick={() => setPicker("category")} className={adminButton({ tone: "secondary" })}>Add category photo</button>
+          <button type="button" disabled={form.categories.length >= 8} onClick={() => setPicker("category")} className={adminButton({ tone: "secondary" })}>Add complete category banner</button>
         </div>
       </AdminCard>
       <AdminCard title="Instagram profile"><div className="flex flex-col gap-4">
@@ -94,14 +89,14 @@ export function HomeEditor({ initial, canPublish, canUpload }: { initial: HomeRe
       if (!canPublish || busy) return
       setSaved(false)
       setForm((current) => {
-        const image = { src: item.url, alt: item.alt }
+        const image = { src: item.url, alt: item.alt, width: item.width, height: item.height, mode: "full" as const }
         if (replacement) {
           if (replacement.kind === "category") return { ...current, categories: current.categories.map((row, at) => at === replacement.index ? { ...row, image } : row) }
-          if (replacement.kind === "slides") return { ...current, slides: current.slides.map((row, at) => at === replacement.index ? image : row) }
-          return { ...current, instagram: { ...current.instagram, images: current.instagram.images.map((row, at) => at === replacement.index ? image : row) } }
+          if (replacement.kind === "slides") return { ...current, slides: current.slides.map((row, at) => at === replacement.index ? { ...image, href: row.href } : row).filter((row) => row.mode === "full") }
+          return { ...current, instagram: { ...current.instagram, images: current.instagram.images.map((row, at) => at === replacement.index ? { src: item.url, alt: item.alt } : row) } }
         }
-        if (picker === "slides" && current.slides.length < 10 && !current.slides.some((row) => row.src === item.url)) return { ...current, slides: [...current.slides, image] }
-        if (picker === "instagram" && current.instagram.images.length < 12 && !current.instagram.images.some((row) => row.src === item.url)) return { ...current, instagram: { ...current.instagram, images: [...current.instagram.images, image] } }
+        if (picker === "slides" && !current.slides.some((row) => row.src === item.url)) return { ...current, slides: [...current.slides.filter((row) => row.mode === "full"), image].slice(0, 10) }
+        if (picker === "instagram" && current.instagram.images.length < 12 && !current.instagram.images.some((row) => row.src === item.url)) return { ...current, instagram: { ...current.instagram, images: [...current.instagram.images, { src: item.url, alt: item.alt }] } }
         if (picker === "category" && current.categories.length < 8) return { ...current, categories: [...current.categories, { title: ["Shop", "Now"], href: "/new-arrivals", image }] }
         return current
       })

@@ -1,17 +1,12 @@
 /**
  * Returns, Exchanges & Refunds Policy (D-057): the owner's text (Returns, Exchanges & Refunds
  * Policy.pdf), word for word, for /returns. Three "proposed" markers in the document are notes to
- * the owner, so they are owner notes (see `ownerNotes`) rather than shopper-facing text.
+ * the owner, so they are omitted from shopper-facing text.
  */
-import type {
-  LegalDocument,
-  LegalParagraph,
-  LegalSection,
-} from "@/content/legal"
+import { legalPublicationDate, type LegalDocument, type LegalParagraph, type LegalSection } from "@/content/legal"
 import type { ProductKind } from "@/server/catalog/types"
 
-/** "Effective date: [DATE OF PUBLICATION]", as an ISO date (YYYY-MM-DD); null until the owner publishes. */
-const effectiveDate: string | null = null
+const effectiveDate = legalPublicationDate
 
 const returnsIntro: LegalParagraph = [
   "We want every customer to know what to expect before ordering. This policy offers eligible returns requested within ",
@@ -69,7 +64,7 @@ const returnsSections: LegalSection[] = [
         [
           "Condition required",
           "No outdoor wear; tags, accessories, and supplied packaging retained",
-          "No new wear or damage; Soledrop tag attached; items received retained",
+          "No new wear or damage; SOLEDROP tag attached; items received retained",
         ],
         [
           "Exchange",
@@ -88,8 +83,8 @@ const returnsSections: LegalSection[] = [
         ],
         [
           "Return postage for confirmed seller error",
-          "Paid or reimbursed by Soledrop",
-          "Paid or reimbursed by Soledrop",
+          "Paid or reimbursed by SOLEDROP",
+          "Paid or reimbursed by SOLEDROP",
         ],
       ],
     },
@@ -223,15 +218,12 @@ const returnsSections: LegalSection[] = [
 
 export const returnsDocument: LegalDocument = {
   title: "Returns, Exchanges & Refunds Policy",
-  subtitle: "Soledrop | One Clear Process for New and Pre-Loved Shoes",
+  subtitle: "SOLEDROP | One Clear Process for New and Pre-Loved Shoes",
   effectiveDate,
   noun: "this policy",
   intro: returnsIntro,
   highlights: returnsHighlights,
   sections: returnsSections,
-  ownerNotes: [
-    "Your document calls this a “proposed” policy (intro), marks section 2's sending window as a “Proposed process” and section 9's timings as a “Proposed service target”. Confirm the 7-day window, the five-working-day sending window and the inspection and refund timings.",
-  ],
   // Section 12 of the owner's document.
   contact: {
     id: "contact-details",

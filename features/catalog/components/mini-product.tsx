@@ -34,7 +34,7 @@ export function MiniProduct({ product, badge, sizes, onSelect, className, linkPr
       </span>
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="truncate text-14 font-bold tracking-wide-2 text-faint-foreground uppercase">{product.brand}</span>
-        <span className="line-clamp-2 text-16 font-semibold group-hover:underline">{product.title}</span>
+        <span className="line-clamp-2 text-16 font-bold group-hover:underline">{product.title}</span>
         <span className="flex flex-wrap items-baseline gap-x-2 text-16">
           <span className={cn("font-bold", product.price.compareAt && "text-success")}>
             {product.price.compareAt ? <span className="sr-only">Now </span> : null}

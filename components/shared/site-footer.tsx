@@ -47,7 +47,7 @@ export function SiteFooter({ newsletter = false }: { newsletter?: boolean }) {
 
       <Container className="flex flex-col gap-10 pt-12 pb-10.5 md:pt-16">
         {/* Explicit minmax(0, 1fr) tracks: an implicit auto track grew to the address's min-content at 320 px. */}
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 xl:grid-cols-4 3xl:grid-cols-footer 3xl:gap-0">
+        <div className="grid grid-cols-1 gap-9 md:grid-cols-2 md:gap-12 xl:grid-cols-4 3xl:grid-cols-footer 3xl:gap-0">
           <div className="flex max-w-130 flex-col items-start gap-5 3xl:gap-0">
             <Link href="/" aria-label={`${siteConfig.name} — home`} className="flex">
               <LogoMonoIcon className="h-auto w-60" />
@@ -69,15 +69,15 @@ export function SiteFooter({ newsletter = false }: { newsletter?: boolean }) {
               ))}
             </ul>
             <address className="flex w-full flex-col gap-3 border-s-4 border-brand bg-ink-raised px-5 py-5 text-16 font-medium not-italic wrap-break-word md:px-9.5 md:text-18">
-              <a href={siteConfig.contact.whatsappHref} className="hover:text-brand">WhatsAPP: {siteConfig.contact.whatsappLabel}</a>
+              <a href={siteConfig.contact.whatsappHref} className="hover:text-brand">WhatsApp: {siteConfig.contact.whatsappLabel}</a>
               <a href={`mailto:${siteConfig.contact.email}`} className="hover:text-brand">Email: {siteConfig.contact.email}</a>
               <span>Address: {siteConfig.contact.address}</span>
             </address>
           </div>
           {footerColumns.map((column) => (
-            <nav key={column.title} aria-label={column.title} className="flex flex-col gap-7.5">
+            <nav key={column.title} aria-label={column.title} className="flex flex-col gap-5 md:gap-6">
               <h2 className="text-18 font-medium text-muted-foreground">{column.title}</h2>
-              <ul className="flex flex-col gap-4 md:gap-7.5">
+              <ul className="flex flex-col gap-4 md:gap-5">
                 {column.links.map((link) => (
                   <li key={link.href}>
                     <Link href={link.href} className="block w-fit text-18 font-bold text-muted-foreground transition-colors hover:text-brand">

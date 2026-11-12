@@ -4,8 +4,8 @@ export type ProductKind = "new" | "preloved"
 export type Gender = "men" | "women" | "kids" | "unisex"
 export type ProductStatus = "draft" | "active" | "archived"
 
-/** Pre-loved condition grades, best first — the five cards of the Condition Guide on the Pre-Loved screen (D-015). */
-export const CONDITION_GRADES = ["like-new", "premium", "excellent", "very-good", "minor-issue"] as const
+/** Available pre-loved condition grades, best first. */
+export const CONDITION_GRADES = ["premium", "excellent", "very-good", "minor-issue"] as const
 export type ConditionGrade = (typeof CONDITION_GRADES)[number]
 
 /** Values a product or variant attribute can hold (attribute system; definitions in AttributeDefinition). */
@@ -99,7 +99,7 @@ export type Collection = {
   kind: "manual" | "rule"
   /** For rule collections: every condition must match (rules engine, server/rules). */
   rules: CollectionRule[]
-  image: ProductImage | null
+  image: (ProductImage & { mode?: "full" }) | null
   position: number
   seo: { title?: string; description?: string }
 }

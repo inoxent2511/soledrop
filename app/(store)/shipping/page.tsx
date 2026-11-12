@@ -13,7 +13,7 @@ export const revalidate = 300
 export const metadata: Metadata = {
   title: shippingDocument.title,
   description:
-    "Where Soledrop delivers in Pakistan, what delivery costs, how long it takes, tracking, and what happens if a parcel is late, damaged or wrong.",
+    "Where SOLEDROP delivers in Pakistan, what delivery costs, how long it takes, tracking, and what happens if a parcel is late, damaged or wrong.",
   alternates: { canonical: "/shipping" },
 }
 

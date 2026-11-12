@@ -10,11 +10,6 @@ export const CONDITION_GUIDE: {
   tone: string
 }[] = [
   {
-    grade: "like-new",
-    text: "In outstanding condition with almost no noticeable signs of wear. Looks and feels remarkably close to a fresh pair.",
-    tone: "bg-guide-like-new",
-  },
-  {
     grade: "premium",
     text: "Beautifully maintained with minimal signs of previous use. Only slight cosmetic wear may be visible upon closer inspection.",
     tone: "bg-guide-premium",

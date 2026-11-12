@@ -26,14 +26,14 @@ export function Hero({ children, content }: { children: ReactNode; content: Home
       <div className="flex min-w-0 flex-col items-start px-5 pt-10 pb-12 md:px-10 lg:pt-12 xl:px-16 3xl:ps-30 3xl:pe-0 3xl:pt-17.75 3xl:pb-17.75">
         <h1
           id="hero-title"
-          className="flex max-w-full flex-col text-60 leading-hero font-black wrap-anywhere uppercase md:text-100 xl:text-120 3xl:text-150"
+          className="flex max-w-full flex-col text-54 leading-hero font-black wrap-anywhere uppercase md:text-100 3xl:text-120"
         >
           {content.heading.some(Boolean) ? content.heading.map((line, index) => <span key={index} className={index % 2 ? "text-brand" : undefined}>{line}</span>) : <span>Sole Drop</span>}
         </h1>
-        <p className="max-w-156 pt-4 text-18 font-medium wrap-anywhere text-muted-foreground md:text-24 3xl:pt-5.25 3xl:text-28">
+        <p className="max-w-156 pt-4 text-18 font-medium wrap-anywhere text-muted-foreground md:text-22 3xl:pt-5.25 3xl:text-24">
           {content.description}
         </p>
-        <div className="flex max-w-full flex-wrap gap-4 pt-8 md:gap-11 3xl:pt-13.5">
+        <div className="flex max-w-full flex-wrap gap-4 pt-7 md:gap-8 md:pt-8 3xl:pt-10">
           {content.buttons.map((button, index) => <Link key={index}
             href={button.href}
             className={cn(
@@ -62,6 +62,10 @@ export function ShopByCategory({ categories }: { categories: HomeContent["catego
         <ul className="grid gap-8 pe-3.5 lg:grid-cols-2 3xl:gap-20 3xl:pe-0">
           {categories.map((category, index) => (
             <li key={`${category.href}-${index}`}>
+              {category.image.mode === "full" ? <Link href={category.href} className="group block overflow-hidden rounded-card border-2 border-subtle-foreground shadow-offset-brand">
+                <Image src={category.image.src} alt={category.image.alt} width={category.image.width ?? 1200} height={category.image.height ?? 800} sizes="(min-width: 1024px) 50vw, 100vw" className="block h-auto w-full transition-transform duration-500 group-hover:scale-[1.02]" />
+                <span className="sr-only">Explore {category.title.join(" ")}</span>
+              </Link> :
               <Link
                 href={category.href}
                 className="group relative flex min-h-80 flex-col items-start gap-6 overflow-hidden rounded-card border-2 border-subtle-foreground p-6 shadow-offset-brand md:min-h-128 md:gap-10 md:ps-14.5 md:pt-23"
@@ -73,7 +77,7 @@ export function ShopByCategory({ categories }: { categories: HomeContent["catego
                   sizes="(min-width: 1024px) 50vw, 100vw"
                   className="-z-10 object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <h3 className="flex max-w-full flex-col text-56 leading-none font-extrabold tracking-tight-2 wrap-anywhere text-foreground uppercase md:text-100">
+                <h3 className="flex max-w-full flex-col text-50 leading-none font-extrabold tracking-tight-2 wrap-anywhere text-foreground uppercase md:text-68">
                   <span>{category.title[0]}</span>
                   <span>{category.title[1]}</span>
                 </h3>
@@ -88,6 +92,7 @@ export function ShopByCategory({ categories }: { categories: HomeContent["catego
                   <ArrowExploreIcon className="h-5.75 w-auto transition-transform duration-200 group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1 [&_path]:stroke-current [&_use]:fill-current" />
                 </span>
               </Link>
+              }
             </li>
           ))}
         </ul>
@@ -178,7 +183,7 @@ export function TopBrands({ brands }: { brands: string[] }) {
 const reasons = [
   ["New & pre-loved", "Something for every budget and style."],
   [
-    "Authentic products",
+    "Authentic pre-loved products",
     "Every product verified against our authenticity policy.",
   ],
   [
@@ -219,7 +224,7 @@ export function WhySoleDrop() {
               Drop?
             </span>
           </h2>
-          <p className="max-w-130 pt-10 text-18 leading-relaxed text-subtle-foreground md:text-22">
+          <p className="max-w-130 pt-6 text-18 leading-relaxed text-subtle-foreground md:text-22">
             We built SOLE DROP for people who believe the right pair can change
             the way you move, feel and express yourself.
           </p>

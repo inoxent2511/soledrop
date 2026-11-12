@@ -21,7 +21,7 @@ const signedInLinks = [
 
 /**
  * Header account control (derived, D-040). Without JavaScript it is the /account link; with it,
- * a popover (hover intent or click): sign in / create account / track an order when signed out,
+ * a popover (hover intent or click): sign in / create account when signed out,
  * the shopper's name, orders, returns, addresses, settings and sign out when signed in.
  */
 export function AccountMenu({ className }: { className: string }) {
@@ -88,15 +88,12 @@ export function AccountMenu({ className }: { className: string }) {
             ) : (
               <>
                 <Popover.Title className="px-3 pt-1 text-18 font-extrabold">Your account</Popover.Title>
-                <Popover.Description className="px-3 pb-2 text-14 text-subtle-foreground">Track orders and check out faster.</Popover.Description>
+                <Popover.Description className="px-3 pb-2 text-14 text-subtle-foreground">Save addresses and check out faster.</Popover.Description>
                 <Link href="/account/login" onClick={() => setOpen(false)} className={cn(buttonVariants({ tone: "brand", size: "card" }), "w-full")}>
                   Sign in
                 </Link>
                 <Link href="/account/register" onClick={() => setOpen(false)} className={cn(buttonVariants({ tone: "outline", size: "card" }), "w-full")}>
                   Create account
-                </Link>
-                <Link href="/orders/lookup" onClick={() => setOpen(false)} className={cn(item, "mt-1")}>
-                  Track an order
                 </Link>
               </>
             )}

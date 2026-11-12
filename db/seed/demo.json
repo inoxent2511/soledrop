@@ -1183,7 +1183,7 @@
         "gender": "unisex",
         "status": "active",
         "description": "NIKE Vaporfly 3 — a one-off pre-loved pair, inspected and graded by our team. What you see is the exact pair you get.",
-        "condition": "like-new",
+        "condition": "premium",
         "conditionNotes": "Worn once or twice indoors. Upper spotless with no creasing, midsole bright with no compression, outsole tread as new. Cleaned before listing.",
         "images": [
           {
@@ -1458,7 +1458,7 @@
         "gender": "unisex",
         "status": "active",
         "description": "HOKA Bondi 7 — a one-off pre-loved pair, inspected and graded by our team. What you see is the exact pair you get.",
-        "condition": "like-new",
+        "condition": "premium",
         "conditionNotes": "Worn once or twice indoors. Upper spotless with no creasing, midsole bright with no compression, outsole tread as new. Cleaned before listing.",
         "images": [
           {
@@ -3098,6 +3098,18 @@
         "sensitive": false
       },
       {
+        "key": "reviews:read",
+        "label": "See customer reviews",
+        "group": "Content",
+        "sensitive": false
+      },
+      {
+        "key": "reviews:write",
+        "label": "Approve, hide and feature customer reviews",
+        "group": "Content",
+        "sensitive": false
+      },
+      {
         "key": "payments:read",
         "label": "See payments and refunds",
         "group": "Money",
@@ -3257,6 +3269,8 @@
           "content:read",
           "content:write",
           "content:publish",
+          "reviews:read",
+          "reviews:write",
           "payments:read",
           "payments:reconcile",
           "reports:read",
@@ -3324,6 +3338,8 @@
           "content:read",
           "content:write",
           "content:publish",
+          "reviews:read",
+          "reviews:write",
           "payments:read",
           "payments:reconcile",
           "reports:read",
@@ -3390,6 +3406,8 @@
           "content:read",
           "content:write",
           "content:publish",
+          "reviews:read",
+          "reviews:write",
           "payments:read",
           "payments:reconcile",
           "reports:read",
@@ -3447,6 +3465,8 @@
           "content:read",
           "content:write",
           "content:publish",
+          "reviews:read",
+          "reviews:write",
           "media:read",
           "media:write"
         ],
@@ -3567,6 +3587,7 @@
           "marketing:read",
           "search:read",
           "content:read",
+          "reviews:read",
           "payments:read",
           "reports:read",
           "pricing:read",
@@ -3663,14 +3684,14 @@
         "id": "80000000-0000-4000-8000-000000000006",
         "category": "Pre-Loved shoes",
         "question": "Are Pre-Loved shoes new?",
-        "answer": "No. Even a Like New pair belongs to our Pre-Loved collection. Brand New is a separate category for unused footwear.",
+        "answer": "No. Premium is still a Pre-Loved grade. Brand New is a separate category for unused footwear.",
         "position": 5
       },
       {
         "id": "80000000-0000-4000-8000-000000000007",
         "category": "Pre-Loved shoes",
         "question": "How do I know the condition of a Pre-Loved pair?",
-        "answer": "Check the actual product photos, condition grade, description, size information, and flaw notes. Our five Pre-Loved grades are Like New, Premium, Excellent, Very Good, and Minor Issue.",
+        "answer": "Check the actual product photos, condition grade, description, size information, and flaw notes. Our four Pre-Loved grades are Premium, Excellent, Very Good, and Minor Issue.",
         "position": 6
       },
       {

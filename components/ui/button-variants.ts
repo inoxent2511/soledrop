@@ -23,9 +23,9 @@ export const buttonVariants = cva(
       },
       size: {
         card: "h-12 rounded-md px-4 text-16 font-bold",
-        md: "h-13.5 px-6 text-18 font-extrabold 3xl:text-20",
-        lg: "h-14 rounded-lg px-6 text-18 font-extrabold md:h-16 md:text-20 3xl:h-20 3xl:text-24",
-        xl: "h-14 rounded-xl px-6 text-18 font-extrabold md:h-18 md:text-22 3xl:h-21 3xl:text-26",
+        md: "h-13.5 px-6 text-18 font-bold 3xl:text-20",
+        lg: "h-14 rounded-lg px-6 text-18 font-bold md:h-16 md:text-20 3xl:h-20 3xl:text-24",
+        xl: "h-14 rounded-xl px-6 text-18 font-bold md:h-18 md:text-22 3xl:h-21 3xl:text-26",
         hero: "h-14 rounded-lg px-6 text-18 font-bold md:h-16 md:w-52 md:text-24 3xl:h-21 3xl:w-65 3xl:text-30",
       },
     },

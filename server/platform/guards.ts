@@ -8,6 +8,7 @@ export const RATE_LIMITS = {
   checkout: { limit: 10, windowSeconds: 60 },
   auth: { limit: 10, windowSeconds: 300 },
   contact: { limit: 5, windowSeconds: 600 },
+  reviews: { limit: 5, windowSeconds: 600 },
   newsletter: { limit: 5, windowSeconds: 600 },
   cart: { limit: 120, windowSeconds: 60 },
   api: { limit: 600, windowSeconds: 60 },

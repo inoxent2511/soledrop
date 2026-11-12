@@ -20,7 +20,7 @@ const guideFor = (detail: GradeDetail) =>
 /**
  * The Condition Guide's grades as one vertical story (D-073, replaces D-046's explorer): a jump row,
  * then a block per grade, best first, alternating sides. Each block pairs the grade's illustration
- * on its colour with the owner's description, a 5-to-1 condition score, what to expect part by part
+ * on its colour with the owner's description, a 4-to-1 condition score, what to expect part by part
  * and a link to shop that grade. Everything is visible at once and needs no JavaScript.
  */
 export function ConditionGradesGuide() {
@@ -62,8 +62,8 @@ export function ConditionGradesGuide() {
 function GradeBlock({ detail, index }: { detail: GradeDetail; index: number }) {
   const guide = guideFor(detail)
   const label = conditionLabel(detail.grade)
-  // Like New scores 5, Minor Issue 1: the wear level read the other way round.
-  const score = 6 - detail.level
+  // Premium scores 4, Minor Issue 1: the wear level reads the other way round.
+  const score = 5 - detail.level
   const titleId = `${anchor(detail)}-title`
   return (
     <li id={anchor(detail)} className="scroll-mt-20 lg:scroll-mt-27.5">
@@ -119,10 +119,10 @@ function GradeBlock({ detail, index }: { detail: GradeDetail; index: number }) {
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <span
               role="img"
-              aria-label={`Condition score: ${score} out of 5`}
+              aria-label={`Condition score: ${score} out of 4`}
               className="flex gap-1"
             >
-              {[1, 2, 3, 4, 5].map((step) => (
+              {[1, 2, 3, 4].map((step) => (
                 <StarIcon
                   key={step}
                   aria-hidden="true"

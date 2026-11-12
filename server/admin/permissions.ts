@@ -62,6 +62,8 @@ export const PERMISSIONS = {
   "content:read": { label: "See pages and FAQs", group: "Content" },
   "content:write": { label: "Edit pages and FAQs", group: "Content" },
   "content:publish": { label: "Publish pages and FAQs", group: "Content" },
+  "reviews:read": { label: "See customer reviews", group: "Content" },
+  "reviews:write": { label: "Approve, hide and feature customer reviews", group: "Content" },
 
   "payments:read": { label: "See payments and refunds", group: "Money" },
   "payments:reconcile": { label: "Reconcile payments", group: "Money" },
@@ -142,7 +144,7 @@ export const PRESET_ROLES: readonly PresetRole[] = [
     key: "content_editor",
     name: "Content Editor",
     description: "Policy pages, FAQs and media.",
-    permissions: ["dashboard:read", "content:read", "content:write", "content:publish", "media:read", "media:write"],
+    permissions: ["dashboard:read", "content:read", "content:write", "content:publish", "reviews:read", "reviews:write", "media:read", "media:write"],
     refundLimit: 0,
   },
   {

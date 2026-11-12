@@ -1,4 +1,5 @@
-export type HomeImage = { src: string; alt: string }
+/** A complete uploaded banner uses mode "full"; rows without it retain their legacy layout. */
+export type HomeImage = { src: string; alt: string; width?: number; height?: number; mode?: "full"; href?: string }
 export type HomeContent = {
   announcement: string
   heading: [string, string, string, string]

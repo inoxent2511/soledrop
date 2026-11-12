@@ -42,7 +42,7 @@ export default async function PreLovedPage({ searchParams }: Props) {
           title={collection.title}
           headline={collection.headline}
           description={collection.description}
-          image={collection.image ? { url: collection.image.url, alt: collection.image.alt } : null}
+          image={collection.image}
         />
         <div className="3xl:pt-20">
           <ListingToolbar pathname={PATHNAME} state={state} view={view} />

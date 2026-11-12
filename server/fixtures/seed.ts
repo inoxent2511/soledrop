@@ -242,26 +242,25 @@ const seedProducts: SeedProduct[] = [
 ]
 
 function preloved(): SeedProduct[] {
-  const items: [string, string, string, string, string, ConditionGrade][] = [
-    // Sample pairs spread over all five grades so every condition can be seen on the Pre-Loved shop (D-068, grades D-069).
-    ["nike-vaporfly-3-orange", "NIKE Vaporfly 3", "nike", "nike-vaporfly-3-orange-card.png", "White / Total Orange", "like-new"],
+  const items: [string, string, string, string, string, ConditionGrade, string?][] = [
+    // Sample pairs spread over all four available grades on the Pre-Loved shop.
+    ["nike-vaporfly-3-orange", "NIKE Vaporfly 3", "nike", "nike-vaporfly-3-orange-card.png", "White / Total Orange", "premium", "Worn once or twice indoors. Upper spotless with no creasing, midsole bright with no compression, outsole tread as new. Cleaned before listing."],
     ["adidas-ozweego-grey", "ADIDAS OZWEEGO", "adidas", "adidas-ozweego-card.png", "Grey Two", "excellent"],
     ["hoka-bondi-7-blue", "HOKA Bondi 7", "hoka", "hoka-bondi-7-blue-card.png", "Real Teal / Evening Primrose", "very-good"],
     ["nike-vaporfly-3-teal", "NIKE Vaporfly 3", "nike", "nike-vaporfly-3-teal-card.png", "Jade Ice / Black", "minor-issue"],
     ["adidas-ozweego-grey-2", "ADIDAS OZWEEGO", "adidas", "adidas-ozweego-card.png", "Grey Three", "premium"],
-    ["hoka-bondi-7-blue-2", "HOKA Bondi 7", "hoka", "hoka-bondi-7-blue-card.png", "Real Teal", "like-new"],
+    ["hoka-bondi-7-blue-2", "HOKA Bondi 7", "hoka", "hoka-bondi-7-blue-card.png", "Real Teal", "premium", "Worn once or twice indoors. Upper spotless with no creasing, midsole bright with no compression, outsole tread as new. Cleaned before listing."],
     ["nike-vaporfly-3-orange-2", "NIKE Vaporfly 3", "nike", "nike-vaporfly-3-orange-card.png", "White / Total Orange", "excellent"],
     ["adidas-ozweego-grey-3", "ADIDAS OZWEEGO", "adidas", "adidas-ozweego-card.png", "Grey Two", "very-good"],
   ]
   /** A grader's note in the words the Condition Guide uses for each grade. */
   const notes: Record<ConditionGrade, string> = {
-    "like-new": "Worn once or twice indoors. Upper spotless with no creasing, midsole bright with no compression, outsole tread as new. Cleaned before listing.",
     premium: "Worn a handful of times. Upper clean with faint toe creasing; midsole shows light creasing; outsole tread above 90 %. Cleaned before listing.",
     excellent: "Regular use, well looked after. Minor creasing on the upper, light surface marks on the midsole, even outsole wear with good grip. Cleaned before listing.",
     "very-good": "Noticeable everyday wear, still reliable. Creasing and small scuffs on the upper, light yellowing on the midsole, even outsole wear. Cleaned before listing.",
     "minor-issue": "A small scuff on the toe box and light marks along the midsole, all shown in the photos and reflected in the price. Outsole still grips well. Cleaned before listing.",
   }
-  const list: SeedProduct[] = items.map(([slug, title, brandSlug, card, colour, condition]) => ({
+  const list: SeedProduct[] = items.map(([slug, title, brandSlug, card, colour, condition, conditionNote]) => ({
     slug,
     title,
     brand: brandSlug,
@@ -272,7 +271,7 @@ function preloved(): SeedProduct[] {
     sizes: ["40"],
     card,
     condition,
-    conditionNotes: notes[condition],
+    conditionNotes: conditionNote ?? notes[condition],
     description: `${title} — a one-off pre-loved pair, inspected and graded by our team. What you see is the exact pair you get.`,
     collections: ["pre-loved"],
     attributes: { colour, activity: "Running", closure: "Laces" },

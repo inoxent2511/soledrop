@@ -8,7 +8,7 @@ import { PolicyDocument } from "@/features/content/components/policy-document"
 export const metadata: Metadata = {
   title: privacyDocument.title,
   description:
-    "What personal information Soledrop collects, why, who helps process it, and how to ask about, correct or delete it.",
+    "What personal information SOLEDROP collects, why, who helps process it, and how to ask about, correct or delete it.",
   alternates: { canonical: "/privacy" },
 }
 

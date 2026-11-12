@@ -1528,3 +1528,62 @@ ALTER TABLE inventory_levels
   ADD INDEX inventory_available_lookup(available,variant_id);
 
 INSERT INTO schema_migrations (name, checksum) VALUES ('0026_inventory_available_index.sql', '52d7ccb1b77c6a7d21ee4201e2c767cad29e0bcf231d44741fd12b3cc9f1441b') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0027_customer_reviews.sql / SHA256 390063db807029cad8ca3b91996e829ef574df0243db8ed1d9f39102ef7b7c53
+CREATE TABLE IF NOT EXISTS customer_reviews (
+  id BINARY(16) NOT NULL PRIMARY KEY,
+  store_id BINARY(16) NOT NULL,
+  product_id BINARY(16) NULL,
+  display_name VARCHAR(80) NOT NULL,
+  email VARCHAR(254) NOT NULL,
+  rating TINYINT NOT NULL,
+  title VARCHAR(120) NOT NULL,
+  body TEXT NOT NULL,
+  image_keys JSON NOT NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'pending',
+  featured TINYINT(1) NOT NULL DEFAULT 0,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  moderated_at DATETIME(3) NULL,
+  moderated_by BINARY(16) NULL,
+  CONSTRAINT customer_reviews_store_fk FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
+  CONSTRAINT customer_reviews_product_fk FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL,
+  CONSTRAINT customer_reviews_rating_check CHECK (rating BETWEEN 1 AND 5),
+  CONSTRAINT customer_reviews_status_check CHECK (status IN ('pending','approved','rejected')),
+  CONSTRAINT customer_reviews_featured_check CHECK (featured IN (0,1)),
+  CONSTRAINT customer_reviews_images_json CHECK (JSON_VALID(image_keys) AND JSON_TYPE(image_keys) = 'ARRAY'),
+  INDEX customer_reviews_public (store_id,status,featured,created_at DESC,id),
+  INDEX customer_reviews_queue (store_id,status,created_at DESC,id),
+  INDEX customer_reviews_product (store_id,product_id,status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0027_customer_reviews.sql', '390063db807029cad8ca3b91996e829ef574df0243db8ed1d9f39102ef7b7c53') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0028_retire_like_new_grade.sql / SHA256 5712ff2d95409d004b08f87c19cfacd3fffdfc0ab9e74aca6ebda8809f716635
+-- Existing active products move to the closest remaining grade. Keep their
+-- condition notes and historical order-line snapshots unchanged.
+UPDATE products
+SET condition_grade = 'premium', updated_at = CURRENT_TIMESTAMP(3)
+WHERE condition_grade = 'like-new';
+
+-- Refresh only the shipped FAQ answers; merchant-edited answers stay intact.
+UPDATE faqs
+SET answer = 'No. Premium is still a Pre-Loved grade. Brand New is a separate category for unused footwear.'
+WHERE question = 'Are Pre-Loved shoes new?'
+  AND answer = 'No. Even a Like New pair belongs to our Pre-Loved collection. Brand New is a separate category for unused footwear.';
+
+UPDATE faqs
+SET answer = 'Check the actual product photos, condition grade, description, size information, and flaw notes. Our four Pre-Loved grades are Premium, Excellent, Very Good, and Minor Issue.'
+WHERE question = 'How do I know the condition of a Pre-Loved pair?'
+  AND answer = 'Check the actual product photos, condition grade, description, size information, and flaw notes. Our five Pre-Loved grades are Like New, Premium, Excellent, Very Good, and Minor Issue.';
+
+-- Reject the retired grade on future product writes, including direct imports.
+ALTER TABLE products
+  DROP CONSTRAINT products_condition_grade_enum,
+  ADD CONSTRAINT products_condition_grade_current CHECK (condition_grade IN ('premium', 'excellent', 'very-good', 'minor-issue'));
+
+-- A migration bypasses the catalogue repository's normal cache invalidation.
+UPDATE catalogue_read_revisions SET revision = revision + 1;
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0028_retire_like_new_grade.sql', '5712ff2d95409d004b08f87c19cfacd3fffdfc0ab9e74aca6ebda8809f716635') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);

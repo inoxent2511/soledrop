@@ -75,7 +75,7 @@ export function ProductCard({
         )}
       >
         <div className="flex flex-col gap-3">
-          <Heading className="flex h-6 items-center text-20 leading-0 font-semibold tracking-tight-1">
+          <Heading className="flex h-6 items-center text-20 leading-0 font-bold tracking-tight-1">
             <Link href={href} className="truncate leading-6 hover:underline">
               {product.title}
             </Link>
@@ -85,7 +85,7 @@ export function ProductCard({
             <span className="sr-only">
               {product.price.compareAt ? "Sale price" : "Price"}
             </span>
-            <span className="min-w-35 pe-3 text-22 font-semibold tracking-tight-1">
+            <span className="min-w-35 pe-3 text-22 font-bold tracking-tight-1">
               {formatPrice(product.price.amount, product.price.currency)}
             </span>
             {product.price.compareAt ? (
@@ -113,7 +113,7 @@ export function ProductCard({
                   <span className="text-14 font-medium tracking-tight-1">
                     Cond:
                   </span>
-                  <span className="text-17 font-semibold tracking-tight-1">
+                  <span className="text-17 font-bold tracking-tight-1">
                     {conditionLabel(product.condition)}
                   </span>
                 </span>

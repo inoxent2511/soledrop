@@ -33,7 +33,7 @@ export function CheckoutSummary({ cart, codeForm, children }: { cart: Cart; code
               </span>
               {!line.available ? <span className="text-14 font-semibold text-destructive">Sold out</span> : null}
             </span>
-            <span className="text-16 font-semibold md:text-18">{price(line.lineTotal)}</span>
+            <span className="text-16 font-bold md:text-18">{price(line.lineTotal)}</span>
           </li>
         ))}
       </ul>

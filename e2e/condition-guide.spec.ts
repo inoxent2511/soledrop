@@ -4,7 +4,7 @@ import { test } from "./support/test"
 import { waitForHydration } from "./support/panels"
 
 // The owner's revised grades, best first (D-069).
-const GRADES = ["Like New", "Premium", "Excellent", "Very Good", "Minor Issue"]
+const GRADES = ["Premium", "Excellent", "Very Good", "Minor Issue"]
 
 async function sortTop(page: import("@playwright/test").Page) {
   await page.evaluate(() => document.fonts.ready)
@@ -16,7 +16,7 @@ async function sortTop(page: import("@playwright/test").Page) {
   return top
 }
 
-/** Condition Guide (D-046): footer entry, the self-playing grade explorer and its no-JavaScript list. */
+/** Condition Guide: footer entry, four grade blocks and a no-JavaScript listing. */
 test.describe("condition guide", () => {
   test("the footer links to it right below Size Guide", async ({ page }) => {
     await page.goto("/faq")
@@ -50,13 +50,15 @@ test.describe("condition guide", () => {
     expect(preLoved).toBe(collection)
     await page.goto("/pre-loved")
     await waitForHydration(page)
+    await expect(page.getByRole("checkbox", { name: /Like New/ })).toHaveCount(0)
+    await expect(page.getByRole("checkbox", { name: "Premium (4)" })).toBeVisible()
     const chip = page
       .locator("main article")
       .first()
       .getByText(/^Cond:/)
       .locator("..")
     await expect(chip).toHaveText(
-      /^Cond:\s*(Like New|Premium|Excellent|Very Good|Minor Issue)$/
+      /^Cond:\s*(Premium|Excellent|Very Good|Minor Issue)$/
     )
     await expect(
       page.getByRole("button", { name: /what condition grades mean/ })
@@ -80,7 +82,7 @@ test.describe("condition guide", () => {
   })
 
   // D-073: one vertical story, best grade first, alternating sides, everything visible at once.
-  test("lists the five grades top to bottom with score, parts and a shop link", async ({
+  test("lists the four grades top to bottom with score, parts and a shop link", async ({
     page,
   }) => {
     await page.goto("/condition-guide")
@@ -88,14 +90,14 @@ test.describe("condition guide", () => {
       page.getByRole("heading", { level: 2, name: "Our Shoe Condition Guide" })
     ).toBeVisible()
     const blocks = page.locator("main article")
-    await expect(blocks).toHaveCount(5)
+    await expect(blocks).toHaveCount(4)
     for (const [index, grade] of GRADES.entries()) {
       const block = blocks.nth(index)
       await expect(block.getByRole("heading", { level: 3 })).toHaveText(grade)
-      await expect(block).toContainText(`Grade ${index + 1} of 5`)
+      await expect(block).toContainText(`Grade ${index + 1} of 4`)
       await expect(
         block.getByRole("img", {
-          name: `Condition score: ${5 - index} out of 5`,
+          name: `Condition score: ${4 - index} out of 4`,
         })
       ).toBeVisible()
       await expect(block.locator("dt")).toHaveText([
@@ -176,6 +178,6 @@ test.describe("condition guide without JavaScript", () => {
       ).toBeVisible()
     await expect(
       page.getByRole("img", { name: /^Condition score/ })
-    ).toHaveCount(5)
+    ).toHaveCount(4)
   })
 })

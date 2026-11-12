@@ -6,7 +6,7 @@ export type SuggestProduct = {
   title: string
   brand: string
   kind: "new" | "preloved"
-  /** "Like New", "Excellent"… for pre-loved pairs. */
+  /** Condition label such as "Premium" or "Excellent" for pre-loved pairs. */
   condition: string | null
   image: { url: string; alt: string } | null
   price: { amount: number; compareAt: number | null; currency: CurrencyCode }

@@ -47,6 +47,8 @@ Generated from `server/admin/permissions.ts` (`pnpm admin:docs`); `tests/unit/ad
 | `content:read` — See pages and FAQs | ✓ | ✓ | ✓ |  | ✓ | ✓ |  |  |  | ✓ |
 | `content:write` — Edit pages and FAQs | ✓ | ✓ | ✓ |  | ✓ |  |  |  |  |  |
 | `content:publish` — Publish pages and FAQs | ✓ | ✓ | ✓ |  | ✓ |  |  |  |  |  |
+| `reviews:read` — See customer reviews | ✓ | ✓ | ✓ |  | ✓ |  |  |  |  | ✓ |
+| `reviews:write` — Approve, hide and feature customer reviews | ✓ | ✓ | ✓ |  | ✓ |  |  |  |  |  |
 | **Money** | | | | | | | | | | |
 | `payments:read` — See payments and refunds | ✓ | ✓ | ✓ |  |  |  |  |  | ✓ | ✓ |
 | `payments:reconcile` — Reconcile payments | ✓ | ✓ | ✓ |  |  |  |  |  | ✓ |  |

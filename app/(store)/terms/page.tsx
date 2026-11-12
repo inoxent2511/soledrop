@@ -8,7 +8,7 @@ import { PolicyDocument } from "@/features/content/components/policy-document"
 export const metadata: Metadata = {
   title: termsDocument.title,
   description:
-    "How shopping, ordering, paying and returns work at Soledrop, for Brand New and Pre-Loved footwear in Pakistan.",
+    "How shopping, ordering, paying and returns work at SOLEDROP, for Brand New and Pre-Loved footwear in Pakistan.",
   alternates: { canonical: "/terms" },
 }
 

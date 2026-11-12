@@ -35,7 +35,7 @@ async function metadata(connection) {
 /** Data only: restore the authoritative forward schema before importing this snapshot. */
 export async function backupDatabase(connection, outputFile) {
   await configureConnection(connection)
-  const info = await metadata(connection), mediaPaths = []
+  const info = await metadata(connection), mediaPaths = [], reviewImagePaths = []
   /** @type {Record<string, number>} */
   const counts = {}
   const output = await fs.open(outputFile, "wx", 0o600), hash = createHash("sha256")
@@ -53,6 +53,11 @@ export async function backupDatabase(connection, outputFile) {
       for await (const row of stream) {
         counts[table.name]++
         if (table.name === "media") mediaPaths.push(row.path)
+        if (table.name === "customer_reviews") {
+          const keys = JSON.parse(row.image_keys)
+          if (!Array.isArray(keys) || keys.some((key) => typeof key !== "string")) throw new Error("Invalid review image list")
+          reviewImagePaths.push(...keys)
+        }
         batch.push("(" + names.map((name) => literal(row[name])).join(",") + ")")
         if (batch.length === 100) { await write(insert(table.name, quoted, batch)); batch = [] }
       }
@@ -60,7 +65,7 @@ export async function backupDatabase(connection, outputFile) {
     }
     await write("COMMIT;\nSET FOREIGN_KEY_CHECKS=1;\n")
     await connection.commit()
-    return { engine: info.engine, sha256: hash.digest("hex"), counts, mediaPaths }
+    return { engine: info.engine, sha256: hash.digest("hex"), counts, mediaPaths, reviewImagePaths }
   } catch (error) {
     await connection.rollback()
     throw error
@@ -113,7 +118,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   try {
     const result = action === "backup" ? await backupDatabase(connection, resolved) : await restoreDatabase(connection, resolved, JSON.parse(await fs.readFile(resolved + ".manifest.json", "utf8")).sha256)
     // A path list is private handoff input, never routine terminal output.
-    if (action === "backup") { await fs.writeFile(resolved + ".manifest.json", JSON.stringify(result, null, 2), { flag: "wx", mode: 0o600 }); delete result.mediaPaths }
+    if (action === "backup") { await fs.writeFile(resolved + ".manifest.json", JSON.stringify(result, null, 2), { flag: "wx", mode: 0o600 }); delete result.mediaPaths; delete result.reviewImagePaths }
     process.stdout.write(JSON.stringify(result) + "\n")
   } finally { await connection.end() }
 }

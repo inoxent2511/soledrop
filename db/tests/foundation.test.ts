@@ -81,6 +81,7 @@ for (const [engine, config] of engines) describe(engine + " foundation", () => {
       await expect(app.execute("INSERT INTO brands (id, store_id, slug, name) VALUES (?, ?, 'UPPER', 'Invalid')", [brand, store])).rejects.toBeDefined()
       await app.execute("INSERT INTO brands (id, store_id, slug, name) VALUES (?, ?, 'schema-probe', 'Schema')", [brand, store])
       await app.execute("INSERT INTO products (id, store_id, slug, title, brand_id, kind, gender) VALUES (?, ?, 'schema-probe', 'Schema', ?, 'new', 'unisex')", [product, store, brand])
+      await expect(app.execute("INSERT INTO products (id, store_id, slug, title, brand_id, kind, gender, condition_grade) VALUES (?, ?, 'retired-grade', 'Retired grade', ?, 'preloved', 'unisex', 'like-new')", [uuidToBytes(randomUUID()), store, brand])).rejects.toBeDefined()
       await app.execute("INSERT INTO variants (id, product_id, sku, size_eu, size_uk, size_us, size_cm) VALUES (?, ?, ?, '42', '8', '9', '27')", [variant, product, randomUUID()])
       const foreignStore = uuidToBytes(randomUUID()), ownList = uuidToBytes(randomUUID()), foreignList = uuidToBytes(randomUUID())
       await app.execute("INSERT INTO stores(id,name) VALUES (?, 'Foreign scope')", [foreignStore])

@@ -10,9 +10,9 @@ export const siteConfig = {
   dir: "ltr",
   currency: "PKR",
   contact: {
-    whatsappLabel: "+9333-333333",
-    whatsappHref: "https://wa.me/929333333333",
-    email: "Soledropofficial@gmail.com",
+    whatsappLabel: "03045163651",
+    whatsappHref: "https://wa.me/923045163651",
+    email: "support@soledrop.store",
     address: "237, street no 5, Karachi",
     /** Support days from the design; the opening times are the owner's to supply (null hides the line). */
     supportDays: "Mon - Sat",

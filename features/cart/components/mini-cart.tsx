@@ -97,9 +97,14 @@ export function MiniCart({ className }: { className: string }) {
               <BagIcon className="size-12" />
               <p className="text-22 font-extrabold uppercase">Your bag is empty</p>
               <p className="text-16 text-subtle-foreground">New drops land every week — find your next pair.</p>
-              <Dialog.Close nativeButton={false} render={<Link href="/new-arrivals" />} className={buttonVariants({ tone: "brand", size: "card" })}>
-                Shop new arrivals
-              </Dialog.Close>
+              <div className="flex w-full max-w-80 gap-3">
+                <Dialog.Close nativeButton={false} render={<Link href="/collections/brand-new" />} className={cn(buttonVariants({ tone: "brand", size: "card" }), "min-w-0 flex-1")}>
+                  Brand New
+                </Dialog.Close>
+                <Dialog.Close nativeButton={false} render={<Link href="/pre-loved" />} className={cn(buttonVariants({ tone: "outline", size: "card" }), "min-w-0 flex-1")}>
+                  Pre-Loved
+                </Dialog.Close>
+              </div>
             </div>
           ) : (
             <>

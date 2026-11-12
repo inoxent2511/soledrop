@@ -27,7 +27,7 @@ export function QuickAdd({ product }: { product: CardProduct }) {
 
   function onAdd() {
     if (!variantId) {
-      setMessage({ tone: "error", text: "Choose a size first" })
+      setMessage({ tone: "error", text: "Please choose a size first." })
       document.getElementById(`${id}-${product.sizes.find((size) => size.available)?.variantId}`)?.focus()
       return
     }
@@ -41,10 +41,11 @@ export function QuickAdd({ product }: { product: CardProduct }) {
   }
 
   const soldOut = !product.inStock
+  const error = message?.tone === "error" ? message.text : null
 
   return (
     <>
-      <fieldset className="flex min-h-10 flex-col gap-2">
+      <fieldset className="flex min-h-10 flex-col gap-2" aria-describedby={error ? `${id}-error` : undefined}>
         <legend className="sr-only">Size (EU) for {product.title}</legend>
         <div className="flex flex-wrap gap-2.5">
           {product.sizes.map((size) => (
@@ -76,7 +77,12 @@ export function QuickAdd({ product }: { product: CardProduct }) {
           ))}
         </div>
       </fieldset>
-      <div className="relative">
+      {error ? (
+        <p id={`${id}-error`} role="alert" className="rounded-md border border-destructive/25 bg-destructive/5 px-3 py-2 text-14 leading-5 font-semibold text-destructive">
+          {error}
+        </p>
+      ) : null}
+      <div>
         <button
           type="button"
           onClick={onAdd}
@@ -86,9 +92,7 @@ export function QuickAdd({ product }: { product: CardProduct }) {
           {soldOut ? "Sold out" : add.isPending ? "Adding…" : message?.tone === "ok" ? "Added ✓" : "Add to cart"}
           <span className="sr-only">: {product.title}</span>
         </button>
-        <p role="status" aria-live="polite" className={cn("absolute inset-x-0 top-full pt-1 text-14 font-semibold", message?.tone === "error" ? "text-destructive" : "sr-only")}>
-          {message?.text}
-        </p>
+        <p role="status" aria-live="polite" className="sr-only">{message?.tone === "ok" ? message.text : ""}</p>
       </div>
     </>
   )

@@ -15,6 +15,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`collection_products` TO 'sol
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`collections` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`contact_messages` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`custom_field_definitions` TO 'soledrop_app'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`customer_reviews` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`customer_security` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `soledrop`.`customers` TO 'soledrop_app'@'localhost';
 GRANT SELECT, INSERT ON `soledrop`.`data_imports` TO 'soledrop_app'@'localhost';

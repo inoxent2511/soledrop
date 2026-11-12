@@ -1,10 +1,11 @@
 import Image from "next/image"
+import type { Collection } from "@/server/catalog/types"
 
 type CollectionBannerProps = {
   title: string
   headline: [string, string]
   description: string
-  image: { url: string; alt: string } | null
+  image: Collection["image"]
 }
 
 /**
@@ -13,6 +14,13 @@ type CollectionBannerProps = {
  * is only spoken ahead of the headline when the headline says something else.
  */
 export function CollectionBanner({ title, headline, description, image }: CollectionBannerProps) {
+  if (image?.mode === "full") {
+    return <div className="overflow-hidden rounded-3xl bg-foreground md:rounded-banner">
+      <h1 className="sr-only">{title}</h1>
+      <Image src={image.url} alt={image.alt} width={image.width} height={image.height} priority sizes="100vw" className="block h-auto w-full" />
+    </div>
+  }
+  if (!image) return <h1 className="py-8 text-48 font-black uppercase md:text-68">{title}</h1>
   const titled = headline.join(" ").toLowerCase() !== title.toLowerCase()
   return (
     <div className="relative isolate flex overflow-hidden rounded-3xl bg-foreground text-background md:rounded-banner 3xl:h-105">

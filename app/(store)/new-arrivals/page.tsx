@@ -56,7 +56,7 @@ export default async function NewArrivalsPage({ searchParams }: Props) {
           title="New Arrivals"
           headline={["New", "Arrivals"]}
           description={DESCRIPTION}
-          image={collection?.image ? { url: collection.image.url, alt: collection.image.alt } : null}
+          image={collection?.image ?? null}
         />
         <KindTabs page={TABS_PAGE} tabs={tabs} initialTab={initialTab} initialShown={initialShown} />
       </Container>

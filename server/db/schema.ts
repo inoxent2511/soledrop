@@ -104,6 +104,23 @@ export const contactMessages = mysqlTable("contact_messages", {
   createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
 })
 
+export const customerReviews = mysqlTable("customer_reviews", {
+  id: uuid("id").notNull(),
+  storeId: uuid("store_id").notNull(),
+  productId: uuid("product_id"),
+  displayName: varchar("display_name", { length: 80 }).notNull(),
+  email: varchar("email", { length: 254 }).notNull(),
+  rating: tinyint("rating").notNull(),
+  title: varchar("title", { length: 120 }).notNull(),
+  body: text("body").notNull(),
+  imageKeys: portableJson("image_keys").notNull(),
+  status: varchar("status", { length: 16 }).notNull().default("pending"),
+  featured: tinyint("featured").notNull().default(0),
+  createdAt: datetime("created_at", { mode: "string", fsp: 3 }).notNull().$defaultFn(sqlNow),
+  moderatedAt: datetime("moderated_at", { mode: "string", fsp: 3 }),
+  moderatedBy: uuid("moderated_by"),
+})
+
 export const customFieldDefinitions = mysqlTable("custom_field_definitions", {
   storeId: uuid("store_id").notNull(),
   entity: varchar("entity", { length: 190 }).notNull(),

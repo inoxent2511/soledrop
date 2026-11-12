@@ -3,9 +3,11 @@
  * text is stored word for word, and bracketed fields in the owner's documents are `{ field }` tokens.
  */
 
-/** Business details only the owner can supply, shared by every legal page. Null shows as a marked gap. */
+/** Business details shared by every legal page. Unknown addresses still show as marked gaps. */
+export const legalPublicationDate = "2026-11-11"
+
 export const legalOwnerDetails = {
-  legalName: null as string | null,
+  legalName: "SOLEDROP" as string | null,
   registeredAddress: null as string | null,
   postalAddress: null as string | null,
 }
@@ -25,8 +27,8 @@ export type LegalField =
 
 /** The owner's bracketed labels, shown as-is while a detail is still missing. */
 export const legalPlaceholders: Record<LegalField, string> = {
-  effectiveDate: "[DATE OF PUBLICATION]",
-  legalName: "[REGISTERED LEGAL BUSINESS NAME]",
+  effectiveDate: "11/11/2026",
+  legalName: "SOLEDROP",
   registeredAddress: "[REGISTERED BUSINESS ADDRESS]",
   postalAddress: "[BUSINESS POSTAL ADDRESS]",
   website: "[WEBSITE ADDRESS]",
@@ -68,7 +70,7 @@ export type LegalSection = {
 export type LegalDocument = {
   title: string
   subtitle: string
-  /** "Effective date: [DATE OF PUBLICATION]", as an ISO date (YYYY-MM-DD); null until the owner publishes. */
+  /** The effective date as an ISO date (YYYY-MM-DD). */
   effectiveDate: string | null
   /** What the document is called in running text ("these terms", "this policy"). */
   noun: string
@@ -76,8 +78,6 @@ export type LegalDocument = {
   /** The "at a glance" panel: pointers into the full text, never a replacement for it. */
   highlights: { title: string; text: string; section: string }[]
   sections: LegalSection[]
-  /** Notes in the owner's document meant for the owner, not shoppers; shown in the draft notice until removed. */
-  ownerNotes?: string[]
   /** The closing section, rendered as the dark contact card. */
   contact: {
     id: string

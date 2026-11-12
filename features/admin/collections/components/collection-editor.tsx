@@ -117,24 +117,20 @@ export function CollectionEditor({ initial, canWrite, canUpload = false }: { ini
               update({ slug: event.target.value })
             }}
           />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <AdminField formId={id} name="headline0" label="Headline, first line" maxLength={40} value={form.headline[0]} onChange={(event) => update({ headline: [event.target.value, form.headline[1]] })} />
-            <AdminField formId={id} name="headline1" label="Headline, second line" maxLength={40} value={form.headline[1]} onChange={(event) => update({ headline: [form.headline[0], event.target.value] })} />
-          </div>
-          <AdminTextarea formId={id} name="description" label="Description" maxLength={1000} value={form.description} onChange={(event) => update({ description: event.target.value })} />
         </fieldset>
       </AdminCard>
 
-      <AdminCard title="Banner image">
+      <AdminCard title="Complete page banner" description="Upload one finished image with its headline and other words already included. New banners display edge to edge without separate text. Keep important words readable on phones.">
         {form.image ? <div className="flex flex-col items-start gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element -- admin media preview */}
           <img src={form.image.url} alt={form.image.alt} width={240} height={120} className="h-32 w-60 rounded-md bg-surface object-contain" />
-          <AdminField formId={id} name="image-alt" label="Banner alt text" value={form.image.alt} disabled={!hydrated || !canWrite || busy} onChange={(event) => update({ image: { ...form.image!, alt: event.target.value } })} />
+          <AdminField formId={id} name="image-alt" label="Image description (screen readers)" value={form.image.alt} disabled={!hydrated || !canWrite || busy} onChange={(event) => update({ image: { ...form.image!, alt: event.target.value } })} />
+          {form.image.mode !== "full" ? <p className="text-14 text-subtle-foreground">Legacy banner: replace this photo with complete artwork to remove the overlaid headline and description.</p> : null}
           {canWrite ? <button type="button" disabled={busy} onClick={() => update({ image: null })} className={adminButton({ tone: "ghost" })}>Remove banner</button> : null}
         </div> : <p className="text-16 text-subtle-foreground">No banner image.</p>}
-        {canWrite ? <button type="button" disabled={busy} onClick={() => setPicker(true)} className={adminButton({ tone: "secondary" })}>Choose banner image</button> : null}
+        {canWrite ? <button type="button" disabled={busy} onClick={() => setPicker(true)} className={adminButton({ tone: "secondary" })}>Upload or choose complete banner image</button> : null}
       </AdminCard>
-      <MediaPicker open={picker} onOpenChange={setPicker} chosen={form.image ? [form.image.url] : []} canUpload={canUpload} onPick={(item) => { update({ image: { url: item.url, alt: item.alt, width: item.width, height: item.height } }); setPicker(false) }} />
+      <MediaPicker open={picker} onOpenChange={setPicker} chosen={form.image ? [form.image.url] : []} canUpload={canUpload} onPick={(item) => { update({ image: { url: item.url, alt: item.alt, width: item.width, height: item.height, mode: "full" } }); setPicker(false) }} />
 
       <AdminCard title="Products">
         <fieldset disabled={!hydrated || !canWrite} className="min-w-0 flex flex-col gap-4">

@@ -103,5 +103,13 @@ export const expectedMigrations = [
   {
     "name": "0026_inventory_available_index.sql",
     "checksum": "52d7ccb1b77c6a7d21ee4201e2c767cad29e0bcf231d44741fd12b3cc9f1441b"
+  },
+  {
+    "name": "0027_customer_reviews.sql",
+    "checksum": "390063db807029cad8ca3b91996e829ef574df0243db8ed1d9f39102ef7b7c53"
+  },
+  {
+    "name": "0028_retire_like_new_grade.sql",
+    "checksum": "5712ff2d95409d004b08f87c19cfacd3fffdfc0ab9e74aca6ebda8809f716635"
   }
 ] as const

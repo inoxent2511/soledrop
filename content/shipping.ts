@@ -1,16 +1,11 @@
 /**
  * Shipping & Delivery Policy (D-056): the owner's text (Shipping & Delivery Policy.pdf), word for
  * word, for /shipping. "Standard shipping" is filled from the store's live rates; section 3's note to
- * the owner ("Proposed operational target — confirm before publishing") is an owner note instead.
+ * the owner ("Proposed operational target — confirm before publishing") is omitted from the shopper-facing policy.
  */
-import type {
-  LegalDocument,
-  LegalParagraph,
-  LegalSection,
-} from "@/content/legal"
+import { legalPublicationDate, type LegalDocument, type LegalParagraph, type LegalSection } from "@/content/legal"
 
-/** "Effective date: [DATE OF PUBLICATION]", as an ISO date (YYYY-MM-DD); null until the owner publishes. */
-const effectiveDate: string | null = null
+const effectiveDate = legalPublicationDate
 
 const shippingIntro: LegalParagraph = [
   "We want delivery information to be clear before you pay. This policy covers Brand New, Pre-Loved, and mixed orders placed for delivery within Pakistan.",
@@ -142,15 +137,12 @@ const shippingSections: LegalSection[] = [
 
 export const shippingDocument: LegalDocument = {
   title: "Shipping & Delivery Policy",
-  subtitle: "Soledrop | Delivering Your Next Pair",
+  subtitle: "SOLEDROP | Delivering Your Next Pair",
   effectiveDate,
   noun: "this policy",
   intro: shippingIntro,
   highlights: shippingHighlights,
   sections: shippingSections,
-  ownerNotes: [
-    "Confirm the processing and delivery times in section 3 (a proposed operational target in your document).",
-  ],
   // Section 9 of the owner's document.
   contact: {
     id: "delivery-questions",

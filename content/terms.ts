@@ -4,6 +4,7 @@
  */
 import {
   legalLinks,
+  legalPublicationDate,
   type LegalDocument,
   type LegalParagraph,
   type LegalSection,
@@ -11,11 +12,10 @@ import {
 
 const { shipping, returns, privacy, conditionGuide } = legalLinks
 
-/** "Effective date: [DATE OF PUBLICATION]", as an ISO date (YYYY-MM-DD); null until the owner publishes. */
-const effectiveDate: string | null = null
+const effectiveDate = legalPublicationDate
 
 const termsIntro: LegalParagraph = [
-  "Welcome to Soledrop. We sell Brand New and Pre-Loved footwear to customers in Pakistan. These Terms & Conditions explain how shopping, placing an order, paying, and using our website work. Please read them together with our ",
+  "Welcome to SOLEDROP. We sell Brand New and Pre-Loved footwear to customers in Pakistan. These Terms & Conditions explain how shopping, placing an order, paying, and using our website work. Please read them together with our ",
   shipping,
   ", ",
   returns,
@@ -61,9 +61,9 @@ const termsSections: LegalSection[] = [
     short: "Who we are",
     paragraphs: [
       [
-        "“Soledrop,” “we,” “our,” and “us” refer to ",
+        "“SOLEDROP,” “we,” “our,” and “us” refer to ",
         { field: "legalName" },
-        ", trading as Soledrop, at ",
+        ", at ",
         { field: "registeredAddress" },
         ". Our website is ",
         { field: "website" },
@@ -91,7 +91,7 @@ const termsSections: LegalSection[] = [
         title: "Pre-Loved",
         tone: "plain",
         paragraph: [
-          "Footwear owned or used before, with an individual condition grade and photographs or other expressly labeled visual references. Pre-Loved shoes may have cosmetic signs of wear and age-related characteristics described on the product page. Our five grades are ",
+          "Footwear owned or used before, with an individual condition grade and photographs or other expressly labeled visual references. Pre-Loved shoes may have cosmetic signs of wear and age-related characteristics described on the product page. Our four grades are ",
           { grades: true },
           ". See the ",
           conditionGuide,
@@ -131,7 +131,7 @@ const termsSections: LegalSection[] = [
     short: "Orders & acceptance",
     paragraphs: [
       [
-        "Submitting an order is a request to purchase. We accept it once it has been confirmed for fulfillment by Soledrop. An automatic order-received message is not a guarantee that an item remains available. We may need to verify payment, address details, or an item’s condition. If a pair is unavailable or fails a final quality check, we will offer a suitable alternative only with your consent or cancel the affected item and refund any payment received for it.",
+        "Submitting an order is a request to purchase. We accept it once it has been confirmed for fulfillment by SOLEDROP. An automatic order-received message is not a guarantee that an item remains available. We may need to verify payment, address details, or an item’s condition. If a pair is unavailable or fails a final quality check, we will offer a suitable alternative only with your consent or cancel the affected item and refund any payment received for it.",
       ],
     ],
   },
@@ -185,7 +185,7 @@ const termsSections: LegalSection[] = [
     short: "Brands & IP",
     paragraphs: [
       [
-        "Third-party shoe brand names and logos are used only where necessary to identify products. Such use does not imply that Soledrop is an official retailer, licensee, or partner unless that relationship is expressly verified and stated. Soledrop’s own logo, copy, designs, and original photographs may not be reproduced commercially without permission, except where the law allows. Please report any suspected inaccurate brand labeling or intellectual-property concern to support.",
+        "Third-party shoe brand names and logos are used only where necessary to identify products. Such use does not imply that SOLEDROP is an official retailer, licensee, or partner unless that relationship is expressly verified and stated. SOLEDROP’s own logo, copy, designs, and original photographs may not be reproduced commercially without permission, except where the law allows. Please report any suspected inaccurate brand labeling or intellectual-property concern to support.",
       ],
     ],
   },
@@ -225,7 +225,7 @@ const termsSections: LegalSection[] = [
 
 export const termsDocument: LegalDocument = {
   title: "Terms & Conditions",
-  subtitle: "Soledrop | Website & Orders",
+  subtitle: "SOLEDROP | Website & Orders",
   effectiveDate,
   noun: "these terms",
   intro: termsIntro,

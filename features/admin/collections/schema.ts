@@ -21,7 +21,7 @@ export const collectionInput = z.object({
   rules: z.array(collectionRule).max(10).default([]),
   seo: z.object({ title: z.string().trim().max(70).optional(), description: z.string().trim().max(160).optional() }).default({}),
   productIds: z.array(z.uuid()).max(2000).nullable().default(null),
-  image: z.object({ url: z.string().regex(/^\/(?:media\/|images\/)[^\s\\]+$/, "Choose an uploaded image"), alt: z.string().trim().max(300), width: z.number().int().positive(), height: z.number().int().positive() }).nullable().optional(),
+  image: z.object({ url: z.string().regex(/^\/(?:media\/|images\/)[^\s\\]+$/, "Choose an uploaded image"), alt: z.string().trim().max(300), width: z.number().int().positive(), height: z.number().int().positive(), mode: z.literal("full").optional() }).refine((value) => value.mode !== "full" || Boolean(value.alt), "Describe the complete banner for screen readers").nullable().optional(),
 })
 
 export type CollectionInput = z.infer<typeof collectionInput>

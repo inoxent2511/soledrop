@@ -7,16 +7,16 @@ import { IMAGE_WIDTHS, LEGACY_IMAGE_WIDTHS } from "../lib/image-variants.mjs"
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex")
 
 /** Copy metadata-referenced originals and every prepared variant, retaining immutable disk keys. */
-export async function backupUploads(sourceDirectory, targetDirectory, mediaPaths) {
+export async function backupUploads(sourceDirectory, targetDirectory, mediaPaths, reviewImagePaths = []) {
   const source = path.resolve(sourceDirectory), target = path.resolve(targetDirectory)
   if (source === target || target.startsWith(source + path.sep) || source.startsWith(target + path.sep)) throw new Error("Separate upload backup directories are required")
   const sourceStat = await fs.lstat(source)
   if (!sourceStat.isDirectory() || sourceStat.isSymbolicLink()) throw new Error("Invalid source storage directory")
   await fs.mkdir(target, { mode: 0o700 })
   const files = []
-  for (const key of new Set(mediaPaths)) {
+  for (const key of new Set([...mediaPaths, ...reviewImagePaths])) {
     if (typeof key !== "string" || !key || key.length > 512 || /[\\\x00-\x1f]/.test(key) || path.isAbsolute(key) || key.split("/").some((part) => !part || part === "." || part === "..")) throw new Error("Invalid media key")
-    const keys = [key, ...[1, 2].flatMap((version) => (version === 1 ? LEGACY_IMAGE_WIDTHS : IMAGE_WIDTHS).flatMap((width) => [key + ".v" + version + ".w" + width + ".webp", key + ".v" + version + ".w" + width + ".avif"]))]
+    const keys = reviewImagePaths.includes(key) ? [key] : [key, ...[1, 2].flatMap((version) => (version === 1 ? LEGACY_IMAGE_WIDTHS : IMAGE_WIDTHS).flatMap((width) => [key + ".v" + version + ".w" + width + ".webp", key + ".v" + version + ".w" + width + ".avif"]))]
     for (const objectKey of keys) {
       const hash = sha256(objectKey), relative = hash.slice(0, 2) + "/" + hash, origin = path.join(source, relative), destination = path.join(target, relative)
       const parent = await fs.lstat(path.dirname(origin)), stat = await fs.lstat(origin)
@@ -27,7 +27,7 @@ export async function backupUploads(sourceDirectory, targetDirectory, mediaPaths
       files.push({ file: relative, bytes: bytes.length, sha256: sha256(bytes) })
     }
   }
-  return { originals: new Set(mediaPaths).size, files }
+  return { originals: new Set([...mediaPaths, ...reviewImagePaths]).size, files }
 }
 
 export async function verifyUploads(directory, manifest) {
@@ -49,7 +49,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const root = process.cwd(), target = path.resolve(destination)
   if ((target === root || target.startsWith(root + path.sep)) && !target.startsWith(path.resolve(".data") + path.sep)) throw new Error("Uploads must remain outside release sources")
   const input = JSON.parse(await fs.readFile(manifestFile, "utf8"))
-  const manifest = await backupUploads(source, destination, input.mediaPaths)
+  const manifest = await backupUploads(source, destination, input.mediaPaths, input.reviewImagePaths ?? [])
   await fs.writeFile(destination + ".manifest.json", JSON.stringify(manifest, null, 2), { flag: "wx", mode: 0o600 })
   process.stdout.write(JSON.stringify(await verifyUploads(destination, manifest)) + "\n")
 }

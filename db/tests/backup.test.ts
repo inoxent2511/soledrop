@@ -20,10 +20,13 @@ for (const [engine] of engines) it(engine + " backup restores binary IDs, defaul
     await read.execute("INSERT INTO customers (id,store_id,email,password_hash,full_name) VALUES (?,?,?,?,?)", [customer, id, "backup@example.test", "fake-test-hash", text])
     await read.execute("INSERT INTO addresses (id,customer_id,full_name,phone,line1,city,province,is_default) VALUES (?,?,?,?,?,?,?,1)", [address, customer, text, "03000000000", text, "Karachi", "Sindh"])
     await read.execute("INSERT INTO audit_log (id,actor,action,entity,entity_id,`before`,`after`,store_id) VALUES (?,?,?,?,?,?,?,?)", [Buffer.alloc(16, 68), "test", "backup", "test", "test", null, JSON.stringify({ text, nested: [true, null, 1499900] }), id])
+    const reviewImageKey = "reviews/" + id.toString("hex") + "/sample/0.webp"
+    await read.execute("INSERT INTO customer_reviews (id,store_id,display_name,email,rating,title,body,image_keys,status) VALUES (?,?,?,?,?,?,?,?,?)", [Buffer.alloc(16, 77), id, "Reviewer", "reviewer@example.test", 5, "Great pair", "The photos and size guide matched exactly.", JSON.stringify([reviewImageKey]), "approved"])
     const file = path.join(directory, "data.sql"), snapshot = await backupDatabase(read, file)
     const sql = await fs.readFile(file, "utf8")
     expect(snapshot.sha256).toBe(digest(sql))
     expect(snapshot.counts.stores).toBe(1)
+    expect(snapshot.reviewImagePaths).toEqual([reviewImageKey])
     expect(sql).not.toContain("default_customer")
     expect(sql).not.toContain(text)
     await expect(restoreDatabase(write, file, "f".repeat(64))).rejects.toThrow("checksum mismatch")
@@ -33,7 +36,7 @@ for (const [engine] of engines) it(engine + " backup restores binary IDs, defaul
     const [empty] = await write.query("SELECT id FROM stores")
     expect(empty).toEqual([])
     await restoreDatabase(write, file, snapshot.sha256)
-    for (const table of ["stores", "customers", "addresses", "audit_log", "schema_migrations"]) {
+    for (const table of ["stores", "customers", "addresses", "audit_log", "customer_reviews", "schema_migrations"]) {
       const [before] = await read.query("SELECT * FROM `" + table + "`")
       const [after] = await write.query("SELECT * FROM `" + table + "`")
       expect(after).toEqual(before)

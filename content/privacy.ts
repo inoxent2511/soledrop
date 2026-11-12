@@ -1,18 +1,13 @@
 /**
- * Privacy Policy (D-055): the owner's text (Privacy Policy.pdf), word for word, for /privacy. The
- * intro's note to the owner ("Please replace the placeholder details…") is the draft notice instead.
+ * Privacy Policy (D-055): the owner's text (Privacy Policy.pdf), word for word, for /privacy.
+ * The owner's preparation note is omitted from the shopper-facing policy.
  */
-import type {
-  LegalDocument,
-  LegalParagraph,
-  LegalSection,
-} from "@/content/legal"
+import { legalPublicationDate, type LegalDocument, type LegalParagraph, type LegalSection } from "@/content/legal"
 
-/** "Effective date: [DATE OF PUBLICATION]", as an ISO date (YYYY-MM-DD); null until the owner publishes. */
-const effectiveDate: string | null = null
+const effectiveDate = legalPublicationDate
 
 const privacyIntro: LegalParagraph = [
-  "Your trust matters to Soledrop. This Privacy Policy explains what personal information we collect, why we need it, who helps us process it, and how you can contact us about your information. It applies to our website and customer service interactions.",
+  "Your trust matters to SOLEDROP. This Privacy Policy explains what personal information we collect, why we need it, who helps us process it, and how you can contact us about your information. It applies to our website and customer service interactions.",
 ]
 
 const privacyHighlights = [
@@ -46,7 +41,7 @@ const privacySections: LegalSection[] = [
     paragraphs: [
       [
         { field: "legalName" },
-        ", trading as Soledrop, at ",
+        ", at ",
         { field: "postalAddress" },
         ", manages the customer information described here. For privacy requests, contact ",
         { field: "privacyEmail" },
@@ -84,7 +79,7 @@ const privacySections: LegalSection[] = [
         title: "Payment information",
         tone: "brand",
         paragraph: [
-          "Payment status, transaction references, and limited payment details returned by approved payment services. Card numbers and security codes should be handled by the payment provider, not requested by Soledrop through ordinary chat.",
+          "Payment status, transaction references, and limited payment details returned by approved payment services. Card numbers and security codes should be handled by the payment provider, not requested by SOLEDROP through ordinary chat.",
         ],
       },
     ],
@@ -176,12 +171,9 @@ const privacySections: LegalSection[] = [
 
 export const privacyDocument: LegalDocument = {
   title: "Privacy Policy",
-  subtitle: "Soledrop | Customer Information",
+  subtitle: "SOLEDROP | Customer Information",
   effectiveDate,
   noun: "this policy",
-  ownerNotes: [
-    "Verify that the policy matches the website's actual tools (cookies, analytics, payment and messaging providers).",
-  ],
   intro: privacyIntro,
   highlights: privacyHighlights,
   sections: privacySections,

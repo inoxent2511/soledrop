@@ -42,7 +42,7 @@ const serverSchema = z
     SMTP_USER: optionalSecret,
     SMTP_PASS: optionalSecret,
     SMTP_HOURLY_LIMIT: z.coerce.number().int().min(1).max(100000).default(100),
-    EMAIL_FROM: z.string().default("Sole Drop <orders@soledrop.local>"),
+    EMAIL_FROM: z.string().default("Sole Drop <support@soledrop.store>"),
     STRIPE_SECRET_KEY: optionalSecret,
     STRIPE_WEBHOOK_SECRET: optionalSecret,
     TURNSTILE_SECRET_KEY: optionalSecret,

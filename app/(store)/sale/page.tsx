@@ -55,7 +55,7 @@ export default async function SalePage({ searchParams }: Props) {
           title="Sale"
           headline={["On", "Sale"]}
           description={collection?.description ?? "Marked-down pairs while sizes last."}
-          image={collection?.image ? { url: collection.image.url, alt: collection.image.alt } : null}
+          image={collection?.image ?? null}
         />
         <KindTabs page={TABS_PAGE} tabs={tabs} initialTab={initialTab} initialShown={initialShown} />
       </Container>

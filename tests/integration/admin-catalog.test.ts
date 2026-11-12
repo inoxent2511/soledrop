@@ -112,6 +112,7 @@ describe("staff products", () => {
     const { productInput } = await import("@/features/admin/products/schema")
     expect(productInput.safeParse(input({ kind: "preloved" })).success).toBe(false)
     expect(productInput.safeParse(input({ kind: "preloved", condition: "excellent" })).success).toBe(true)
+    expect(productInput.safeParse({ ...input({ kind: "preloved" }), condition: "like-new" }).success).toBe(false)
     expect(productInput.safeParse(input({ condition: "excellent" })).success).toBe(false)
 
     const product = await catalog().saveProduct(owner, meta, input(), {})

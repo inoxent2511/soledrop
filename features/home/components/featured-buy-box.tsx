@@ -101,7 +101,7 @@ export function FeaturedBuyBox({
         </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-4">
           <p className="flex flex-wrap items-baseline gap-x-4 uppercase">
-            <span className="text-34 font-semibold text-brand md:text-48">
+            <span className="text-34 font-bold text-brand md:text-48">
               {formatPrice(product.price.amount, product.price.currency)}
             </span>
             {product.price.compareAt ? (

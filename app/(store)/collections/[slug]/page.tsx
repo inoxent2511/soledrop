@@ -50,7 +50,7 @@ export default async function CollectionPage({ params, searchParams }: Props) {
           title={collection.title}
           headline={collection.headline}
           description={collection.description}
-          image={collection.image ? { url: collection.image.url, alt: collection.image.alt } : null}
+          image={collection.image}
         />
         <div className="3xl:pt-20">
           <ListingToolbar pathname={pathname} state={state} view={view} />

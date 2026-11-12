@@ -22,8 +22,10 @@ export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Karachi" })
 }
 
-/** Condition grade slug → label, as the Condition Guide writes it ("like-new" → "Like New"). */
+/** Condition grade slug → label, as the Condition Guide writes it ("very-good" → "Very Good"). */
 export function conditionLabel(grade: string): string {
+  // Older order snapshots retain their original grade value in storage.
+  if (grade === "like-new") return "Premium"
   return grade
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

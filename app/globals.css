@@ -8,6 +8,13 @@
 /* shadcn primitives read these names; they alias the derived design tokens (docs/app/design-tokens.json). */
 @theme inline {
   --font-heading: var(--font-display);
+  /* A quieter site-wide hierarchy: 800 for rare display emphasis, 700 for headings,
+     600 for strong labels, 500 for supporting emphasis, and 400 for reading text. */
+  --font-weight-black: 800;
+  --font-weight-extrabold: 700;
+  --font-weight-bold: 600;
+  --font-weight-semibold: 500;
+  --font-weight-medium: 400;
   --color-primary: var(--foreground);
   --color-primary-foreground: var(--background);
   --color-secondary: var(--surface);

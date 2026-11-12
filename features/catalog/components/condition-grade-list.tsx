@@ -3,7 +3,7 @@ import { conditionLabel } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { ConditionGrade } from "@/server/catalog/types"
 
-/** The five grades in their guide colours with this pair's grade outlined (the product page's grade dialog). */
+/** The four grades in their guide colours with this pair's grade outlined (the product page's grade dialog). */
 export function ConditionGradeList({ grade }: { grade: ConditionGrade }) {
   return (
     <ul className="flex flex-col gap-2">

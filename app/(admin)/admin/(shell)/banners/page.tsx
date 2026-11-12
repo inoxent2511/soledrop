@@ -11,17 +11,17 @@ export default async function BannersPage() {
   const staff = await permissionPage("content:read", "/admin/banners")
   const collections = can(staff, "collections:read") ? await staffCatalog().collections(staff) : []
   return <>
-    <PageHeader title="Banners & images" description="Change banner photos wherever they appear on the storefront. Upload photos directly in each editor or choose from Media." />
-    <AdminCard title="Homepage" description="Main hero slideshow, announcement, category card photos and Instagram strip. Reorder, replace or remove images and edit their alt text.">
+    <PageHeader title="Banners & images" description="Upload complete banner artwork with its words inside the image. New banners display as a single image without overlaid text." />
+    <AdminCard title="Homepage" description="Manage the main hero slideshow and category banners. Each upload can be one complete design. The announcement strip and Instagram photos are also managed here.">
       <Link prefetch={false} href="/admin/content/home" className={adminButton({ tone: "primary" })}>Edit homepage banners</Link>
     </AdminCard>
-    <AdminCard title="Page & collection banners" description="Each page uses its own collection banner. Updating an image here changes every route that displays that collection.">
+    <AdminCard title="Page & collection banners" description="New Arrivals, Pre-Loved, Sale and custom collections each use a complete uploaded banner image. Updating one changes every route that displays that collection.">
       <ul className="flex flex-col divide-y divide-border">
         {collections.map((collection) => <li key={collection.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
           <div className="flex items-center gap-3">
             {collection.image ? <>
               {/* eslint-disable-next-line @next/next/no-img-element -- admin banner preview */}
-              <img src={collection.image.url} alt="" width={100} height={60} className="h-16 w-24 rounded-md bg-surface object-cover" />
+              <img src={collection.image.url} alt="" width={100} height={60} className="h-16 w-24 rounded-md bg-surface object-contain" />
             </> : null}
             <div><p className="text-16 font-bold">{collection.title}</p><p className="text-14 text-subtle-foreground">{collection.slug === "new-arrivals" ? "/new-arrivals · " : ""}{collectionHref(collection.slug)}</p></div>
           </div>

@@ -18,7 +18,7 @@ import {
   type LegalParagraph,
   type LegalSection,
 } from "@/content/legal"
-import { conditionLabel, formatDate } from "@/lib/format"
+import { conditionLabel } from "@/lib/format"
 import { siteConfig } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
@@ -40,36 +40,7 @@ const linkClass = (tone: Tone) =>
 
 const number = (index: number) => String(index + 1).padStart(2, "0")
 
-/** Fields a page fills from live data rather than from the owner's details. */
-const LIVE_FIELDS: LegalField[] = ["standardShipping"]
-
-/** True while the effective date, a business detail, a live value or an owner note is still outstanding. */
-export const isPending = ({ document, values }: Context) =>
-  document.effectiveDate === null ||
-  Object.values(legalOwnerDetails).some((value) => value === null) ||
-  (document.ownerNotes?.length ?? 0) > 0 ||
-  usedFields(document).some(
-    (field) => LIVE_FIELDS.includes(field) && !values[field]
-  )
-
-/** Every field the document's text refers to. */
-function usedFields(document: LegalDocument): LegalField[] {
-  const paragraphs = [
-    document.intro,
-    ...document.sections.flatMap((section) => [
-      ...section.paragraphs,
-      ...(section.cards ?? []).map((card) => card.paragraph),
-    ]),
-    ...document.contact.paragraphs,
-  ]
-  return paragraphs
-    .flat()
-    .flatMap((run) =>
-      typeof run === "object" && "field" in run ? [run.field] : []
-    )
-}
-
-/** "Like New, Premium, Excellent, Very Good, and Minor Issue": the store's own grades, so a legal page never drifts from the Condition Guide. */
+/** The store's current grades, so a legal page never drifts from the Condition Guide. */
 const gradeList = (() => {
   const labels = gradeDetails.map((detail) => conditionLabel(detail.grade))
   return `${labels.slice(0, -1).join(", ")}, and ${labels.at(-1)}`
@@ -123,7 +94,7 @@ function FieldValue({
       )
     case "effectiveDate":
       return context.document.effectiveDate ? (
-        <>{formatDate(context.document.effectiveDate)}</>
+        <>{context.document.effectiveDate.split("-").reverse().join("/")}</>
       ) : (
         <Gap field={field} />
       )
@@ -558,10 +529,7 @@ function ContactCard({ context, index }: { context: Context; index: number }) {
       ))}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-10">
         <div className="flex flex-col gap-1">
-          <p className="text-20 font-extrabold">Soledrop</p>
-          <p className="text-16 text-muted-foreground md:text-18">
-            <FieldValue field="legalName" context={context} tone="dark" />
-          </p>
+          <p className="text-20 font-extrabold"><FieldValue field="legalName" context={context} tone="dark" /></p>
           <p className="text-16 text-muted-foreground md:text-18">
             <FieldValue field="postalAddress" context={context} tone="dark" />
           </p>
@@ -648,22 +616,6 @@ export function PolicyDocument({
             Effective date:{" "}
             <FieldValue field="effectiveDate" context={context} tone="light" />
           </p>
-          {isPending(context) ? (
-            <aside className="flex flex-col gap-1 rounded-xl border-s-4 border-brand bg-surface px-5 py-4">
-              <p className="text-16 font-bold md:text-18">
-                Draft for the owner&apos;s review
-              </p>
-              <p className="text-16 text-subtle-foreground">
-                Highlighted details are still to be confirmed. Have{" "}
-                {document.noun} reviewed before launch.
-              </p>
-              {document.ownerNotes?.map((note) => (
-                <p key={note} className="text-16 text-subtle-foreground">
-                  {note}
-                </p>
-              ))}
-            </aside>
-          ) : null}
           <Paragraph
             runs={document.intro}
             context={context}

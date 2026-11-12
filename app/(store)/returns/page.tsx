@@ -8,7 +8,7 @@ import { PolicyDocument } from "@/features/content/components/policy-document"
 export const metadata: Metadata = {
   title: returnsDocument.title,
   description:
-    "How returns, exchanges and refunds work at Soledrop for Brand New and Pre-Loved shoes: the 7-day window, conditions, return shipping and refund timing.",
+    "How returns, exchanges and refunds work at SOLEDROP for Brand New and Pre-Loved shoes: the 7-day window, conditions, return shipping and refund timing.",
   alternates: { canonical: "/returns" },
 }
 

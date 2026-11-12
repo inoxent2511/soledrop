@@ -8,7 +8,7 @@ export default async function AdminHomePage() {
   const staff = await permissionPage("content:read", "/admin/content/home")
   const home = await staffContent().home(staff)
   return <>
-    <PageHeader title="Homepage banners" description="Manage the announcement, hero, category cards and Instagram photos." crumbs={[{ label: "Banners & images", href: "/admin/banners" }]} />
+    <PageHeader title="Homepage banners" description="Upload finished hero and category banner images with all words included in the artwork." crumbs={[{ label: "Banners & images", href: "/admin/banners" }]} />
     <HomeEditor key={home?.updatedAt ?? "empty"} initial={home ?? { content: emptyHome, updatedAt: "" }} canPublish={can(staff, "content:publish")} canUpload={can(staff, "media:write")} />
   </>
 }

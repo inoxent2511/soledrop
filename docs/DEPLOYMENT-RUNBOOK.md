@@ -119,6 +119,17 @@ Use this release's backup/restore tools, which omit generated columns from data 
 The database recreates those values from the preserved quantities. No inventory seed or stock
 reset is required for this upgrade.
 
+For the customer reviews and condition-grade release, apply
+`db/dist/0027_customer_reviews.sql` and then `db/dist/0028_retire_like_new_grade.sql` to the
+existing database **before** deploying the matching application code. The first creates the
+review table. The second changes every current Like New product to Premium, updates the shipped
+FAQ answers if they have not been edited, and prevents new products from using Like New. Product
+condition notes and historical order-line snapshots are preserved; old snapshots display as
+Premium in the application. Each migration records its
+checksum in `schema_migrations`. Do not reimport `full-schema.sql` or merchant data into the
+populated database. Check that both migrations appear in the ledger and `/api/ready` reports
+`0028_retire_like_new_grade.sql` after deployment.
+
 After import use the **app** DATABASE_URL in hPanel. URL-encode password characters such as
 `@`, `:`, `/`, `#` and `%`. Do not use migrator credentials in normal runtime when separate users
 are available. Keep `DATABASE_POOL_MAX=5` initially; account for every running deployment/process
@@ -178,7 +189,7 @@ put production secrets in a tracked `.env` file. Blank optional values are treat
 | S3_ENDPOINT, S3_BUCKET, S3_REGION, S3_ACCESS_KEY, S3_SECRET_KEY | Required together for optional S3 storage; region default `auto`; private provider values. |
 | EMAIL_PROVIDER, EMAIL_OUTBOX_DIR | `smtp` for customer delivery; `file` for private testing with an absolute private sink directory. `console` is a local summary adapter. |
 | SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS | Mailbox connection; default 587/false requires STARTTLS; 465/true for implicit TLS. |
-| SMTP_HOURLY_LIMIT, EMAIL_FROM | Actual mailbox quota and verified sender identity; default budget 100/hour. |
+| SMTP_HOURLY_LIMIT, EMAIL_FROM | Actual mailbox quota and verified sender identity; default budget 100/hour. Use `Sole Drop <support@soledrop.store>` after verifying that address with the mailbox provider. If hPanel already has `EMAIL_FROM`, update it there too; environment values override the code default. |
 | CRON_SECRET, JOBS_SECRET | 16+ random characters; preserve private handoff value. JOBS_SECRET is the compatibility fallback. Use a distinct secret from sessions. |
 | ADMIN_DEMO_STAFF, ADMIN_IP_ALLOWLIST | Keep demo `off`; optional comma-separated IPv4/IPv6/CIDR admin restriction, checked after trusted proxy parsing. |
 | AUTH_MAGIC_LINK, AUTH_EMAIL_VERIFICATION | Optional customer capabilities, `off` by default; enable only after mail delivery works. |
@@ -256,6 +267,8 @@ binary/text/date/JSON safety, omits generated columns and retains migration appl
 It creates files exclusively and refuses to overwrite a backup. The upload tool copies only media
 metadata-referenced originals and all fifty prepared variants (twelve v1 and thirty-eight v2),
 then verifies every checksum.
+Customer review photos are also included from the database's review image list; they have no
+responsive variants and remain available only while the review is approved.
 For additional private attachments outside that media library, back up their complete separate
 storage namespace too. The current store has no such attachment objects.
 

@@ -16,12 +16,12 @@ import { cn } from "@/lib/utils"
 export const metadata: Metadata = {
   title: "Condition guide",
   description:
-    "What Like New, Premium, Excellent, Very Good and Minor Issue mean for a pre-loved pair, part by part, and how every pair is graded.",
+    "What Premium, Excellent, Very Good and Minor Issue mean for a pre-loved pair, part by part, and how every pair is graded.",
   alternates: { canonical: "/condition-guide" },
 }
 
 /**
- * Condition Guide (D-046; layout D-073): the five pre-loved grades as one vertical, side-swapping story,
+ * Condition Guide (D-046; layout D-073): the four pre-loved grades as one vertical, side-swapping story,
  * how a pair is graded, and what every listing promises. Laid out like the Size Guide (screen 08).
  */
 export default function ConditionGuidePage() {
@@ -29,7 +29,7 @@ export default function ConditionGuidePage() {
     <div className="bg-surface-sunken">
       <PageBand
         display
-        description="Five grades. Every pre-loved pair inspected by hand."
+        description="Four grades. Every pre-loved pair inspected by hand."
       >
         Condition guide
       </PageBand>

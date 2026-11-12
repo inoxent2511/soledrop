@@ -18,7 +18,6 @@ import { useHydrated } from "@/hooks/use-hydrated"
 import { cn } from "@/lib/utils"
 
 const GRADES = [
-  { value: "like-new", label: "Like New" },
   { value: "premium", label: "Premium" },
   { value: "excellent", label: "Excellent" },
   { value: "very-good", label: "Very Good" },

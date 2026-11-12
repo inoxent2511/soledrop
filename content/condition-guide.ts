@@ -7,8 +7,8 @@ export type GradeDetail = {
   grade: ConditionGrade
   /** One line on how much the pair has been worn. */
   wear: string
-  /** 1 = barely worn … 5 = clearly worn; drives the wear meter. */
-  level: 1 | 2 | 3 | 4 | 5
+  /** 1 = minimal wear … 4 = clear wear; drives the condition score. */
+  level: 1 | 2 | 3 | 4
   /** What to expect on each inspected part, in `inspectedParts` order. */
   parts: [string, string, string, string]
 }
@@ -19,31 +19,20 @@ export type GradeDetail = {
  */
 export const gradeDetails: GradeDetail[] = [
   {
-    grade: "like-new",
-    wear: "Almost no signs of wear.",
-    level: 1,
-    parts: [
-      "Spotless, no creases",
-      "Bright, no compression",
-      "Tread as new",
-      "Clean, no imprint",
-    ],
-  },
-  {
     grade: "premium",
     wear: "Minimal signs of previous use.",
-    level: 2,
+    level: 1,
     parts: [
       "Clean, faint toe creasing",
       "Light creasing only",
-      "90 %+ tread left",
+      "At least 90% tread left",
       "Light foot imprint",
     ],
   },
   {
     grade: "excellent",
     wear: "Light signs of regular use.",
-    level: 3,
+    level: 2,
     parts: [
       "Minor creasing or marks",
       "Some creasing, light marks",
@@ -54,7 +43,7 @@ export const gradeDetails: GradeDetail[] = [
   {
     grade: "very-good",
     wear: "Noticeable everyday wear, still reliable.",
-    level: 4,
+    level: 3,
     parts: [
       "Creasing, small scuffs",
       "Marks or light yellowing",
@@ -65,7 +54,7 @@ export const gradeDetails: GradeDetail[] = [
   {
     grade: "minor-issue",
     wear: "A small flaw or repair, shown in the photos.",
-    level: 5,
+    level: 4,
     parts: [
       "Small defect or repair possible",
       "Marks or discolouration",
@@ -82,7 +71,7 @@ export const gradingSteps = [
     text: "Upper, midsole, outsole and insole, checked by hand.",
   },
   { title: "Clean", text: "Cleaned and sanitised before listing." },
-  { title: "Grade", text: "Given one of the five grades above." },
+  { title: "Grade", text: "Given one of the four grades above." },
   { title: "Photograph", text: "The exact pair, flaws included." },
 ] as const
 

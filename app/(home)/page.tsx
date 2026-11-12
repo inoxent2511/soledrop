@@ -2,6 +2,7 @@ import { toCardProduct } from "@/features/catalog/types/card"
 import { FeaturedBuyBox } from "@/features/home/components/featured-buy-box"
 import { FeaturedDrops } from "@/features/home/components/featured-drops"
 import { HeroCarousel } from "@/features/home/components/hero-carousel"
+import { FullHeroCarousel } from "@/features/home/components/full-hero-carousel"
 import {
   Hero,
   InstagramStrip,
@@ -16,21 +17,24 @@ import { catalog } from "@/server/catalog"
 import { contentRepository } from "@/server/content"
 import { emptyHome } from "@/server/content/home-types"
 import { currentStoreId } from "@/server/db/driver"
+import { publicReviews } from "@/server/reviews"
+import { ReviewHomeSection } from "@/features/reviews/components/review-card"
 
 export const revalidate = 300
 
 export default async function HomePage() {
   const storeId = currentStoreId()
-  const [record, brands] = await Promise.all([contentRepository().home(storeId), catalog().brands(storeId)])
+  const [record, brands, reviews] = await Promise.all([contentRepository().home(storeId), catalog().brands(storeId), publicReviews(1, 3)])
   const home = record?.content ?? emptyHome
+  const fullBanners = home.slides.filter((slide) => slide.mode === "full")
   const { newArrivals, newestPreloved, brandNew, preloved, featured } =
     await homeData()
 
   return (
     <>
-      <Hero content={home}>
+      {fullBanners.length ? <FullHeroCarousel slides={fullBanners} /> : home.slides.length ? <Hero content={home}>
         {home.slides.length ? <HeroCarousel slides={home.slides} initial={Math.min(1, home.slides.length - 1)} /> : null}
-      </Hero>
+      </Hero> : <h1 className="sr-only">Sole Drop</h1>}
       {home.categories.length ? <ShopByCategory categories={home.categories} /> : null}
       <NewArrivalSection
         brandNew={newArrivals.map(toCardProduct)}
@@ -64,6 +68,7 @@ export default async function HomePage() {
         display
         viewAll={{ href: "/pre-loved", label: "pre-loved pairs" }}
       />
+      <ReviewHomeSection reviews={reviews.items} total={reviews.summary.total} average={reviews.summary.average} />
       {brands.length ? <TopBrands brands={brands.map((brand) => brand.name.toUpperCase())} /> : null}
       <WhySoleDrop />
       {home.instagram.images.length ? <InstagramStrip instagram={home.instagram} /> : null}
