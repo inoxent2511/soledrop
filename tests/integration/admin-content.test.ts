@@ -72,4 +72,15 @@ describe("staff content", () => {
     await expect(content().saveFaq(staffAs("marketing"), meta, { category: "X", question: "Is this allowed?", answer: "No" })).rejects.toMatchObject({ code: "forbidden" })
     expect(audits).toEqual(["faq.created", "faq.updated", "faq.reordered", "faq.deleted"])
   })
+
+  it("shows contact messages to staff with customer contact access, newest first", async () => {
+    db().contactMessages.push(
+      { id: "11111111-1111-4111-8111-111111111111", name: "First", email: "first@example.test", orderNumber: null, message: "First message", createdAt: "2026-11-12T10:00:00.000Z" },
+      { id: "22222222-2222-4222-8222-222222222222", name: "Second", email: "second@example.test", orderNumber: "SD10001", message: "Second message", createdAt: "2026-11-12T11:00:00.000Z" },
+    )
+    const firstPage = await content().contactMessages(staffAs("support_agent"), { page: 1, pageSize: 1 })
+    expect(firstPage).toMatchObject({ total: 2, messages: [{ name: "Second", email: "second@example.test" }] })
+    expect((await content().contactMessages(staffAs("support_agent"), { page: 2, pageSize: 1 })).messages[0].name).toBe("First")
+    await expect(content().contactMessages(staffAs("content_editor"), { page: 1, pageSize: 1 })).rejects.toMatchObject({ code: "forbidden" })
+  })
 })

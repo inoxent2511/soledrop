@@ -4,7 +4,7 @@ import { mysqlPolicy } from "@/server/db/policy.repository"
 import { and, asc, count, desc, eq } from "drizzle-orm"
 import type { ContentOperations } from "./repository"
 import type { HomeContent } from "./home-types"
-import type { Page, NewsletterSubscriber } from "./types"
+import type { ContactMessage, Page, NewsletterSubscriber } from "./types"
 import { type ActorScoped, requireGrant, requireStore, requireSystem } from "@/server/db/actor"
 import { database, withTransaction } from "@/server/db/client"
 import { contactMessages, faqs, newsletterSubscribers, pages, storefrontContent, stores } from "@/server/db/schema"
@@ -75,6 +75,16 @@ export function createMysqlContentRepository(): ActorScoped<ContentOperations> {
       requireStore(actor, storeId)
       const db = await database()
       await db.insert(contactMessages).values({ ...message, storeId, email: message.email.trim().toLowerCase(), createdAt: sqlDate(message.createdAt) })
+    },
+    async listContactMessages(actor, storeId, query) {
+      requireStore(actor, storeId); requireGrant(actor, "customers:read_pii")
+      const db = await database()
+      const where = eq(contactMessages.storeId, actor.storeId)
+      const [rows, [total]] = await Promise.all([
+        db.select().from(contactMessages).where(where).orderBy(desc(contactMessages.createdAt), desc(contactMessages.id)).limit(query.pageSize).offset((query.page - 1) * query.pageSize),
+        db.select({ count: count() }).from(contactMessages).where(where),
+      ])
+      return { messages: rows.map((row): ContactMessage => ({ id: row.id, name: row.name, email: row.email, orderNumber: row.orderNumber, message: row.message, createdAt: isoDate(row.createdAt) })), total: total.count }
     },
     async staffPages(actor, storeId) {
       requireStore(actor, storeId); requireGrant(actor, "content:read")

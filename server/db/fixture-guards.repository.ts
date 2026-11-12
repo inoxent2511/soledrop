@@ -52,7 +52,7 @@ export const catalogGuards: FixtureGuards<CatalogOperations> = {
 export const contentGuards: FixtureGuards<ContentOperations> = {
   home: store, saveHome: storeGrant("content:write"), listPages: store, getPage: store, listFaqs: store, subscribe: store,
   unsubscribe(actor, storeId) { store(actor, storeId); requireSystem(actor, ["auth:customer", "migration"]) },
-  saveContactMessage: store, staffPages: storeGrant("content:read"), staffPage: storeGrant("content:read"),
+  saveContactMessage: store, listContactMessages: storeGrant("customers:read_pii"), staffPages: storeGrant("content:read"), staffPage: storeGrant("content:read"),
   savePage: storeGrant("content:write"), deletePage: storeGrant("content:write"), saveFaq: storeGrant("content:write"), deleteFaq: storeGrant("content:write"), reorderFaqs: storeGrant("content:write"), listSubscribers: storeGrant("marketing:read"),
 }
 export const searchGuards: FixtureGuards<SearchOperations> = { listSynonyms: store, logEvent: store, trending: store, report: storeGrant("search:read"), similarQueries: storeGrant("search:read"), saveSynonym: storeGrant("search:write"), deleteSynonym: storeGrant("search:write") }

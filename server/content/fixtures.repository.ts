@@ -42,6 +42,11 @@ export function createFixturesContentRepository(): ContentRepository {
     async saveContactMessage(_storeId, message) {
       db().contactMessages.push(message)
     },
+    async listContactMessages(_storeId, query) {
+      const messages = [...db().contactMessages].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id))
+      const start = (query.page - 1) * query.pageSize
+      return { messages: structuredClone(messages.slice(start, start + query.pageSize)), total: messages.length }
+    },
 
     async staffPages() {
       return structuredClone(db().pages.map((page) => ({ ...page, published: page.published !== false })))

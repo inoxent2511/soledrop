@@ -97,6 +97,11 @@ export function createStaffContent(deps: { content: ContentOperations; audit: Au
       return content.listFaqs(staff.member.storeId)
     },
 
+    async contactMessages(staff: StaffContext, query: { page: number; pageSize: number }) {
+      need(staff, "customers:read_pii")
+      return content.listContactMessages(staff.member.storeId, query)
+    },
+
     /** FAQs go live as soon as they are saved (the FAQ page has no drafts), so this needs content:publish. */
     async saveFaq(staff: StaffContext, meta: RequestMeta, input: FaqInput, id?: string) {
       need(staff, "content:publish")

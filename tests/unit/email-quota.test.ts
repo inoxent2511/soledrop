@@ -17,7 +17,7 @@ describe("SMTP hourly cap", () => {
     await email().sendForEvent({ ...event, id: "local-event-2" })
     await expect(email().sendForEvent({ ...event, id: "local-event-3" })).rejects.toBeInstanceOf(DeliveryDeferred)
     expect(counter.sends).toBe(2)
-    await email().sendForEvent({ ...event, topic: "contact.received" })
+    await email().sendForEvent({ ...event, topic: "payment.recorded" })
     expect(counter.count).toBe(3)
   })
 })

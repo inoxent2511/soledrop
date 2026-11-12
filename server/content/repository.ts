@@ -12,6 +12,8 @@ export interface ContentOperations {
   subscribe(storeId: string, subscriber: NewsletterSubscriber): Promise<boolean>
   unsubscribe(storeId: string, email: string): Promise<void>
   saveContactMessage(storeId: string, message: ContactMessage): Promise<void>
+  /** Private customer messages, newest first. */
+  listContactMessages(storeId: string, query: { page: number; pageSize: number }): Promise<{ messages: ContactMessage[]; total: number }>
 
   // ─── Staff (admin A7) ─────────────────────────────────────────────────────
   /** Every page, drafts included. */

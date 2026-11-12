@@ -73,6 +73,13 @@ export function renderEventEmail(event: OutboxEvent): EmailMessage | null {
       return message(String(data.email), "Your account security changed", ["Your account credentials were changed. If this wasn't you, contact us immediately and reset your password."])
     case "newsletter.subscribed":
       return message(String(data.email), "You're in the drop", ["Thanks for subscribing — you'll be first to hear about new arrivals, exclusive deals and limited drops."], { label: "Unsubscribe", href: `${site}/newsletter/unsubscribe?email=${encodeURIComponent(String(data.email))}&token=${data.token}` })
+    case "contact.received":
+      return message(siteConfig.contact.email, "New contact message", [
+        "A customer has sent a message through the website contact form.",
+        `From: ${String(data.name)} (${String(data.email)})`,
+        ...(data.orderNumber ? [`Order: ${String(data.orderNumber)}`] : []),
+        "Open the admin inbox to read the message and reply to the customer.",
+      ], { label: "Open contact messages", href: `${site}/admin/messages` })
     default:
       return null
   }

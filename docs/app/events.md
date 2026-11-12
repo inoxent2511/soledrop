@@ -10,7 +10,7 @@ then posts signed webhooks. A failure retries after 30 s × 2^attempts and gives
 
 ## Topics
 
-| Topic | Emitted by | Payload (besides `orderId`/`number` where relevant) | Customer email |
+| Topic | Emitted by | Payload (besides `orderId`/`number` where relevant) | Email delivery |
 | --- | --- | --- | --- |
 | `order.placed` | `place_order` | `email, total, currency, paymentMethod` | Order confirmation, with an order link |
 | `order.status_changed` | `transition_order`; `record_payment` when it confirms a pending order | `email, from, to, trackingNumber` | Status update (shipped includes tracking) |
@@ -20,7 +20,7 @@ then posts signed webhooks. A failure retries after 30 s × 2^attempts and gives
 | `customer.registered` | customer service | `customerId, email, fullName` | Welcome |
 | `password.reset_requested` | customer service | `customerId, email, token` | Reset link |
 | `newsletter.subscribed` | content service | `email, token` | Confirmation with an unsubscribe link |
-| `contact.received` | content service | `id, name, email, orderNumber` | — (stored for support) |
+| `contact.received` | content service | `id, name, email, orderNumber` | Notification to support; full message stays in the private admin inbox |
 
 Amounts are integers in paisa. `EventTopic` in `server/platform/types.ts` is the source of truth.
 
