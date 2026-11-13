@@ -229,15 +229,23 @@ export function createAdminService(deps: Deps) {
         throw new DomainError("forbidden", "Admin access isn't available from this network.")
       }
       const email = emailAddress.trim().toLowerCase()
-      await limit(`admin-login-ip:${meta.ip ?? "unknown"}`, 10, 300)
-      await limit(`admin-login-email:${email}`, LOCKOUT_AFTER, LOCKOUT_MINUTES * 60)
+      // "direct" means the trusted forwarding header was absent. It is shared by
+      // every visitor, so an IP counter here would lock the whole admin out.
+      if (meta.ip && meta.ip !== "direct") await limit(`admin-login-ip:${meta.ip}`, 10, 300)
+      // Keep a generous pre-hash ceiling for distributed abuse, while reserving the
+      // five-attempt account allowance below for failed passwords only.
+      await limit(`admin-login-email:${email}`, 30, LOCKOUT_MINUTES * 60)
       await ensureRegistry(storeId)
       const member = await repo.findMemberByEmail(storeId, email)
       const valid = await verifyPassword(password, member?.passwordHash || (await decoyHash()))
       if (member?.lockedUntil && Date.parse(member.lockedUntil) > clock()) {
-        throw new DomainError("unauthorized", BAD_LOGIN)
+        throw new DomainError("rate_limited", "Too many attempts. Please wait a few minutes and try again.", {
+          retryAfter: Math.ceil((Date.parse(member.lockedUntil) - clock()) / 1000),
+        })
       }
       if (!member || !valid || member.status !== "active") {
+        // Successful sign-ins must not consume the account's failed-password allowance.
+        await limit(`admin-login-email-failure:${email}`, LOCKOUT_AFTER, LOCKOUT_MINUTES * 60)
         await atomic(async () => {
           const current = member ? await repo.findMember(storeId, member.userId) : null
           if (current && (!current.lockedUntil || Date.parse(current.lockedUntil) <= clock())) {
@@ -355,7 +363,7 @@ export function createAdminService(deps: Deps) {
       const problem = passwordProblem(next, member.email)
       if (problem) throw new DomainError("validation", problem, { fields: { password: [problem] } })
       assertPasswordPolicy(next, 12)
-      await repo.updateMember(member.storeId, member.userId, { passwordHash: await hashPassword(next) })
+      await repo.updateMember(member.storeId, member.userId, { passwordHash: await hashPassword(next), failedLogins: 0, lockedUntil: null })
       await repo.revokeSessions(member.storeId, member.userId)
       await recordAudit(staff, meta, { action: "staff.password_changed", entity: "staff", entityId: member.userId, storeId: member.storeId })
       await deps.notifySecurity?.(member.email, "password_changed")

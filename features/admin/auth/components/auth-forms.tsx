@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useEffect, useId, useRef, useState, type FormEvent } from "react"
 
+import { ApiError } from "@/api/http"
 import { adminAuthApi, type SignInNext } from "@/api/admin/auth"
 import { adminButton } from "@/components/admin/button"
 import { AdminField, FormAlert } from "@/components/admin/form"
@@ -27,12 +28,36 @@ export function StaffLoginForm({ next }: { next: string }) {
   const router = useRouter()
   const login = useMutation({ mutationFn: adminAuthApi.login })
   const { errors, formError, validate, fail } = useSchemaForm(staffLoginSchema)
+  const [retryUntil, setRetryUntil] = useState<number | null>(null)
+  const [now, setNow] = useState(0)
+  const remaining = retryUntil ? Math.max(0, Math.ceil((retryUntil - now) / 1000)) : 0
+
+  useEffect(() => {
+    if (!retryUntil) return
+    const timer = window.setInterval(() => {
+      const current = Date.now()
+      setNow(current)
+      if (current >= retryUntil) setRetryUntil(null)
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [retryUntil])
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (login.isPending || remaining > 0) return
     const input = validate(event.currentTarget, values(event.currentTarget))
     if (!input) return
-    login.mutate(input, { onSuccess: ({ needs }) => router.replace(afterPassword(needs, next)), onError: fail })
+    login.mutate(input, { onSuccess: ({ needs }) => router.replace(afterPassword(needs, next)), onError: (error) => {
+      fail(error)
+      if (error instanceof ApiError && error.code === "rate_limited") {
+        const seconds = Number(error.details?.retryAfter)
+        if (Number.isFinite(seconds) && seconds > 0) {
+          const current = Date.now()
+          setNow(current)
+          setRetryUntil(current + seconds * 1000)
+        }
+      }
+    } })
   }
 
   return (
@@ -40,8 +65,9 @@ export function StaffLoginForm({ next }: { next: string }) {
       <AdminField formId={id} name="email" type="email" label="Work email" autoComplete="username" error={errors.email} />
       <AdminField formId={id} name="password" type="password" label="Password" autoComplete="current-password" error={errors.password} />
       <FormAlert>{formError}</FormAlert>
-      <button type="submit" disabled={!hydrated || login.isPending} className={submit}>
-        {login.isPending ? "Signing in…" : "Continue"}
+      {remaining > 0 ? <p role="status" className="text-14 text-subtle-foreground">Try again in {Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, "0")}.</p> : null}
+      <button type="submit" disabled={!hydrated || login.isPending || remaining > 0} className={submit}>
+        {login.isPending ? "Signing in…" : remaining > 0 ? "Please wait" : "Continue"}
       </button>
     </form>
   )

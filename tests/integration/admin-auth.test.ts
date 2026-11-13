@@ -138,6 +138,35 @@ describe("staff sign-in", () => {
     await expect(admin.verifyMfa(login.token, "123456", meta)).rejects.toMatchObject({ code: "rate_limited" })
   })
 
+  it("does not lock an account after repeated successful password sign-ins", async () => {
+    await onboard("owner@example.com", "owner")
+    for (let attempt = 0; attempt <= LOCKOUT_AFTER; attempt++) {
+      await expect(admin.login(STORE_ID, "owner@example.com", PASSWORD, { ...meta, ip: `198.51.100.${attempt}` })).resolves.toMatchObject({ aal: 1 })
+    }
+  })
+
+  it("does not share an IP login cap when the proxy did not provide a client address", async () => {
+    await onboard("owner@example.com", "owner")
+    for (let attempt = 0; attempt < 11; attempt++) {
+      await admin.login(STORE_ID, `unknown${attempt}@example.com`, PASSWORD, { ...meta, ip: "direct" }).catch(() => null)
+    }
+    await expect(admin.login(STORE_ID, "owner@example.com", PASSWORD, { ...meta, ip: "direct" })).resolves.toMatchObject({ aal: 1 })
+  })
+
+  it("clears an old lock when the signed-in owner changes their password", async () => {
+    const owner = await onboard("owner@example.com", "owner")
+    for (let attempt = 0; attempt < LOCKOUT_AFTER; attempt++) {
+      await admin.login(STORE_ID, "owner@example.com", "incorrect password", { ...meta, ip: `198.51.100.${attempt}` }).catch(() => null)
+    }
+    const staff = await contextOf(owner.token)
+    const nextPassword = "a new and different secure password"
+    await admin.changePassword(staff, PASSWORD, nextPassword, meta)
+    const member = await repo.findMember(STORE_ID, staff.member.userId)
+    expect(member?.lockedUntil).toBeNull()
+    expect(member?.failedLogins).toBe(0)
+    await expect(admin.login(STORE_ID, "owner@example.com", nextPassword, { ...meta, ip: "198.51.100.50" })).resolves.toMatchObject({ aal: 1 })
+  })
+
   it("ends sessions after 30 idle minutes and 12 hours in all; password-only sessions after 15 minutes", async () => {
     const { token } = await onboard("owner@example.com", "owner")
     advance(28) // onboard() already moved the clock one minute
