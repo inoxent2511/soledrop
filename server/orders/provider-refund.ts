@@ -4,7 +4,7 @@ import type { RefundIntent } from "./refund-intent"
 
 /** Never create another external refund after the provider's idempotency retention window. */
 export async function settleRefundProvider(intent: RefundIntent, provider: PaymentProvider | undefined, readOnly = false): Promise<string | null> {
-  if ((!intent.provider || ["cod", "bank_transfer"].includes(intent.provider)) && !provider?.refund) return null
+  if ((!intent.provider || ["cod", "cash", "bank_transfer"].includes(intent.provider)) && !provider?.refund) return null
   if (!intent.providerRef || !provider?.refund) throw new DomainError("unavailable", "The original payment provider is unavailable. Reconcile the pending refund before proceeding.")
   const existing = await provider.lookupRefund?.(intent.providerRef, intent.providerKey)
   if (existing) {

@@ -21,7 +21,7 @@ export const PAYMENT_STATUS: Record<PaymentStatus, { label: string; tone: Status
   failed: { label: "Failed", tone: "danger" },
 }
 
-export const PAYMENT_METHOD: Record<string, string> = { cod: "Cash on delivery", bank_transfer: "Bank transfer", card: "Card" }
+export const PAYMENT_METHOD: Record<string, string> = { cod: "Cash on delivery", cash: "Cash in store", bank_transfer: "Bank transfer", card: "Card" }
 
 /** The action verb for moving an order to a status. */
 export const TRANSITION_VERB: Record<OrderStatus, string> = {

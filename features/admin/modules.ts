@@ -10,6 +10,7 @@ import {
   Megaphone,
   Package,
   Receipt,
+  ShoppingBag,
   Star,
   ScrollText,
   Search,
@@ -42,6 +43,7 @@ export type AdminModule = {
 export const ADMIN_MODULES: readonly AdminModule[] = [
   { key: "dashboard", label: "Dashboard", href: "/admin", group: "Overview", permission: "dashboard:read", icon: LayoutDashboard, keywords: ["home", "today"] },
   { key: "orders", label: "Orders", href: "/admin/orders", group: "Sales", permission: "orders:read", icon: Receipt, keywords: ["fulfil", "refund", "returns"] },
+  { key: "in-store", label: "In-store sales", href: "/admin/in-store", group: "Sales", permission: "orders:write", icon: ShoppingBag, keywords: ["shop", "receipt", "slip", "cash", "pos"] },
   { key: "customers", label: "Customers", href: "/admin/customers", group: "Sales", permission: "customers:read", icon: Users },
   { key: "messages", label: "Contact messages", href: "/admin/messages", group: "Sales", permission: "customers:read_pii", icon: Inbox, keywords: ["contact", "complaints", "support", "inbox"] },
   { key: "products", label: "Products", href: "/admin/products", group: "Catalogue", permission: "products:read", icon: Package, keywords: ["shoes", "variants"] },

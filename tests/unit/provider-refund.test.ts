@@ -9,6 +9,9 @@ const provider = (): PaymentProvider => ({ code: "fake", label: "Fake", descript
 afterEach(() => { vi.unstubAllGlobals() })
 
 describe("provider refund recovery", () => {
+  it.each(["cod", "cash", "bank_transfer"])("keeps %s refunds on the manual offline path", async (method) => {
+    expect(await settleRefundProvider({ ...intent(), provider: method, providerRef: null }, undefined)).toBeNull()
+  })
   it("never posts an old uncertain intent after idempotency retention may expire", async () => {
     const pending = { ...intent(), createdAt: new Date(Date.now() - 24 * 3_600_000).toISOString() }, p = provider()
     await expect(settleRefundProvider(pending, p)).rejects.toMatchObject({ code: "unavailable" })

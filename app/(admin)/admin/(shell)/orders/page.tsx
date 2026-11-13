@@ -1,5 +1,6 @@
 import { Download, Receipt } from "lucide-react"
 import type { Metadata } from "next"
+import Link from "next/link"
 
 import { adminButton } from "@/components/admin/button"
 import { DataTable } from "@/components/admin/data-table"
@@ -31,13 +32,10 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       <PageHeader
         title="Orders"
         description="Find an order, then pack, ship, take payment, refund or handle a return."
-        actions={
-          can(staff, "orders:export") ? (
-            <a href={`/api/admin/orders/export${exportQuery ? `?${exportQuery}` : ""}`} className={adminButton({ tone: "secondary", size: "sm" })} download>
-              <Download aria-hidden /> Export CSV
-            </a>
-          ) : null
-        }
+        actions={<div className="flex flex-wrap gap-2">
+          {can(staff, "orders:write") && can(staff, "orders:mark_paid") && can(staff, "inventory:adjust") && can(staff, "products:read") ? <Link href="/admin/in-store" className={adminButton({ tone: "primary", size: "sm" })}>New in-store sale</Link> : null}
+          {can(staff, "orders:export") ? <a href={`/api/admin/orders/export${exportQuery ? `?${exportQuery}` : ""}`} className={adminButton({ tone: "secondary", size: "sm" })} download><Download aria-hidden /> Export CSV</a> : null}
+        </div>}
       />
       <FilterBar
         searchLabel="Search orders"
