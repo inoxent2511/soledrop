@@ -231,7 +231,10 @@ export function createAdminService(deps: Deps) {
       const email = emailAddress.trim().toLowerCase()
       // "direct" means the trusted forwarding header was absent. It is shared by
       // every visitor, so an IP counter here would lock the whole admin out.
-      if (meta.ip && meta.ip !== "direct") await limit(`admin-login-ip:${meta.ip}`, 10, 300)
+      // Hosted reverse proxies can also make a real-looking address common to
+      // several visitors. The tighter per-email and failed-password limits below
+      // protect accounts; this network ceiling only stops broad password spraying.
+      if (meta.ip && meta.ip !== "direct") await limit(`admin-login-ip:${meta.ip}`, 120, 300)
       // Keep a generous pre-hash ceiling for distributed abuse, while reserving the
       // five-attempt account allowance below for failed passwords only.
       await limit(`admin-login-email:${email}`, 30, LOCKOUT_MINUTES * 60)

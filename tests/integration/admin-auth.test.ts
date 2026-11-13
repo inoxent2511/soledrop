@@ -128,10 +128,12 @@ describe("staff sign-in", () => {
     await expect(admin.login(STORE_ID, "owner@example.com", PASSWORD, { ...meta, ip: "198.51.100.51" })).resolves.toMatchObject({ aal: 1 })
   })
 
-  it("rate-limits sign-in per address and MFA attempts per session", async () => {
+  it("does not block a real owner behind a shared proxy, but still caps network spraying and MFA", async () => {
     const { first } = await onboard("owner@example.com", "owner")
     expect(first).toBeTruthy()
-    for (let attempt = 0; attempt < 10; attempt++) await admin.login(STORE_ID, `x${attempt}@example.com`, PASSWORD, meta).catch(() => null)
+    for (let attempt = 0; attempt < 12; attempt++) await admin.login(STORE_ID, `x${attempt}@example.com`, PASSWORD, meta).catch(() => null)
+    await expect(admin.login(STORE_ID, "owner@example.com", PASSWORD, meta)).resolves.toMatchObject({ aal: 1 })
+    windows.set(`admin-login-ip:${meta.ip}`, { start: clockMs, count: 120 })
     await expect(admin.login(STORE_ID, "owner@example.com", PASSWORD, meta)).rejects.toMatchObject({ code: "rate_limited" })
     const login = await admin.login(STORE_ID, "owner@example.com", PASSWORD, { ...meta, ip: "192.0.2.1" })
     for (let attempt = 0; attempt < 5; attempt++) await admin.verifyMfa(login.token, "123456", meta).catch(() => null)
