@@ -47,7 +47,7 @@ export function ProductBuyBox({ title, kind, sizes, condition }: ProductBuyBoxPr
       return
     }
     add.mutate(
-      { variantId, quantity },
+      { variantId, quantity, openDrawer: then === "stay" },
       {
         onSuccess: () => {
           if (then === "checkout") router.push("/checkout")
@@ -112,9 +112,11 @@ export function ProductBuyBox({ title, kind, sizes, condition }: ProductBuyBoxPr
           type="button"
           onClick={() => submit("stay")}
           disabled={!inStock || add.isPending}
-          className={cn(buttonVariants({ tone: "brand", size: "xl" }), "w-full")}
+          className={cn(buttonVariants({ tone: "brand", size: "xl" }), "w-full", inStock && !add.isPending && "product-cart-shimmer")}
         >
-          {!inStock ? "Sold out" : add.isPending ? "Adding…" : "Add to cart"}
+          <span className="relative z-10">
+            {!inStock ? "Sold out" : add.isPending ? "Adding…" : "Add to cart"}
+          </span>
         </button>
         <div className="3xl:ps-0.25">
           <button

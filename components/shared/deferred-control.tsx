@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentType, type ReactNode } from "react"
 
 /** Keep the painted trigger while optional panels load on intent or after the document. */
-export function DeferredControl<Props extends object>({ load, props, fallback, media, hoverOnUpgrade = false, openKeys }: { load: () => Promise<ComponentType<Props>>; props: Props; fallback: ReactNode; media?: string; hoverOnUpgrade?: boolean; openKeys?: readonly string[] }) {
+export function DeferredControl<Props extends object>({ load, props, fallback, media, hoverOnUpgrade = false, openKeys, loadWhen = false }: { load: () => Promise<ComponentType<Props>>; props: Props; fallback: ReactNode; media?: string; hoverOnUpgrade?: boolean; openKeys?: readonly string[]; loadWhen?: boolean }) {
   const [Component, setComponent] = useState<ComponentType<Props> | null>(null)
   const root = useRef<HTMLSpanElement>(null), pending = useRef<Promise<void> | null>(null), mounted = useRef(false), restoreFocus = useRef(false), requestedOpen = useRef(false)
   const pointer = useRef<{ x: number; y: number; type: string } | null>(null)
@@ -53,6 +53,10 @@ export function DeferredControl<Props extends object>({ load, props, fallback, m
     })
     return pending.current
   }, [Component, load, publish])
+
+  useEffect(() => {
+    if (loadWhen) void start()
+  }, [loadWhen, start])
 
   useEffect(() => {
     // An immediately replayed hydration event can resolve an import before passive effects.

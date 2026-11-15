@@ -24,7 +24,7 @@ type Values = Record<AddressField, string> & { email: string }
 const ADDRESS_FIELDS: { name: AddressField; label: string; autoComplete: string; type?: string; optional?: boolean; wide?: boolean }[] = [
   { name: "fullName", label: "Full name", autoComplete: "shipping name", wide: true },
   { name: "phone", label: "Mobile number", autoComplete: "shipping tel", type: "tel", wide: true },
-  { name: "line1", label: "House and street", autoComplete: "shipping address-line1", wide: true },
+  { name: "line1", label: "Address", autoComplete: "shipping address-line1", wide: true },
   { name: "line2", label: "Area or landmark (optional)", autoComplete: "shipping address-line2", optional: true, wide: true },
   { name: "city", label: "City", autoComplete: "shipping address-level2" },
   { name: "province", label: "Province", autoComplete: "shipping address-level1" },

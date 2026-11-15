@@ -67,7 +67,7 @@ const promotions: Promotion[] = [
 
 const flags: FeatureFlag[] = [
   { key: "b2b-pricing", description: "Wholesale price list and quote requests for approved trade accounts.", enabled: false, customerGroups: ["wholesale"] },
-  { key: "multi-currency-display", description: "Show approximate prices in USD / AED / GBP next to PKR.", enabled: false },
+  { key: "multi-currency-display", description: "Show approximate prices in USD / AED / GBP next to Rs.", enabled: false },
   { key: "stripe-payments", description: "Card payments through Stripe (needs STRIPE_SECRET_KEY).", enabled: false },
   { key: "express-delivery", description: "Offer the express delivery rate at checkout.", enabled: true },
 ]

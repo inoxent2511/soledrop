@@ -49,6 +49,36 @@
   animation-play-state: paused;
 }
 
+/* A brief light sweep on the full product page's Add to Cart button. */
+@keyframes product-cart-shimmer-sweep {
+  0%, 60% {
+    transform: translateX(0) skewX(-20deg);
+  }
+  82%, 100% {
+    transform: translateX(375%) skewX(-20deg);
+  }
+}
+@utility product-cart-shimmer {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: -45%;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 35%), transparent);
+    pointer-events: none;
+    animation: product-cart-shimmer-sweep 4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      display: none;
+    }
+  }
+}
+
 /* Top Brands strip (D-050): two copies of the list slide by one copy's width, so the loop is seamless. */
 @keyframes marquee {
   to {

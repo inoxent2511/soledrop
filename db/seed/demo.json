@@ -1957,7 +1957,7 @@
         "label": "Gift note",
         "type": "text",
         "required": false,
-        "visibleOnStorefront": true
+        "visibleOnStorefront": false
       },
       {
         "entity": "product",

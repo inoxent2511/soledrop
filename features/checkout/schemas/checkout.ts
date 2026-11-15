@@ -16,7 +16,7 @@ export const phoneSchema = z
 export const addressSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name").max(80),
   phone: phoneSchema,
-  line1: z.string().trim().min(5, "Enter your house and street").max(120),
+  line1: z.string().trim().min(5, "Enter your address").max(120),
   line2: z.string().trim().max(120).optional().or(z.literal("").transform(() => undefined)),
   city: z.string().trim().min(2, "Enter your city").max(60),
   province: z.enum(PROVINCES, "Choose your province"),

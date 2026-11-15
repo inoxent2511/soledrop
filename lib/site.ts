@@ -21,7 +21,7 @@ export const siteConfig = {
   social: {
     instagramHandle: "@Soledropoffical",
     instagram: "https://www.instagram.com/soledropofficial",
-    facebook: "https://www.facebook.com/soledropofficial",
+    facebook: "https://www.facebook.com/profile.php?id=61595004041624",
     tiktok: "https://www.tiktok.com/@soledropofficial",
   },
 } as const

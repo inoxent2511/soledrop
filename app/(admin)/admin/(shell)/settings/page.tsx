@@ -192,7 +192,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
           </div>
           <div>
             <dt className="text-14 text-subtle-foreground">Currency</dt>
-            <dd>PKR</dd>
+            <dd>Rs.</dd>
           </div>
           <div>
             <dt className="text-14 text-subtle-foreground">Language</dt>
@@ -208,7 +208,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
                 <span className="text-16 font-semibold">
                   <code>{flag.key}</code>
                 </span>
-                <span className="text-14 text-subtle-foreground">{flag.description}</span>
+                <span className="text-14 text-subtle-foreground">{flag.description.replace(/\bPKR\b/g, "Rs.")}</span>
                 {flag.override !== null ? <span className="text-14 text-subtle-foreground">Set to {flag.override ? "on" : "off"} by the server environment (FEATURE_FLAGS); the switch has no effect.</span> : null}
                 {flag.customerGroups?.length ? <span className="text-14 text-subtle-foreground">Only for: {flag.customerGroups.join(", ")}</span> : null}
               </div>

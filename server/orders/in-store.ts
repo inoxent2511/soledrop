@@ -57,7 +57,7 @@ async function calculate(staff: StaffContext, input: SaleInput) {
   const lines: SaleLine[] = input.items.map((item) => {
     const row = rows.find((entry) => entry.variantId === item.variantId)!
     const price = prices.get(item.variantId)
-    if (!price || price.currency !== "PKR" || price.amount <= 0) throw new DomainError("validation", "A selected size has no PKR selling price.")
+    if (!price || price.currency !== "PKR" || price.amount <= 0) throw new DomainError("validation", "A selected size has no selling price in Rs.")
     if (row.onHand - row.reserved < item.quantity) throw new DomainError("out_of_stock", `${row.brand} ${row.title} (EU ${row.eu}) has only ${Math.max(0, row.onHand - row.reserved)} available.`)
     return { variantId: row.variantId, productId: row.productId, slug: row.slug, title: row.title, brand: row.brand,
       kind: row.kind as SaleLine["kind"], condition: row.condition, conditionNotes: row.conditionNotes, sku: row.sku,

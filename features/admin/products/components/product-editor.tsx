@@ -328,7 +328,7 @@ export function ProductEditor({ initial, brands: initialBrands, collections, can
             <FormAlert>{err("images")}</FormAlert>
           </AdminCard>
 
-          <AdminCard title="Sizes and prices" description={can.price ? "Prices in PKR. “Was” shows the item as on sale." : "You can't change prices; the price columns are read-only."}>
+          <AdminCard title="Sizes and prices" description={can.price ? "Prices in Rs. “Was” shows the item as on sale." : "You can't change prices; the price columns are read-only."}>
             <div className="overflow-x-auto">
               <table className="w-full min-w-3xl border-collapse text-14">
                 <thead className="text-subtle-foreground">

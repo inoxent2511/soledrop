@@ -5,10 +5,12 @@ import { useQueryClient } from "@tanstack/react-query"
 import { MinusIcon, PlusIcon, XIcon } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useId, useState, type FormEvent } from "react"
 
 import { BagIcon } from "@/components/icons"
 import { buttonVariants } from "@/components/ui/button-variants"
+import type { CartDrawerRequest } from "@/hooks/api/cart/cart-drawer"
 import { cartKeys, useCart } from "@/hooks/api/cart/queries"
 import { freeDeliveryProgress } from "@/features/cart/lib/free-delivery"
 import { useApplyCode, useOptimisticLine, useRemoveCode } from "@/hooks/api/cart/useCartMutations"
@@ -24,8 +26,10 @@ const stepButton = "flex size-9 items-center justify-center rounded-full transit
  * refuses), free-delivery progress, promo code, subtotal, Checkout and View bag. Opening it
  * re-reads the bag from the server so prices and stock are current.
  */
-export function MiniCart({ className }: { className: string }) {
+export function MiniCart({ className, openRequest }: { className: string; openRequest: CartDrawerRequest }) {
+  const pathname = usePathname()
   const [open, setOpen] = useRouteState(false)
+  const [dismissedRequest, setDismissedRequest] = useState(0)
   const [announcement, setAnnouncement] = useState("")
   const client = useQueryClient()
   const { data, isFetching } = useCart()
@@ -36,8 +40,10 @@ export function MiniCart({ className }: { className: string }) {
   const cart = data?.cart
   const count = cart?.itemCount ?? 0
   const label = count === 0 ? "Bag, empty" : `Bag, ${count} ${count === 1 ? "item" : "items"}`
+  const requestedOpen = openRequest.pathname === pathname && openRequest.id > dismissedRequest
 
   const changeOpen = (next: boolean) => {
+    setDismissedRequest(openRequest.id)
     setOpen(next)
     if (next) client.invalidateQueries({ queryKey: cartKeys.all })
   }
@@ -56,7 +62,7 @@ export function MiniCart({ className }: { className: string }) {
   const codes = (cart?.promotions ?? []).flatMap((promotion) => (promotion.code ? [{ ...promotion, code: promotion.code }] : []))
 
   return (
-    <Dialog.Root open={open} onOpenChange={changeOpen}>
+    <Dialog.Root open={open || requestedOpen} onOpenChange={changeOpen}>
       <Dialog.Trigger nativeButton={false} render={<Link href="/cart" onClick={(event) => event.preventDefault()} />} aria-label={label} className={cn(className, "3xl:pt-0")}>
         <BagIcon />
         {count > 0 ? (

@@ -2,10 +2,13 @@
 
 import { MenuIcon } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { useEffect } from "react"
 import { SearchIcon, UserIcon } from "@/components/icons"
 import { CartLink } from "@/components/shared/cart-link"
 import type { MenuSection } from "@/features/navigation/types"
 import { useAccount } from "@/hooks/api/account/queries"
+import { clearCartDrawerRequestOutside, useCartDrawerRequest } from "@/hooks/api/cart/cart-drawer"
 import { useCart } from "@/hooks/api/cart/queries"
 import { DeferredControl } from "./deferred-control"
 import { mobileMenuTrigger } from "./mobile-menu-styles"
@@ -30,6 +33,9 @@ export function HeaderAccount(props: { className: string }) {
 }
 
 export function HeaderCart(props: { className: string }) {
+  const pathname = usePathname()
+  const request = useCartDrawerRequest()
   useCart()
-  return <DeferredControl load={loadCart} props={props} fallback={<CartLink className={props.className} />} />
+  useEffect(() => clearCartDrawerRequestOutside(pathname), [pathname])
+  return <DeferredControl load={loadCart} loadWhen={request.id > 0 && request.pathname === pathname} props={{ ...props, openRequest: request }} fallback={<CartLink className={props.className} />} />
 }

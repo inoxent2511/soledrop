@@ -6,11 +6,10 @@ const MINOR_UNITS: Record<CurrencyCode, number> = { PKR: 100, USD: 100, AED: 100
 const SYMBOLS: Partial<Record<CurrencyCode, string>> = { PKR: "Rs." }
 
 /**
- * Formats minor units as the design writes prices: currency code, space, grouped whole units
- * ("PKR 28,999"). Fractions only appear when the amount has them. `symbol` swaps the code for the
- * local symbol, as the product page's price and savings lines do.
+ * Formats minor units for display with the local rupee prefix ("Rs. 28,999").
+ * Other currencies keep their ISO code. Fractions only appear when the amount has them.
  */
-export function formatPrice(amount: number, currency: CurrencyCode = "PKR", { symbol = false }: { symbol?: boolean } = {}): string {
+export function formatPrice(amount: number, currency: CurrencyCode = "PKR", { symbol = true }: { symbol?: boolean } = {}): string {
   const major = amount / MINOR_UNITS[currency]
   const digits = Number.isInteger(major) ? 0 : 2
   const prefix = symbol ? (SYMBOLS[currency] ?? currency) : currency

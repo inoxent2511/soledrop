@@ -420,6 +420,6 @@ export const attributeDefinitions: AttributeDefinition[] = [
 ]
 
 export const customFieldDefinitions: CustomFieldDefinition[] = [
-  { entity: "order", code: "gift_note", label: "Gift note", type: "text", required: false, visibleOnStorefront: true },
+  { entity: "order", code: "gift_note", label: "Gift note", type: "text", required: false, visibleOnStorefront: false },
   { entity: "product", code: "box_included", label: "Original box included", type: "boolean", required: false, visibleOnStorefront: true },
 ]

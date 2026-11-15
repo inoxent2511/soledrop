@@ -3,13 +3,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { cartApi, type CartResponse } from "@/api/cart"
+import { requestCartDrawer } from "@/hooks/api/cart/cart-drawer"
 import { cartKeys, setCart } from "@/hooks/api/cart/queries"
 
 export function useAddToCart() {
   const client = useQueryClient()
   return useMutation({
-    mutationFn: ({ variantId, quantity }: { variantId: string; quantity?: number }) => cartApi.add(variantId, quantity),
-    onSuccess: (data) => setCart(client, data),
+    mutationFn: ({ variantId, quantity }: { variantId: string; quantity?: number; openDrawer?: boolean }) => cartApi.add(variantId, quantity),
+    onSuccess: (data, { openDrawer }) => {
+      setCart(client, data)
+      if (openDrawer !== false) requestCartDrawer()
+    },
   })
 }
 

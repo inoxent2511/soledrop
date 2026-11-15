@@ -42,7 +42,7 @@ export default async function GalleryPage() {
         </div>
       </AdminCard>
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="Net sales today" value="PKR 48,000" comparison="12% above the 7-day daily average" trend="up" />
+        <StatCard label="Net sales today" value="Rs. 48,000" comparison="12% above the 7-day daily average" trend="up" />
         <StatCard label="Orders today" value={3} comparison="40% below the 7-day daily average" trend="down" />
         <StatCard label="Pairs sold" value={4} />
       </div>
@@ -54,8 +54,8 @@ export default async function GalleryPage() {
         <DataTable
           caption="Sample rows"
           rows={[
-            { id: "a", name: "Nike Air Max 90", status: "Live", total: "PKR 14,999" },
-            { id: "b", name: "ASICS Gel-Kayano 30", status: "Draft", total: "PKR 32,999" },
+            { id: "a", name: "Nike Air Max 90", status: "Live", total: "Rs. 14,999" },
+            { id: "b", name: "ASICS Gel-Kayano 30", status: "Draft", total: "Rs. 32,999" },
           ]}
           rowKey={(row) => row.id}
           columns={[

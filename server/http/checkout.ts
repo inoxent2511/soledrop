@@ -15,7 +15,7 @@ export async function checkoutContext() {
   return {
     customer: customer ? toProfile(customer) : null,
     addresses,
-    orderFields: definitions.filter((definition) => definition.entity === "order" && definition.visibleOnStorefront),
+    orderFields: definitions.filter((definition) => definition.entity === "order" && definition.visibleOnStorefront && definition.code !== "gift_note"),
   }
 }
 
