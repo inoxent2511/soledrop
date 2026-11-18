@@ -51,7 +51,7 @@ export default async function AdminPaymentsPage({ searchParams }: { searchParams
           <div key={provider.code} className="flex flex-col gap-1 rounded-lg border border-border bg-background p-4">
             <p className="text-14 text-subtle-foreground">{PROVIDER[provider.code] ?? provider.label}</p>
             <StatusPill tone={provider.available ? "success" : "neutral"}>{provider.available ? "Offered at checkout" : "Not offered"}</StatusPill>
-            {!provider.available && provider.code === "bank_transfer" ? <p className="text-14 text-subtle-foreground">Needs the bank details in the environment (BANK_NAME, BANK_ACCOUNT_TITLE, BANK_IBAN).</p> : null}
+            {!provider.available && provider.code === "bank_transfer" ? <p className="text-14 text-subtle-foreground">Add the bank details and turn on bank transfer in <Link href="/admin/settings?view=integrations" className="underline underline-offset-2">Settings</Link>.</p> : null}
             {!provider.available && provider.code === "stripe" ? <p className="text-14 text-subtle-foreground">Needs Stripe keys and the stripe-payments flag.</p> : null}
           </div>
         ))}

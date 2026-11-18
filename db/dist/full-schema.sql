@@ -1587,3 +1587,32 @@ ALTER TABLE products
 UPDATE catalogue_read_revisions SET revision = revision + 1;
 
 INSERT INTO schema_migrations (name, checksum) VALUES ('0028_retire_like_new_grade.sql', '5712ff2d95409d004b08f87c19cfacd3fffdfc0ab9e74aca6ebda8809f716635') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0029_retire_express_delivery.sql / SHA256 e39c02fd10050706a1026edff95c27bbb968cc078a2031f0abd05695933351d8
+-- Express delivery is no longer offered. Historical order shipping snapshots stay intact.
+DELETE rate
+FROM shipping_rates AS rate
+JOIN shipping_zones AS zone ON zone.id = rate.zone_id
+WHERE zone.store_id = UNHEX('00000000000040008000000000000001')
+  AND rate.code = 'express';
+
+DELETE FROM feature_flags
+WHERE store_id = UNHEX('00000000000040008000000000000001')
+  AND `key` = 'express-delivery';
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0029_retire_express_delivery.sql', 'e39c02fd10050706a1026edff95c27bbb968cc078a2031f0abd05695933351d8') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);
+
+
+-- 0030_bank_transfer_checkout_switch.sql / SHA256 203c3d891bb80f90c55e15475c335618612eb8c70340030989494d1f6b4b58d0
+-- Bank transfer stays off until bank details are configured and staff enable it.
+INSERT IGNORE INTO feature_flags (store_id, `key`, description, enabled, groups_restricted)
+VALUES (
+  UNHEX('00000000000040008000000000000001'),
+  'bank-transfer-payments',
+  'Bank transfer at checkout after bank details are configured.',
+  0,
+  0
+);
+
+INSERT INTO schema_migrations (name, checksum) VALUES ('0030_bank_transfer_checkout_switch.sql', '203c3d891bb80f90c55e15475c335618612eb8c70340030989494d1f6b4b58d0') ON DUPLICATE KEY UPDATE checksum = IF(checksum = VALUES(checksum), checksum, NULL);

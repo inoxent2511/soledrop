@@ -8,7 +8,6 @@ import { createCartService } from "@/server/cart/service"
 import { catalog } from "@/server/catalog"
 import { selectRepository } from "@/server/db/driver"
 import { inventory } from "@/server/inventory"
-import { flags } from "@/server/platform/flags"
 import { establishCartToken } from "@/server/db/context"
 import { pricing } from "@/server/pricing"
 import { promotionsRepository } from "@/server/promotions"
@@ -27,7 +26,7 @@ export const cartService = () => {
     inventory: inventory(),
     promotions: promotionsRepository(),
     shipping: shippingRepository(),
-    enabledShippingCodes: async () => new Set(["standard", ...((await flags().isEnabled("express-delivery")) ? ["express"] : [])]),
+    enabledShippingCodes: async () => new Set(["standard"]),
   })
   return {
     ...service,

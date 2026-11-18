@@ -130,6 +130,21 @@ checksum in `schema_migrations`. Do not reimport `full-schema.sql` or merchant d
 populated database. Check that both migrations appear in the ledger and `/api/ready` reports
 `0028_retire_like_new_grade.sql` after deployment.
 
+For the release that removes express delivery, import
+`db/dist/0029_retire_express_delivery.sql` into the existing database **before** deploying
+the matching application code. It removes the express shipping rate and its feature flag
+for the Sole Drop store; historical order delivery snapshots remain unchanged. Check that
+`0029_retire_express_delivery.sql` appears in `schema_migrations` and `/api/ready` reports it
+after deployment. Do not reimport the full schema or merchant data.
+
+For the checkout payment settings release, import
+`db/dist/0030_bank_transfer_checkout_switch.sql` into the existing database **before** deploying
+the matching application code. The new bank transfer switch starts off. In Hostinger, set
+`BANK_NAME`, `BANK_ACCOUNT_TITLE` and `BANK_IBAN` to verified merchant payee details, then turn on
+"Offer bank transfer at checkout" in Admin → Settings → Integrations. Without all three values,
+bank transfer remains unavailable. Check that `0030_bank_transfer_checkout_switch.sql` appears in
+`schema_migrations` and `/api/ready` reports it after deployment.
+
 After import use the **app** DATABASE_URL in hPanel. URL-encode password characters such as
 `@`, `:`, `/`, `#` and `%`. Do not use migrator credentials in normal runtime when separate users
 are available. Keep `DATABASE_POOL_MAX=5` initially; account for every running deployment/process
@@ -195,7 +210,7 @@ put production secrets in a tracked `.env` file. Blank optional values are treat
 | AUTH_MAGIC_LINK, AUTH_EMAIL_VERIFICATION | Optional customer capabilities, `off` by default; enable only after mail delivery works. |
 | OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET | Optional HTTPS identity provider; configure all together. Callback `/api/auth/oauth/callback`; no automatic email linking. |
 | STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET | Optional payment provider secrets; obtain from Stripe; do not enable real transactions during staging. |
-| BANK_NAME, BANK_ACCOUNT_TITLE, BANK_IBAN | All required to show production bank transfer; verified merchant payee data. |
+| BANK_NAME, BANK_ACCOUNT_TITLE, BANK_IBAN | Verified merchant payee data; all three and the Admin → Settings → Integrations switch are required to offer bank transfer at checkout. |
 | TURNSTILE_SECRET_KEY, NEXT_PUBLIC_TURNSTILE_SITE_KEY | Optional bot verification server secret/build public site key; register the correct domain. |
 | API_KEYS | Optional headless clients `name:key:read+write`, comma-separated; distinct high-entropy keys. |
 | WEBHOOK_ENDPOINTS | Optional comma-separated authorized outbound HTTPS receivers. |

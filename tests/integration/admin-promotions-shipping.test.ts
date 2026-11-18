@@ -73,10 +73,10 @@ describe("staff promotions", () => {
 describe("staff shipping and tax", () => {
   it("saves zones with their rates, tests quotes like checkout, and keeps at least one zone", async () => {
     const manager = staffAs("store_manager")
-    const zone = await shipping().saveZone(manager, meta, { name: "Karachi same day", countries: ["PK"], cities: ["Karachi"], position: 0, rates: [{ code: "same-day", label: "Same day", amount: 40_000, freeOver: 2_000_000, minDays: 0, maxDays: 1, cashOnDelivery: true }] })
+    const zone = await shipping().saveZone(manager, meta, { name: "Karachi standard", countries: ["PK"], cities: ["Karachi"], position: 0, rates: [{ code: "standard", label: "Standard delivery", amount: 40_000, freeOver: 2_000_000, minDays: 2, maxDays: 5, cashOnDelivery: true }] })
     const karachi = await shipping().test(manager, { country: "PK", city: "karachi", subtotal: 1_000_000 })
     expect(karachi.zone?.id).toBe(zone.id)
-    expect(karachi.quotes[0]).toMatchObject({ code: "same-day", effectiveAmount: 40_000 })
+    expect(karachi.quotes[0]).toMatchObject({ code: "standard", effectiveAmount: 40_000 })
     expect((await shipping().test(manager, { country: "PK", city: "Karachi", subtotal: 2_500_000 })).quotes[0]).toMatchObject({ free: true, effectiveAmount: 0 })
     expect((await shipping().test(manager, { country: "PK", city: "Lahore", subtotal: 1_000_000 })).zone?.id).not.toBe(zone.id)
 

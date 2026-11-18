@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/admin/page-header"
 import { SaleForm } from "@/features/admin/in-store/sale-form"
 import { formatPrice } from "@/lib/format"
 import { can, permissionPage } from "@/server/admin/dal"
-import { recentInStoreSales, searchInStoreProducts } from "@/server/orders/in-store"
+import { recentInStoreSales, searchInStoreProducts } from "@/server/orders/in-store.repository"
 
 export const metadata: Metadata = { title: "In-store sales" }
 

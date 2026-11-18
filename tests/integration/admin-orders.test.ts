@@ -32,6 +32,7 @@ const staff = staffService(createStaffOrders({
 }))
 
 async function placeOrder({ email = "ayesha@example.com", fullName = "Ayesha Khan", paymentMethod = "cod", key = crypto.randomUUID() } = {}) {
+  if (paymentMethod === "bank_transfer") db().flags.find((flag) => flag.key === "bank-transfer-payments")!.enabled = true
   const level = db().inventory.find((row) => row.onHand >= 1)!
   const carts = cartService()
   const shopper = { storeId: STORE_ID, customerId: null, customerGroup: null, email: null }

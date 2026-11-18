@@ -35,7 +35,8 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
   )
 
   if (view === "integrations") {
-    const integrations = await service.integrations(staff)
+    const [integrations, paymentFlags] = await Promise.all([service.integrations(staff), service.flags(staff)])
+    const bankTransferFlag = paymentFlags.find((flag) => flag.key === "bank-transfer-payments")
     return (
       <>
         <PageHeader title="Settings" description="Keys and endpoints live in the server's environment (never in the database or this screen); what is configured shows here." />
@@ -48,8 +49,13 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
                   {provider.label} <StatusPill tone={provider.available ? "success" : "neutral"}>{provider.available ? "Offered" : "Off"}</StatusPill>
                 </li>
               ))}
-              <li className="flex items-center justify-between gap-2 text-14 text-subtle-foreground">
-                Bank account details <span>{integrations.bankTransferConfigured ? "Set" : "Not set (BANK_NAME, BANK_ACCOUNT_TITLE, BANK_IBAN)"}</span>
+              <li className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
+                <span className="flex flex-col gap-0.5">
+                  <span className="font-semibold">Offer bank transfer at checkout</span>
+                  <span className="text-14 text-subtle-foreground">{integrations.bankTransferConfigured ? "Bank details are configured." : "Add BANK_NAME, BANK_ACCOUNT_TITLE and BANK_IBAN in Hostinger before turning this on."}</span>
+                  {bankTransferFlag?.override !== null && bankTransferFlag?.override !== undefined ? <span className="text-14 text-subtle-foreground">Controlled by FEATURE_FLAGS in the server environment.</span> : null}
+                </span>
+                {bankTransferFlag ? <FlagSwitch flagKey={bankTransferFlag.key} enabled={bankTransferFlag.override ?? bankTransferFlag.enabled} overridden={bankTransferFlag.override !== null} canChange={can(staff, "settings:flags") && integrations.bankTransferConfigured} /> : <span className="text-14 text-subtle-foreground">Available after the payment settings migration.</span>}
               </li>
             </ul>
           </AdminCard>
@@ -202,7 +208,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
       </AdminCard>
       <AdminCard title="Features">
         <ul className="flex flex-col divide-y divide-border">
-          {flags.map((flag) => (
+          {flags.filter((flag) => flag.key !== "bank-transfer-payments").map((flag) => (
             <li key={flag.key} className="flex flex-wrap items-start justify-between gap-3 py-3">
               <div className="flex flex-col gap-0.5">
                 <span className="text-16 font-semibold">

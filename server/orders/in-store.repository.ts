@@ -186,7 +186,9 @@ export async function recentInStoreSales(staff: StaffContext) {
   const db = await database()
   const rows = await db.select({ number: orders.number, placedAt: orders.placedAt, total: orders.total,
     name: orders.shippingAddress, paymentMethod: orders.paymentMethod }).from(orders)
-    .where(and(eq(orders.storeId, actor.storeId), sql`JSON_UNQUOTE(JSON_EXTRACT(${orders.shippingMethod}, '$.code')) = ${posCode}`))
+    .where(and(eq(orders.storeId, actor.storeId), eq(sql.join([
+      sql.raw("JSON_UNQUOTE(JSON_EXTRACT("), orders.shippingMethod, sql.raw(", '$.code'))"),
+    ]), posCode)))
     .orderBy(desc(orders.placedAt), desc(orders.id)).limit(20)
   return rows.map((row) => ({ number: row.number, placedAt: isoDate(row.placedAt), total: row.total,
     customer: (row.name as { fullName?: string }).fullName ?? "Walk-in customer", paymentMethod: row.paymentMethod }))

@@ -29,7 +29,7 @@ export function createStaffShipping(deps: { shipping: ShippingOperations; audit:
     async overview(staff: StaffContext) {
       need(staff, "shipping:read")
       const [zones, taxRates] = await Promise.all([shipping.listZones(staff.member.storeId), shipping.listTaxRates(staff.member.storeId)])
-      return { zones: [...zones].sort((a, b) => a.position - b.position), taxRates }
+      return { zones: [...zones].sort((a, b) => a.position - b.position).map((zone) => ({ ...zone, rates: zone.rates.filter((rate) => rate.code === "standard") })), taxRates }
     },
 
     async saveZone(staff: StaffContext, meta: RequestMeta, input: ZoneInput, id?: string) {
@@ -72,7 +72,7 @@ export function createStaffShipping(deps: { shipping: ShippingOperations; audit:
       const rate = taxRateFor(taxRates, input.country, input.province)
       return {
         zone: zone ? { id: zone.id, name: zone.name } : null,
-        quotes: zone ? quoteRates(zone, input.subtotal, false) : [],
+        quotes: zone ? quoteRates(zone, input.subtotal, false, new Set(["standard"])) : [],
         tax: { label: rate?.label ?? null, basisPoints: rate?.basisPoints ?? 0, ...taxFor(input.subtotal, rate) },
       }
     },

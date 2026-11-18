@@ -16,6 +16,7 @@ const registry: PaymentProvider[] = [
         ? { bank: serverEnv.BANK_NAME, accountTitle: serverEnv.BANK_ACCOUNT_TITLE, iban: serverEnv.BANK_IBAN }
         : null,
     production: serverEnv.NODE_ENV === "production",
+    enabled: () => flags().isEnabled("bank-transfer-payments"),
   }),
   createStripeProvider({
     secretKey: serverEnv.STRIPE_SECRET_KEY,

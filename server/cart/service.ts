@@ -141,7 +141,7 @@ export function createCartService(deps: Deps) {
     const taxRate = taxRateFor(taxRates, country, destination?.province)
     const { tax, inclusive } = taxFor(subtotal - discount + (shippingAmount ?? 0), taxRate)
     const total = subtotal - discount + (shippingAmount ?? 0) + (inclusive ? 0 : tax)
-    const standard = zone?.rates.find((rate) => rate.freeOver !== null)
+    const standard = zone?.rates.find((rate) => rate.code === "standard")
 
     const promotions: AppliedPromotion[] = applied.map((result) => ({
       code: result.promotion.code,

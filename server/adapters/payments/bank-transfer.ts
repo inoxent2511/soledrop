@@ -12,14 +12,14 @@ const SAMPLE_DETAILS: BankDetails = { bank: "Sample Bank (development only)", ac
  * (record_payment). In production the option is offered only once BANK_NAME, BANK_ACCOUNT_TITLE
  * and BANK_IBAN are set, so a shopper is never shown an account that does not exist.
  */
-export function createBankTransferProvider(options: { details: BankDetails | null; production: boolean }): PaymentProvider {
+export function createBankTransferProvider(options: { details: BankDetails | null; production: boolean; enabled: () => Promise<boolean> }): PaymentProvider {
   const details = options.details ?? (options.production ? null : SAMPLE_DETAILS)
   return {
     code: "bank_transfer",
     label: "Bank transfer",
     description: "Transfer the total to our bank account; we ship once it arrives.",
     async isAvailable() {
-      return details !== null
+      return details !== null && (await options.enabled())
     },
     async createPayment(input) {
       if (!details) throw new Error("Bank transfer is not configured.")

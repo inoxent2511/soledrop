@@ -2848,15 +2848,6 @@
             "minDays": 2,
             "maxDays": 5,
             "cashOnDelivery": true
-          },
-          {
-            "code": "express",
-            "label": "Express delivery (Karachi, Lahore, Islamabad)",
-            "amount": 60000,
-            "freeOver": null,
-            "minDays": 1,
-            "maxDays": 2,
-            "cashOnDelivery": true
           }
         ]
       }
@@ -3845,9 +3836,9 @@
         "enabled": false
       },
       {
-        "key": "express-delivery",
-        "description": "Offer the express delivery rate at checkout.",
-        "enabled": true
+        "key": "bank-transfer-payments",
+        "description": "Bank transfer at checkout (needs BANK_NAME, BANK_ACCOUNT_TITLE and BANK_IBAN).",
+        "enabled": false
       }
     ],
     "outbox": [],

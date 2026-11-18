@@ -111,5 +111,13 @@ export const expectedMigrations = [
   {
     "name": "0028_retire_like_new_grade.sql",
     "checksum": "5712ff2d95409d004b08f87c19cfacd3fffdfc0ab9e74aca6ebda8809f716635"
+  },
+  {
+    "name": "0029_retire_express_delivery.sql",
+    "checksum": "e39c02fd10050706a1026edff95c27bbb968cc078a2031f0abd05695933351d8"
+  },
+  {
+    "name": "0030_bank_transfer_checkout_switch.sql",
+    "checksum": "203c3d891bb80f90c55e15475c335618612eb8c70340030989494d1f6b4b58d0"
   }
 ] as const

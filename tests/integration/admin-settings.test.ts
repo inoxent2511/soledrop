@@ -21,6 +21,7 @@ function staffAs(roleKey: string): StaffContext {
 }
 
 async function placeOrder(paymentMethod = "cod") {
+  if (paymentMethod === "bank_transfer") db().flags.find((flag) => flag.key === "bank-transfer-payments")!.enabled = true
   const level = db().inventory.find((row) => row.onHand >= 1)!
   const carts = cartService()
   const shopper = { storeId: STORE_ID, customerId: null, customerGroup: null, email: null }
@@ -44,11 +45,13 @@ beforeEach(() => resetFixtures())
 
 describe("settings", () => {
   it("switches flags with an audit entry, and keeps them to settings:flags", async () => withActor(anonymousActor(STORE_ID), async () => {
-    const flag = structuredClone(db().flags[0])
+    const flag = structuredClone(db().flags.find((item) => item.key === "bank-transfer-payments")!)
     const saved = await staffPlatform().setFlag(staffAs("admin"), meta, flag.key, { enabled: !flag.enabled })
     expect(saved.enabled).toBe(!flag.enabled)
+    expect((await orderService().providers()).find((provider) => provider.code === "bank_transfer")?.available).toBe(true)
     expect(db().audit.at(-1)).toMatchObject({ action: "flag.changed", entityId: flag.key })
     await expect(staffPlatform().setFlag(staffAs("store_manager"), meta, flag.key, { enabled: flag.enabled })).resolves.toBeTruthy()
+    expect((await orderService().providers()).find((provider) => provider.code === "bank_transfer")?.available).toBe(false)
     await expect(staffPlatform().setFlag(staffAs("marketing"), meta, flag.key, { enabled: true })).rejects.toMatchObject({ code: "forbidden" })
   }))
 

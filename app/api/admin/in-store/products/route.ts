@@ -1,5 +1,5 @@
 import { adminRoute } from "@/server/admin/route"
-import { searchInStoreProducts } from "@/server/orders/in-store"
+import { searchInStoreProducts } from "@/server/orders/in-store.repository"
 
 export const GET = adminRoute("orders:write", async ({ request, staff }) => {
   const params = new URL(request.url).searchParams

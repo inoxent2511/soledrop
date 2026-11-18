@@ -116,10 +116,7 @@ function ZoneForm({ zone, canWrite, onSaved }: { zone: ShippingZone | null; canW
         </div>
         <FormAlert>{error}</FormAlert>
         {canWrite ? (
-          <div className="flex flex-wrap justify-between gap-2">
-            <button type="button" onClick={() => setForm({ ...form, rates: [...form.rates, { code: `option-${form.rates.length + 1}`, label: "Express delivery", amount: 50_000, freeOver: null, minDays: 1, maxDays: 2, cashOnDelivery: false }] })} className={adminButton({ tone: "secondary", size: "sm" })}>
-              <Plus aria-hidden /> Add delivery option
-            </button>
+          <div className="flex flex-wrap justify-end gap-2">
             <div className="flex gap-2">
               {zone ? (
                 <button type="button" disabled={busy} onClick={() => void remove()} className={adminButton({ tone: "ghost", size: "sm" })}>

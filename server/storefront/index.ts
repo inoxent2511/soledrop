@@ -128,7 +128,7 @@ async function resultsWithFilters(query: ProductQuery) {
 export const freeDeliveryThreshold = cache(async () => {
   const zones = await shippingRepository().listZones(currentStoreId())
   const first = [...zones].sort((a, b) => a.position - b.position)[0]
-  const thresholds = (first?.rates ?? []).flatMap((rate) => (rate.freeOver === null ? [] : [rate.freeOver]))
+  const thresholds = (first?.rates ?? []).flatMap((rate) => (rate.code !== "standard" || rate.freeOver === null ? [] : [rate.freeOver]))
   return thresholds.length ? Math.min(...thresholds) : null
 })
 
@@ -142,7 +142,7 @@ export type DeliveryRate = { code: string; label: string; amount: number; freeOv
 export const deliveryRates = cache(async (): Promise<{ rates: DeliveryRate[]; standardShipping: string | null }> => {
   const zones = await shippingRepository().listZones(currentStoreId())
   const zone = [...zones].sort((a, b) => a.position - b.position)[0]
-  const rates = (zone?.rates ?? []).map(({ code, label, amount, freeOver, cashOnDelivery }) => ({ code, label, amount, freeOver, cashOnDelivery }))
+  const rates = (zone?.rates ?? []).filter((rate) => rate.code === "standard").map(({ code, label, amount, freeOver, cashOnDelivery }) => ({ code, label, amount, freeOver, cashOnDelivery }))
   const standard = rates.find((rate) => rate.code === "standard") ?? rates[0]
   if (!standard) return { rates, standardShipping: null }
   const price = standard.amount === 0 ? "free" : `${formatPrice(standard.amount, "PKR", { symbol: true })} per order`

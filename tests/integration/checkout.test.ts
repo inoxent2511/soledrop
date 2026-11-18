@@ -120,6 +120,11 @@ describe("checkout on the fixtures driver", () => {
   }))
 
   it("leaves a bank transfer order waiting for payment with instructions", async () => withActor(anonymousActor(STORE_ID), async () => {
+    expect((await orderService().providers()).find((provider) => provider.code === "bank_transfer")?.available).toBe(false)
+    const bankTransferFlag = db().flags.find((flag) => flag.key === "bank-transfer-payments")
+    if (!bankTransferFlag) throw new Error("bank transfer flag is missing from fixtures")
+    bankTransferFlag.enabled = true
+    expect((await orderService().providers()).find((provider) => provider.code === "bank_transfer")?.available).toBe(true)
     const { order, next } = await checkout(await bagWith(stockedVariant().variantId), "key-1", "ayesha@example.com", "bank_transfer")
     expect(order.status).toBe("pending_payment")
     expect(next.type).toBe("instructions")

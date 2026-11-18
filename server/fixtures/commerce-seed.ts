@@ -22,7 +22,6 @@ const shippingZones: ShippingZone[] = [
     position: 0,
     rates: [
       { code: "standard", label: "Standard delivery", amount: 25000, freeOver: 1200000, minDays: 2, maxDays: 5, cashOnDelivery: true },
-      { code: "express", label: "Express delivery (Karachi, Lahore, Islamabad)", amount: 60000, freeOver: null, minDays: 1, maxDays: 2, cashOnDelivery: true },
     ],
   },
 ]
@@ -69,7 +68,7 @@ const flags: FeatureFlag[] = [
   { key: "b2b-pricing", description: "Wholesale price list and quote requests for approved trade accounts.", enabled: false, customerGroups: ["wholesale"] },
   { key: "multi-currency-display", description: "Show approximate prices in USD / AED / GBP next to Rs.", enabled: false },
   { key: "stripe-payments", description: "Card payments through Stripe (needs STRIPE_SECRET_KEY).", enabled: false },
-  { key: "express-delivery", description: "Offer the express delivery rate at checkout.", enabled: true },
+  { key: "bank-transfer-payments", description: "Bank transfer at checkout (needs BANK_NAME, BANK_ACCOUNT_TITLE and BANK_IBAN).", enabled: false },
 ]
 
 const exchangeRates: ExchangeRates = {

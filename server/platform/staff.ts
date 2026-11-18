@@ -46,11 +46,12 @@ export function createStaffPlatform(deps: Deps) {
     async flags(staff: StaffContext) {
       need(staff, "settings:read")
       const overrides = deps.overrides()
-      return (await platform.listFlags(staff.member.storeId)).map((flag) => ({ ...flag, override: overrides.has(flag.key) ? (overrides.get(flag.key) as boolean) : null }))
+      return (await platform.listFlags(staff.member.storeId)).filter((flag) => flag.key !== "express-delivery").map((flag) => ({ ...flag, override: overrides.has(flag.key) ? (overrides.get(flag.key) as boolean) : null }))
     },
 
     async setFlag(staff: StaffContext, meta: RequestMeta, key: string, changes: { enabled: boolean; customerGroups?: string[] | null }) {
       need(staff, "settings:flags")
+      if (key === "express-delivery") throw new DomainError("not_found", "Unknown flag.")
       const before = (await platform.listFlags(staff.member.storeId)).find((flag) => flag.key === key)
       if (!before) throw new DomainError("not_found", "Unknown flag.")
       const saved: FeatureFlag = await platform.setFlag(staff.member.storeId, key, changes)

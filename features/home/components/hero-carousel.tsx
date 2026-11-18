@@ -45,7 +45,8 @@ export function HeroCarousel({ slides, initial = 0 }: { slides: HeroSlide[]; ini
           aria-hidden={index !== current}
           className={cn("absolute inset-0 transition-opacity duration-700", index === current ? "opacity-100" : "opacity-0")}
         >
-          <Image src={slide.src} alt={slide.alt} fill priority={index === initial} sizes="(min-width: 1024px) 56vw, 100vw" className="object-cover" />
+          <Image src={slide.src} alt="" aria-hidden="true" fill sizes="(min-width: 1024px) 56vw, 100vw" className="scale-110 object-cover opacity-40 blur-3xl" />
+          <Image src={slide.src} alt={slide.alt} fill priority={index === initial} sizes="(min-width: 1024px) 56vw, 100vw" className="object-contain" />
         </div>
       ))}
       {slides.length > 1 ? (

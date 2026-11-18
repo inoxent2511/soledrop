@@ -3,9 +3,11 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react"
+import { Banknote, CreditCard, Landmark } from "lucide-react"
 
 import type { QuoteResponse } from "@/api/checkout"
 import { ApiError } from "@/api/http"
+import { DeliveryIcon } from "@/components/icons"
 import { Container } from "@/components/shared/container"
 import { CheckoutSummary } from "@/features/checkout/components/checkout-summary"
 import { PromoCodeForm } from "@/features/checkout/components/promo-code-form"
@@ -23,23 +25,29 @@ type Values = Record<AddressField, string> & { email: string }
 
 const ADDRESS_FIELDS: { name: AddressField; label: string; autoComplete: string; type?: string; optional?: boolean; wide?: boolean }[] = [
   { name: "fullName", label: "Full name", autoComplete: "shipping name", wide: true },
-  { name: "phone", label: "Mobile number", autoComplete: "shipping tel", type: "tel", wide: true },
   { name: "line1", label: "Address", autoComplete: "shipping address-line1", wide: true },
   { name: "line2", label: "Area or landmark (optional)", autoComplete: "shipping address-line2", optional: true, wide: true },
   { name: "city", label: "City", autoComplete: "shipping address-level2" },
   { name: "province", label: "Province", autoComplete: "shipping address-level1" },
   { name: "postalCode", label: "Postal code (optional)", autoComplete: "shipping postal-code", optional: true },
+  { name: "phone", label: "Mobile number", autoComplete: "shipping tel", type: "tel", wide: true },
 ]
 
 /** Field order for "focus the first problem". */
 const FIELD_ORDER: Field[] = ["email", ...ADDRESS_FIELDS.map((field) => field.name), "shippingCode", "paymentMethod"]
 
 const control =
-  "w-full rounded-lg border-2 border-control-border bg-background px-4 text-18 transition-colors hover:border-foreground focus-visible:border-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring aria-invalid:border-destructive"
+  "w-full rounded-lg border border-control-border bg-background px-4 text-18 transition-[border-color,box-shadow] hover:border-foreground/50 focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/20 aria-invalid:border-destructive aria-invalid:focus:border-destructive aria-invalid:focus:ring-destructive/20"
 const card = "flex flex-col gap-6 rounded-xl bg-background p-5 outline-1 outline-border-strong md:p-7.5"
 const option =
   "flex cursor-pointer items-start gap-4 rounded-lg border-2 border-control-border p-4 transition-colors hover:border-foreground has-checked:border-foreground has-checked:bg-brand-tint has-disabled:cursor-not-allowed has-disabled:opacity-60 has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring md:p-5"
+const deliveryOption =
+  "grid min-h-16 cursor-pointer grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-0.5 rounded-lg border border-control-border bg-background px-3 py-2.5 transition-colors hover:border-brand has-checked:border-brand has-checked:ring-1 has-checked:ring-brand has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring sm:gap-x-3 sm:px-4"
+const paymentOption =
+  "overflow-hidden rounded-lg border border-control-border bg-background transition-colors has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring"
 const radio = "mt-1 size-5 shrink-0 accent-foreground"
+const deliveryEstimate = (minDays: number, maxDays: number) =>
+  minDays === maxDays ? `${minDays} working ${minDays === 1 ? "day" : "days"}` : `${minDays}–${maxDays} working days`
 
 const fromAddress = (address: CustomerAddress, email: string): Values => ({
   email,
@@ -53,6 +61,35 @@ const fromAddress = (address: CustomerAddress, email: string): Values => ({
 })
 
 const newKey = () => crypto.randomUUID().replaceAll("-", "")
+
+/** Hover explains the field on desktop; tap and keyboard activation work on touch devices. */
+function FieldPurposeHint({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <details
+      className="relative z-20"
+      onPointerEnter={(event) => {
+        if (event.pointerType === "mouse") event.currentTarget.open = true
+      }}
+      onPointerLeave={(event) => {
+        if (event.pointerType === "mouse") event.currentTarget.open = false
+      }}
+    >
+      <summary
+        aria-label={label}
+        onClick={(event) => {
+          if (event.detail > 0 && window.matchMedia("(hover: hover) and (pointer: fine)").matches) event.preventDefault()
+        }}
+        className="absolute end-1 -top-12.5 flex size-11 cursor-pointer list-none items-center justify-center rounded-full text-faint-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden"
+      >
+        <span aria-hidden="true" className="flex size-5 items-center justify-center rounded-full border-2 border-current text-14 leading-none font-bold">?</span>
+      </summary>
+      <div className="relative ms-auto mt-2 w-55 max-w-full rounded-xl bg-foreground px-4 py-3 text-center text-14 leading-5 font-medium text-background shadow-lg md:absolute md:end-0 md:bottom-13 md:mt-0">
+        {children}
+        <span aria-hidden="true" className="absolute end-4 -top-1 size-2 rotate-45 bg-foreground md:top-auto md:-bottom-1" />
+      </div>
+    </details>
+  )
+}
 
 /**
  * Checkout (derived: the design stops at the bag). One page, four short sections beside the
@@ -236,7 +273,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
 
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-cart lg:gap-5">
           {/* The summary holds its own promotion-code form, so it sits beside this form, not inside it; Place order submits this one by id. */}
-          <form id={`${id}-form`} method="post" inert={!hydrated} noValidate onSubmit={onSubmit} aria-busy={busy} aria-label="Checkout details" className="flex min-w-0 flex-col gap-5">
+          <form id={`${id}-form`} method="post" inert={!hydrated} noValidate onSubmit={onSubmit} aria-busy={busy} aria-label="Checkout details" className="flex min-w-0 flex-col gap-5 lg:me-12">
             <Section title="Contact" number={1}>
               {context.customer ? (
                 <p className="text-18 md:text-20">
@@ -247,20 +284,24 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                   <label htmlFor={`${id}-email`} className="text-18 font-bold md:text-20">
                     Email
                   </label>
-                  <input
-                    id={`${id}-email`}
-                    name="email"
-                    type="email"
-                    disabled={!hydrated}
-                    autoComplete="email"
-                    value={values.email}
-                    onChange={(event) => set("email", event.target.value)}
-                    {...described("email")}
-                    className={cn(control, "h-14")}
-                  />
+                  <div className="relative">
+                    <input
+                      id={`${id}-email`}
+                      name="email"
+                      type="email"
+                      disabled={!hydrated}
+                      autoComplete="email"
+                      value={values.email}
+                      onChange={(event) => set("email", event.target.value)}
+                      {...described("email")}
+                      className={cn(control, "h-14 pe-14")}
+                    />
+                    <FieldPurposeHint label="Why we ask for your email">
+                      Used for your order confirmation and delivery updates.
+                    </FieldPurposeHint>
+                  </div>
                   {errorText("email")}
                   <p className="text-16 text-subtle-foreground">
-                    For your receipt and delivery updates.{" "}
                     <Link href="/account/login?next=/checkout" className="font-semibold text-foreground underline underline-offset-4">
                       Sign in
                     </Link>{" "}
@@ -319,19 +360,26 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                         ))}
                       </select>
                     ) : (
-                      <input
-                        id={`${id}-${field.name}`}
-                        name={field.name}
-                        disabled={!hydrated}
-                        type={field.type ?? "text"}
-                        inputMode={field.name === "postalCode" ? "numeric" : undefined}
-                        autoComplete={field.autoComplete}
-                        value={values[field.name]}
-                        onChange={(event) => set(field.name, event.target.value)}
-                        onBlur={field.name === "city" ? () => requoteForAddress(values) : undefined}
-                        {...described(field.name)}
-                        className={cn(control, "h-14")}
-                      />
+                      <div className={field.name === "phone" ? "relative" : undefined}>
+                        <input
+                          id={`${id}-${field.name}`}
+                          name={field.name}
+                          disabled={!hydrated}
+                          type={field.type ?? "text"}
+                          inputMode={field.name === "postalCode" ? "numeric" : undefined}
+                          autoComplete={field.autoComplete}
+                          value={values[field.name]}
+                          onChange={(event) => set(field.name, event.target.value)}
+                          onBlur={field.name === "city" ? () => requoteForAddress(values) : undefined}
+                          {...described(field.name)}
+                          className={cn(control, "h-14", field.name === "phone" && "pe-14")}
+                        />
+                        {field.name === "phone" ? (
+                          <FieldPurposeHint label="Why we ask for your mobile number">
+                            In case we need to contact you about your order.
+                          </FieldPurposeHint>
+                        ) : null}
+                      </div>
                     )}
                     {errorText(field.name)}
                   </div>
@@ -354,7 +402,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                   <p className="text-16 font-medium text-destructive md:text-18">We don&rsquo;t deliver to this address yet. Please check the city, or contact us.</p>
                 ) : (
                   data.shippingQuotes.map((rate) => (
-                    <label key={rate.code} className={option}>
+                    <label key={rate.code} className={deliveryOption}>
                       <input
                         type="radio"
                         name="shippingCode"
@@ -364,16 +412,14 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                           setShippingCode(rate.code)
                           requote({ city: values.city, province: values.province, shippingCode: rate.code })
                         }}
-                        className={radio}
+                        className="row-span-2 size-5 self-center accent-brand"
                       />
-                      <span className="flex flex-1 flex-col gap-1 text-16 md:text-18">
-                        <span className="font-semibold">{rate.label}</span>
-                        <span className="text-subtle-foreground">
-                          {rate.minDays === rate.maxDays ? `${rate.minDays} working day` : `${rate.minDays}–${rate.maxDays} working days`}
-                          {rate.cashOnDelivery ? "" : " · prepaid only"}
-                        </span>
+                      <DeliveryIcon aria-hidden="true" className="row-span-2 size-6 self-center text-foreground" />
+                      <span className="col-start-3 row-start-1 row-span-2 min-w-0 self-center text-14 leading-tight font-semibold max-[359px]:row-span-1 sm:text-16">
+                        {rate.label}
                       </span>
-                      <span className="text-16 font-semibold md:text-18">{rate.free ? "Free" : price(rate.effectiveAmount)}</span>
+                      <span className="col-start-4 row-start-1 justify-self-end text-end text-14 font-semibold sm:text-16">{rate.free ? "Free" : price(rate.effectiveAmount)}</span>
+                      <span className="col-start-4 row-start-2 justify-self-end text-end text-11 leading-tight whitespace-nowrap text-subtle-foreground max-[359px]:col-[3/-1] sm:text-13">{deliveryEstimate(rate.minDays, rate.maxDays)}</span>
                     </label>
                   ))
                 )}
@@ -416,29 +462,38 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
             </Section>
 
             <Section title="Payment" number={4}>
+              <p className="text-14 text-subtle-foreground sm:text-16">Choose how you would like to pay.</p>
               <fieldset className="flex flex-col gap-3" aria-describedby={errors.paymentMethod ? `${id}-paymentMethod-error` : undefined}>
                 <legend className="sr-only">Payment method</legend>
                 {(data?.paymentMethods ?? []).map((method) => {
                   const disabled = method.code === "cod" && codUnavailable
+                  const selected = chosenPayment === method.code
+                  const Icon = method.code === "cod" ? Banknote : method.code === "bank_transfer" ? Landmark : CreditCard
                   return (
-                    <label key={method.code} className={option}>
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value={method.code}
-                        checked={chosenPayment === method.code}
-                        disabled={disabled}
-                        onChange={() => {
-                          setPaymentMethod(method.code)
-                          setErrors((current) => ({ ...current, paymentMethod: undefined }))
-                        }}
-                        className={radio}
-                      />
-                      <span className="flex flex-col gap-1 text-16 md:text-18">
-                        <span className="font-semibold">{method.label}</span>
-                        <span className="text-subtle-foreground">{disabled ? "Not available with this delivery option." : method.description}</span>
-                      </span>
-                    </label>
+                    <div key={method.code} className={cn(paymentOption, selected ? "border-brand ring-1 ring-brand" : "hover:border-brand", disabled && "opacity-60")}>
+                      <label className={cn("flex min-h-16 items-center gap-3 px-3 py-2.5 sm:px-4", disabled ? "cursor-not-allowed" : "cursor-pointer")}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value={method.code}
+                          checked={selected}
+                          disabled={disabled}
+                          aria-describedby={selected || disabled ? `${id}-payment-${method.code}-description` : undefined}
+                          onChange={() => {
+                            setPaymentMethod(method.code)
+                            setErrors((current) => ({ ...current, paymentMethod: undefined }))
+                          }}
+                          className="size-5 shrink-0 accent-foreground"
+                        />
+                        <Icon aria-hidden="true" className="size-5 shrink-0 text-foreground" strokeWidth={1.8} />
+                        <span className="min-w-0 text-16 font-semibold sm:text-18">{method.label}</span>
+                      </label>
+                      {selected || disabled ? (
+                        <p id={`${id}-payment-${method.code}-description`} className="border-t border-border bg-surface px-4 py-3 text-14 leading-5 text-subtle-foreground sm:ps-15 sm:text-16">
+                          {disabled ? "Not available with this delivery option." : method.description}
+                        </p>
+                      ) : null}
+                    </div>
                   )
                 })}
                 {errorText("paymentMethod")}

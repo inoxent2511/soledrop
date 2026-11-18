@@ -34,13 +34,13 @@ describe("saved local store", () => {
     tables.inventory.push({ variantId: "imported-size", onHand: 15, reserved: 0 })
     tables.audit.push(
       { id: "movement-audit", at: "2026-11-07T00:00:00Z", actor: "staff", action: "inventory.adjust", entity: "variant", entityId: "imported-size", before: { onHand: 0 }, after: { onHand: 15, reason: "Received from supplier" } },
-      { id: "flag-audit", at: "2026-11-07T00:00:01Z", actor: "staff", action: "flag.changed", entity: "flag", entityId: "express-delivery", before: { enabled: true }, after: { enabled: false, customerGroups: null } },
+      { id: "flag-audit", at: "2026-11-07T00:00:01Z", actor: "staff", action: "flag.changed", entity: "flag", entityId: "bank-transfer-payments", before: { enabled: true }, after: { enabled: false, customerGroups: null } },
     )
     expect(restorePreviewMetadata(tables)).toEqual({ movements: 1 })
     expect(restorePreviewMetadata(tables)).toEqual({ movements: 0 })
     expect(tables.inventory[0].onHand).toBe(15)
     expect(tables.inventoryMovements[0]).toMatchObject({ variantId: "imported-size", delta: 15, actor: "staff", reason: "Recovered preview audit: Received from supplier" })
-    expect(tables.flags.find((flag) => flag.key === "express-delivery")?.enabled).toBe(false)
+    expect(tables.flags.find((flag) => flag.key === "bank-transfer-payments")?.enabled).toBe(false)
   })
   it("keeps the previous committed snapshot when a disk replacement fails", async () => {
     const directory = temporary()
