@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 
 import { cn } from "@/lib/utils"
 
-export type HeroSlide = { src: string; alt: string }
+export type HeroSlide = { src: string; alt: string; width?: number; height?: number }
 
 const INTERVAL_MS = 6000
 
@@ -17,6 +17,10 @@ export function HeroCarousel({ slides, initial = 0 }: { slides: HeroSlide[]; ini
   const [active, setActive] = useState(initial)
   const current = Math.min(active, Math.max(0, slides.length - 1))
   const [paused, setPaused] = useState(false)
+  const firstSlide = slides[0]
+  const aspectRatio = firstSlide?.width && firstSlide?.height && firstSlide.width >= firstSlide.height
+    ? `${firstSlide.width} / ${firstSlide.height}`
+    : "4 / 3"
 
   useEffect(() => {
     if (paused || slides.length < 2) return
@@ -34,23 +38,32 @@ export function HeroCarousel({ slides, initial = 0 }: { slides: HeroSlide[]; ini
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
-      className="relative h-full overflow-hidden bg-well-dark lg:min-h-90"
+      className="w-full bg-foreground"
     >
-      {slides.map((slide, index) => (
-        <div
-          key={`${slide.src}-${index}`}
-          role="group"
-          aria-roledescription="slide"
-          aria-label={`${index + 1} of ${slides.length}`}
-          aria-hidden={index !== current}
-          className={cn("absolute inset-0 transition-opacity duration-700", index === current ? "opacity-100" : "opacity-0")}
-        >
-          <Image src={slide.src} alt="" aria-hidden="true" fill sizes="(min-width: 1024px) 56vw, 100vw" className="scale-110 object-cover opacity-40 blur-3xl" />
-          <Image src={slide.src} alt={slide.alt} fill priority={index === initial} sizes="(min-width: 1024px) 56vw, 100vw" className="object-contain" />
-        </div>
-      ))}
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio }}>
+        {slides.map((slide, index) => {
+          const ratio = slide.width && slide.height ? slide.width / slide.height : null
+          return <div
+            key={`${slide.src}-${index}`}
+            role="group"
+            aria-roledescription="slide"
+            aria-label={`${index + 1} of ${slides.length}`}
+            aria-hidden={index !== current}
+            className={cn("absolute inset-0 transition-opacity duration-700", index === current ? "opacity-100" : "opacity-0")}
+          >
+            <Image
+              src={slide.src}
+              alt={slide.alt}
+              fill
+              priority={index === initial}
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className={ratio !== null && ratio >= 1 ? "object-contain" : "object-cover object-center"}
+            />
+          </div>
+        })}
+      </div>
       {slides.length > 1 ? (
-        <div className="absolute inset-x-0 bottom-11.25 flex items-center justify-center gap-3.5">
+        <div className="flex h-10 items-center justify-center gap-3.5 bg-foreground">
           {slides.map((slide, index) => (
             <button
               key={`${slide.src}-${index}`}

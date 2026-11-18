@@ -21,12 +21,12 @@ export function Hero({ children, content }: { children: ReactNode; content: Home
   return (
     <section
       aria-labelledby="hero-title"
-      className="grid min-w-0 bg-foreground text-background lg:grid-cols-2 3xl:grid-cols-hero"
+      className="grid min-w-0 bg-foreground text-background lg:grid-cols-2"
     >
-      <div className="flex min-w-0 flex-col items-start px-5 pt-10 pb-12 md:px-10 lg:pt-12 xl:px-16 3xl:ps-30 3xl:pe-0 3xl:pt-17.75 3xl:pb-17.75">
+      <div className="flex min-w-0 flex-col items-start justify-center px-5 py-8 sm:pt-10 sm:pb-12 md:px-10 lg:px-8 lg:py-8 xl:px-12 3xl:ps-24 3xl:pe-8 3xl:py-12">
         <h1
           id="hero-title"
-          className="flex max-w-full flex-col text-54 leading-hero font-black wrap-anywhere uppercase md:text-100 3xl:text-120"
+          className="flex max-w-full flex-col text-[clamp(2.75rem,13vw,3.375rem)] leading-hero font-black wrap-anywhere uppercase md:text-[clamp(3.375rem,7vw,5rem)] lg:text-[clamp(3rem,5.5vw,6.5rem)]"
         >
           {content.heading.some(Boolean) ? content.heading.map((line, index) => <span key={index} className={index % 2 ? "text-brand" : undefined}>{line}</span>) : <span>Sole Drop</span>}
         </h1>
@@ -46,7 +46,7 @@ export function Hero({ children, content }: { children: ReactNode; content: Home
           </Link>)}
         </div>
       </div>
-      <div className="aspect-4/3 lg:aspect-auto">{children}</div>
+      <div className="min-w-0 self-center">{children}</div>
     </section>
   )
 }

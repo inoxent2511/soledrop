@@ -36,7 +36,7 @@ export function HomeEditor({ initial, canPublish, canUpload }: { initial: HomeRe
 
   function photoList(kind: "slides" | "instagram", title: string, max: number) {
     const rows = images(kind)
-    return <AdminCard title={kind === "slides" ? "Homepage hero photos" : title} description={kind === "slides" ? "Use 1440 × 1080 px for every hero image. The full image is shown on the right without cropping; the heading, description and buttons stay on the left." : "Choose library photos or upload new ones. Remove every photo to hide this section."}>
+    return <AdminCard title={kind === "slides" ? "Homepage hero photos" : title} description={kind === "slides" ? "A 4:3 landscape image (such as 1440 × 1080 px) works well, but the upload size is not fixed. The artwork scales with the screen and the heading and buttons stay on the left. Keep small lettering readable on phones." : "Choose library photos or upload new ones. Remove every photo to hide this section."}>
       <div className="flex flex-col gap-4">
         {rows.map((image, index) => <div key={`${image.src}-${index}`} className="flex flex-wrap items-center gap-3 rounded-md border border-border p-3">
           {/* eslint-disable-next-line @next/next/no-img-element -- admin library preview */}
