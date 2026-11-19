@@ -85,19 +85,14 @@ export function NewArrivalSwitch({
           <SectionTitle id={titleId}>New Arrival</SectionTitle>
           <Link
             href={current.viewAll}
-            className="group flex min-h-11 items-center gap-2.5 text-16 font-bold uppercase underline-offset-4 hover:underline md:text-20"
+            className="group inline-flex min-h-11 items-center gap-2 whitespace-nowrap text-16 font-bold uppercase underline-offset-4 hover:underline md:text-20"
           >
             View all
             <span className="sr-only">
               {" "}
               {current.label.toLowerCase()} new arrivals
             </span>
-            <span
-              aria-hidden="true"
-              className="flex size-9 items-center justify-center rounded-full bg-foreground text-brand transition-colors group-hover:bg-brand group-hover:text-brand-foreground md:size-11"
-            >
-              <ArrowRightIcon className="h-auto w-3.5 transition-transform group-hover:translate-x-0.5 md:w-4 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
-            </span>
+            <ArrowRightIcon className="h-auto w-4 transition-transform group-hover:translate-x-1 md:w-5 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
           </Link>
         </div>
         <div

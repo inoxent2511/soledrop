@@ -9,6 +9,7 @@ import { AdminField, AdminTextarea, FormAlert } from "@/components/admin/form"
 import { homeInput } from "@/features/admin/content/home-schema"
 import { MediaPicker } from "@/features/admin/media/components/media-library"
 import type { HomeContent, HomeImage, HomeRecord } from "@/server/content/home-types"
+import { usesDefaultCategoryPhoto } from "@/lib/category-photo"
 
 export function HomeEditor({ initial, canPublish, canUpload }: { initial: HomeRecord; canPublish: boolean; canUpload: boolean }) {
   const id = useId()
@@ -71,18 +72,26 @@ export function HomeEditor({ initial, canPublish, canUpload }: { initial: HomeRe
         </div>
       </AdminCard>
       {photoList("slides", "Hero", 10)}
-      <AdminCard title="Category banners" description="Upload each complete category image with its words included. The image links to the destination below; no title or button is placed over new artwork.">
+      <AdminCard title="Category photos" description="Upload a photo without text or buttons. The site places the category title and Explore button below it. Use a landscape image with the shoes clear near the centre.">
         <div className="flex flex-col gap-4">
           {form.categories.map((category, index) => <div key={index} className="flex flex-col gap-3 rounded-md border border-border p-3">
-            {/* eslint-disable-next-line @next/next/no-img-element -- admin library preview */}
-            <img src={category.image.src} alt="" width={120} height={90} className="h-24 w-32 rounded-md bg-surface object-contain" />
-            {category.image.mode !== "full" ? <p className="text-14 text-subtle-foreground">Legacy card: replace this photo with complete artwork to remove the overlaid title and button.</p> : null}
+            {usesDefaultCategoryPhoto(category.image, index) ? (
+              <div className="h-24 w-32 rounded-md bg-cover bg-no-repeat" role="img" aria-label="Current category photo preview" style={{ backgroundImage: "url('/images/site/category-style-2.png')", backgroundSize: "200% auto", backgroundPosition: index === 0 ? "left center" : "right center" }} />
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element -- admin library preview */
+              <img src={category.image.src} alt="" width={120} height={90} className="h-24 w-32 rounded-md bg-surface object-cover" />
+            )}
+            {usesDefaultCategoryPhoto(category.image, index) ? <p className="text-14 text-subtle-foreground">The new default photo is shown on the site. Replace it with your own text-free photo when ready.</p> : null}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <AdminField formId={id} name={`category-title-first-${index}`} label={`Category ${index + 1} title, first line`} value={category.title[0]} maxLength={40} onChange={(event) => update({ categories: form.categories.map((row, at) => at === index ? { ...row, title: [event.target.value, row.title[1]] } : row) })} />
+              <AdminField formId={id} name={`category-title-second-${index}`} label={`Category ${index + 1} title, second line`} value={category.title[1]} maxLength={40} onChange={(event) => update({ categories: form.categories.map((row, at) => at === index ? { ...row, title: [row.title[0], event.target.value] } : row) })} />
+            </div>
             <AdminField formId={id} name={`category-link-${index}`} label={`Category ${index + 1} link`} value={category.href} onChange={(event) => update({ categories: form.categories.map((row, at) => at === index ? { ...row, href: event.target.value } : row) })} />
-            <AdminField formId={id} name={`category-alt-${index}`} label={`Category ${index + 1} image description (screen readers)`} value={category.image.alt} onChange={(event) => update({ categories: form.categories.map((row, at) => at === index ? { ...row, image: { ...row.image, alt: event.target.value } } : row) })} />
-            <button type="button" onClick={() => { setReplacement({ kind: "category", index }); setPicker("category") }} className={adminButton({ tone: "secondary" })}>Replace category {index + 1} banner</button>
+            <AdminField formId={id} name={`category-alt-${index}`} label={`Category ${index + 1} photo description (screen readers)`} value={category.image.alt} onChange={(event) => update({ categories: form.categories.map((row, at) => at === index ? { ...row, image: { ...row.image, alt: event.target.value } } : row) })} />
+            <button type="button" onClick={() => { setReplacement({ kind: "category", index }); setPicker("category") }} className={adminButton({ tone: "secondary" })}>Replace category {index + 1} photo</button>
             <button type="button" onClick={() => update({ categories: form.categories.filter((_, at) => at !== index) })} className={adminButton({ tone: "ghost" })}>Remove category {index + 1}</button>
           </div>)}
-          <button type="button" disabled={form.categories.length >= 8} onClick={() => setPicker("category")} className={adminButton({ tone: "secondary" })}>Add complete category banner</button>
+          <button type="button" disabled={form.categories.length >= 8} onClick={() => setPicker("category")} className={adminButton({ tone: "secondary" })}>Add category photo</button>
         </div>
       </AdminCard>
       <AdminCard title="Instagram profile"><div className="flex flex-col gap-4">
@@ -99,15 +108,14 @@ export function HomeEditor({ initial, canPublish, canUpload }: { initial: HomeRe
       setSaved(false)
       setForm((current) => {
         const photo = { src: item.url, alt: item.alt, width: item.width, height: item.height }
-        const artwork = { ...photo, mode: "full" as const }
         if (replacement) {
-          if (replacement.kind === "category") return { ...current, categories: current.categories.map((row, at) => at === replacement.index ? { ...row, image: artwork } : row) }
+          if (replacement.kind === "category") return { ...current, categories: current.categories.map((row, at) => at === replacement.index ? { ...row, image: photo } : row) }
           if (replacement.kind === "slides") return { ...current, slides: current.slides.map((row, at) => at === replacement.index ? photo : row) }
           return { ...current, instagram: { ...current.instagram, images: current.instagram.images.map((row, at) => at === replacement.index ? { src: item.url, alt: item.alt } : row) } }
         }
         if (picker === "slides" && current.slides.length < 10 && !current.slides.some((row) => row.src === item.url)) return { ...current, slides: [...current.slides, photo] }
         if (picker === "instagram" && current.instagram.images.length < 12 && !current.instagram.images.some((row) => row.src === item.url)) return { ...current, instagram: { ...current.instagram, images: [...current.instagram.images, { src: item.url, alt: item.alt }] } }
-        if (picker === "category" && current.categories.length < 8) return { ...current, categories: [...current.categories, { title: ["Shop", "Now"], href: "/new-arrivals", image: artwork }] }
+        if (picker === "category" && current.categories.length < 8) return { ...current, categories: [...current.categories, { title: ["Shop", "Now"], href: "/new-arrivals", image: photo }] }
         return current
       })
       if (replacement) { setPicker(null); setReplacement(null) }

@@ -44,8 +44,9 @@
             ],
             "href": "/collections/brand-new",
             "image": {
-              "src": "/images/site/category-brand-new.png",
-              "alt": ""
+              "src": "/images/site/category-style-2.png",
+              "alt": "White athletic shoe on a pale concrete display",
+              "mode": "full"
             }
           },
           {
@@ -55,8 +56,9 @@
             ],
             "href": "/pre-loved",
             "image": {
-              "src": "/images/site/category-pre-loved.png",
-              "alt": ""
+              "src": "/images/site/category-style-2.png",
+              "alt": "Black running shoes on a warm stone floor",
+              "mode": "full"
             }
           }
         ],

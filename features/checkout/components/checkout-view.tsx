@@ -7,7 +7,7 @@ import { Banknote, CreditCard, Landmark } from "lucide-react"
 
 import type { QuoteResponse } from "@/api/checkout"
 import { ApiError } from "@/api/http"
-import { DeliveryIcon } from "@/components/icons"
+import { ArrowRightIcon, ChevronDownIcon, DeliveryIcon } from "@/components/icons"
 import { Container } from "@/components/shared/container"
 import { CheckoutSummary } from "@/features/checkout/components/checkout-summary"
 import { PromoCodeForm } from "@/features/checkout/components/promo-code-form"
@@ -263,10 +263,11 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
 
   return (
     <div className="bg-surface">
-      <Container className="flex flex-col gap-8 pt-8 pb-16 md:pt-14 md:pb-24 3xl:px-20">
+      <Container className="flex flex-col gap-8 pt-8 pb-16 md:pt-12 md:pb-24 3xl:px-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-34 font-bold tracking-tight-2 md:text-54">Checkout</h1>
-          <Link href="/cart" className="min-h-11 content-center text-18 font-semibold underline-offset-4 hover:underline md:text-20">
+          <h1 className="font-display text-40 leading-none font-extrabold uppercase md:text-56">Checkout</h1>
+          <Link href="/cart" className="flex min-h-11 items-center gap-2 text-16 font-bold underline-offset-4 hover:underline md:text-18">
+            <ArrowRightIcon className="h-auto w-4 rotate-180 rtl:rotate-0" />
             Back to bag
           </Link>
         </div>
@@ -340,25 +341,28 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                       {field.label}
                     </label>
                     {field.name === "province" ? (
-                      <select
-                        id={`${id}-province`}
-                        name="province"
-                        disabled={!hydrated}
-                        autoComplete={field.autoComplete}
-                        value={values.province}
-                        onChange={(event) => {
-                          const next = { ...values, province: event.target.value }
-                          set("province", event.target.value)
-                          requoteForAddress(next)
-                        }}
-                        {...described("province")}
-                        className={cn(control, "h-14 appearance-auto")}
-                      >
-                        <option value="">Choose…</option>
-                        {PROVINCES.map((province) => (
-                          <option key={province}>{province}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          id={`${id}-province`}
+                          name="province"
+                          disabled={!hydrated}
+                          autoComplete={field.autoComplete}
+                          value={values.province}
+                          onChange={(event) => {
+                            const next = { ...values, province: event.target.value }
+                            set("province", event.target.value)
+                            requoteForAddress(next)
+                          }}
+                          {...described("province")}
+                          className={cn(control, "h-14 appearance-none pe-12")}
+                        >
+                          <option value="">Choose…</option>
+                          {PROVINCES.map((province) => (
+                            <option key={province}>{province}</option>
+                          ))}
+                        </select>
+                        <ChevronDownIcon className="pointer-events-none absolute end-4 top-1/2 h-auto w-4 -translate-y-1/2 text-foreground" />
+                      </div>
                     ) : (
                       <div className={field.name === "phone" ? "relative" : undefined}>
                         <input

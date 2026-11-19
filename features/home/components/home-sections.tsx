@@ -3,7 +3,6 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 
 import {
-  ArrowExploreIcon,
   ArrowRightIcon,
   InstagramIcon,
 } from "@/components/icons"
@@ -15,6 +14,7 @@ import { BrandMarquee } from "@/features/home/components/brand-marquee"
 import { NewArrivalSwitch } from "@/features/home/components/new-arrival-switch"
 import type { CardProduct } from "@/features/catalog/types/card"
 import type { HomeContent } from "@/server/content/home-types"
+import { usesDefaultCategoryPhoto } from "@/lib/category-photo"
 import { cn } from "@/lib/utils"
 
 export function Hero({ children, content }: { children: ReactNode; content: HomeContent }) {
@@ -57,44 +57,64 @@ export function ShopByCategory({ categories }: { categories: HomeContent["catego
       aria-labelledby="categories-title"
       className="py-14 md:py-20 3xl:py-30"
     >
-      <Container className="flex flex-col gap-8 md:gap-10 3xl:gap-13.5">
+      <Container className="flex flex-col gap-8 md:gap-10">
         <SectionTitle id="categories-title">Shop by category</SectionTitle>
-        <ul className="grid gap-8 pe-3.5 lg:grid-cols-2 3xl:gap-20 3xl:pe-0">
-          {categories.map((category, index) => (
-            <li key={`${category.href}-${index}`}>
-              {category.image.mode === "full" ? <Link href={category.href} className="group block overflow-hidden rounded-card border-2 border-subtle-foreground shadow-offset-brand">
-                <Image src={category.image.src} alt={category.image.alt} width={category.image.width ?? 1200} height={category.image.height ?? 800} sizes="(min-width: 1024px) 50vw, 100vw" className="block h-auto w-full transition-transform duration-500 group-hover:scale-[1.02]" />
-                <span className="sr-only">Explore {category.title.join(" ")}</span>
-              </Link> :
-              <Link
-                href={category.href}
-                className="group relative flex min-h-80 flex-col items-start gap-6 overflow-hidden rounded-card border-2 border-subtle-foreground p-6 shadow-offset-brand md:min-h-128 md:gap-10 md:ps-14.5 md:pt-23"
-              >
-                <Image
-                  src={category.image.src}
-                  alt={category.image.alt}
-                  fill
-                  sizes="(min-width: 1024px) 50vw, 100vw"
-                  className="-z-10 object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <h3 className="flex max-w-full flex-col text-50 leading-none font-extrabold tracking-tight-2 wrap-anywhere text-foreground uppercase md:text-68">
-                  <span>{category.title[0]}</span>
-                  <span>{category.title[1]}</span>
-                </h3>
-                <span
-                  className={cn(
-                    buttonVariants({ tone: "ink", size: "hero" }),
-                    "gap-3.5 rounded-2xl group-hover:bg-brand group-hover:text-brand-foreground"
-                  )}
+        <ul className="grid gap-5 lg:grid-cols-2 lg:gap-7">
+          {categories.map((category, index) => {
+            const title = category.title[0].endsWith("-")
+              ? `${category.title[0]}${category.title[1]}`
+              : category.title.filter(Boolean).join(" ")
+            const defaultPhoto = usesDefaultCategoryPhoto(category.image, index)
+            const description = index === 0
+              ? "Fresh pairs, ready for their first outing."
+              : index === 1
+                ? "Verified pairs with more life to give."
+                : "Find your next pair."
+
+            return (
+              <li key={`${category.href}-${index}`} className="min-w-0">
+                <Link
+                  href={category.href}
+                  className="group block overflow-hidden rounded-[22px] border border-border bg-background shadow-[0_10px_36px_rgba(0,0,0,0.045)] transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(0,0,0,0.09)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transform-none"
                 >
-                  Explore
-                  {/* The generated icon is drawn in brand lime; here it follows the button's text so it shows on lime too (D-072). */}
-                  <ArrowExploreIcon className="h-5.75 w-auto transition-transform duration-200 group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1 [&_path]:stroke-current [&_use]:fill-current" />
-                </span>
-              </Link>
-              }
-            </li>
-          ))}
+                  <div className="relative h-62 overflow-hidden sm:h-80 xl:h-100">
+                    {defaultPhoto ? (
+                      <div
+                        role="img"
+                        aria-label={index === 0 ? "White athletic shoe on a pale concrete display" : "Black running shoes on a warm stone floor"}
+                        className="absolute inset-0 bg-no-repeat"
+                        style={{
+                          backgroundImage: "url('/images/site/category-style-2.png')",
+                          backgroundSize: "200% auto",
+                          backgroundPosition: index === 0 ? "left center" : "right center",
+                        }}
+                      />
+                    ) : (
+                      <Image
+                        src={category.image.src}
+                        alt={category.image.alt || title}
+                        fill
+                        sizes="(min-width: 1024px) 50vw, 100vw"
+                        className="object-cover"
+                      />
+                    )}
+                    {index < 2 ? <span className="absolute start-5 top-5 rounded-full bg-white/90 px-3 py-2 text-xs font-bold tracking-widest text-foreground sm:start-6 sm:top-6">
+                      {index === 0 ? "01 / FRESH DROPS" : "02 / VERIFIED PAIRS"}
+                    </span> : null}
+                  </div>
+                  <div className="flex min-h-30 flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-7 sm:py-6">
+                    <div className="min-w-0">
+                      <h3 className="text-2xl leading-tight font-bold tracking-tight uppercase sm:text-3xl">{title}</h3>
+                      <p className="mt-1 text-sm text-subtle-foreground sm:text-base">{description}</p>
+                    </div>
+                    <span className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-brand px-5 text-sm font-bold text-brand-foreground transition-colors group-hover:bg-brand/80">
+                      Explore <span aria-hidden="true">↗</span>
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       </Container>
     </section>
@@ -128,15 +148,10 @@ export function ProductSection({
           {viewAll ? (
             <Link
               href={viewAll.href}
-              className="group flex min-h-11 items-center gap-2.5 text-16 font-bold uppercase underline-offset-4 hover:underline md:text-20"
+              className="group inline-flex min-h-11 items-center gap-2 whitespace-nowrap text-16 font-bold uppercase underline-offset-4 hover:underline md:text-20"
             >
               View all<span className="sr-only"> {viewAll.label}</span>
-              <span
-                aria-hidden="true"
-                className="flex size-9 items-center justify-center rounded-full bg-foreground text-brand transition-colors group-hover:bg-brand group-hover:text-brand-foreground md:size-11"
-              >
-                <ArrowRightIcon className="h-auto w-3.5 transition-transform group-hover:translate-x-0.5 md:w-4 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
-              </span>
+              <ArrowRightIcon className="h-auto w-4 transition-transform group-hover:translate-x-1 md:w-5 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
             </Link>
           ) : null}
         </div>
