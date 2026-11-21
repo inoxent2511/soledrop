@@ -23,23 +23,23 @@ export function Hero({ children, content }: { children: ReactNode; content: Home
       aria-labelledby="hero-title"
       className="grid min-w-0 bg-foreground text-background lg:grid-cols-2"
     >
-      <div className="flex min-w-0 flex-col items-start justify-center px-5 py-8 sm:pt-10 sm:pb-12 md:px-10 lg:px-8 lg:py-8 xl:px-12 3xl:ps-24 3xl:pe-8 3xl:py-12">
+      <div className="home-hero-copy flex min-w-0 flex-col items-start justify-center px-5 py-7 sm:pt-9 sm:pb-10 md:px-10 lg:py-8 xl:px-16 3xl:pe-8 3xl:py-12">
         <h1
           id="hero-title"
-          className="flex max-w-full flex-col text-[clamp(2.75rem,13vw,3.375rem)] leading-hero font-black wrap-anywhere uppercase md:text-[clamp(3.375rem,7vw,5rem)] lg:text-[clamp(3rem,5.5vw,6.5rem)]"
+          className="flex max-w-full flex-col text-[clamp(2.5rem,11vw,3.25rem)] leading-hero font-black wrap-anywhere uppercase md:text-[clamp(3.25rem,6vw,4.75rem)] lg:text-[clamp(3rem,5vw,6rem)]"
         >
           {content.heading.some(Boolean) ? content.heading.map((line, index) => <span key={index} className={index % 2 ? "text-brand" : undefined}>{line}</span>) : <span>Sole Drop</span>}
         </h1>
-        <p className="max-w-156 pt-4 text-18 font-medium wrap-anywhere text-muted-foreground md:text-22 3xl:pt-5.25 3xl:text-24">
+        <p className="max-w-156 pt-3.5 text-16 leading-relaxed font-medium wrap-anywhere text-muted-foreground md:text-20 3xl:pt-5.25 3xl:text-22">
           {content.description}
         </p>
-        <div className="flex max-w-full flex-wrap gap-4 pt-7 md:gap-8 md:pt-8 3xl:pt-10">
+        <div className="flex max-w-full flex-wrap gap-3 pt-6 md:gap-5 md:pt-7 3xl:pt-9">
           {content.buttons.map((button, index) => <Link key={index}
             href={button.href}
             className={cn(
               buttonVariants({ tone: index ? "paper" : "brand-on-ink", size: "hero" }),
               index ? "tracking-wide-2" : "",
-              "h-auto min-h-14 max-w-full py-3 whitespace-normal wrap-anywhere md:h-auto md:min-h-16 3xl:h-auto 3xl:min-h-21"
+              "h-auto min-h-12 max-w-full py-3 whitespace-normal wrap-anywhere md:h-auto md:min-h-14 3xl:h-auto 3xl:min-h-18"
             )}
           >
             {button.label}
@@ -55,11 +55,11 @@ export function ShopByCategory({ categories }: { categories: HomeContent["catego
   return (
     <section
       aria-labelledby="categories-title"
-      className="py-14 md:py-20 3xl:py-30"
+      className="py-10 md:py-16 3xl:py-24"
     >
-      <Container className="flex flex-col gap-8 md:gap-10">
+      <Container className="flex flex-col gap-6 md:gap-8">
         <SectionTitle id="categories-title">Shop by category</SectionTitle>
-        <ul className="grid gap-5 lg:grid-cols-2 lg:gap-7">
+        <ul className="grid gap-4 lg:grid-cols-2 lg:gap-6">
           {categories.map((category, index) => {
             const title = category.title[0].endsWith("-")
               ? `${category.title[0]}${category.title[1]}`
@@ -75,9 +75,9 @@ export function ShopByCategory({ categories }: { categories: HomeContent["catego
               <li key={`${category.href}-${index}`} className="min-w-0">
                 <Link
                   href={category.href}
-                  className="group block overflow-hidden rounded-[22px] border border-border bg-background shadow-[0_10px_36px_rgba(0,0,0,0.045)] transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(0,0,0,0.09)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transform-none"
+                  className="group block overflow-hidden rounded-2xl border border-border bg-background shadow-[0_8px_28px_rgba(0,0,0,0.04)] transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(0,0,0,0.08)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-reduce:transform-none"
                 >
-                  <div className="relative h-62 overflow-hidden sm:h-80 xl:h-100">
+                  <div className="relative h-52 overflow-hidden sm:h-72 xl:h-88">
                     {defaultPhoto ? (
                       <div
                         role="img"
@@ -102,12 +102,12 @@ export function ShopByCategory({ categories }: { categories: HomeContent["catego
                       {index === 0 ? "01 / FRESH DROPS" : "02 / VERIFIED PAIRS"}
                     </span> : null}
                   </div>
-                  <div className="flex min-h-30 flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-7 sm:py-6">
+                  <div className="flex min-h-24 flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
                     <div className="min-w-0">
-                      <h3 className="text-2xl leading-tight font-bold tracking-tight uppercase sm:text-3xl">{title}</h3>
+                      <h3 className="text-xl leading-tight font-bold tracking-tight uppercase sm:text-2xl">{title}</h3>
                       <p className="mt-1 text-sm text-subtle-foreground sm:text-base">{description}</p>
                     </div>
-                    <span className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-brand px-5 text-sm font-bold text-brand-foreground transition-colors group-hover:bg-brand/80">
+                    <span className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-brand px-4 text-sm font-bold text-brand-foreground transition-colors group-hover:bg-brand/80">
                       Explore <span aria-hidden="true">↗</span>
                     </span>
                   </div>
@@ -138,9 +138,9 @@ export function ProductSection({
   return (
     <section
       aria-labelledby={id}
-      className="bg-surface py-14 md:py-20 3xl:py-30"
+      className="bg-surface py-10 md:py-16 3xl:py-24"
     >
-      <Container className="flex flex-col gap-8 md:gap-10 3xl:gap-14">
+      <Container className="flex flex-col gap-6 md:gap-8 3xl:gap-12">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <SectionTitle id={id} display={display}>
             {title}
@@ -148,7 +148,7 @@ export function ProductSection({
           {viewAll ? (
             <Link
               href={viewAll.href}
-              className="group inline-flex min-h-11 items-center gap-2 whitespace-nowrap text-16 font-bold uppercase underline-offset-4 hover:underline md:text-20"
+              className="group inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap text-14 font-bold uppercase underline-offset-4 hover:underline md:text-18"
             >
               View all<span className="sr-only"> {viewAll.label}</span>
               <ArrowRightIcon className="h-auto w-4 transition-transform group-hover:translate-x-1 md:w-5 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
@@ -172,7 +172,7 @@ export function NewArrivalSection({
   return (
     <section
       aria-labelledby="new-arrival-title"
-      className="bg-surface py-14 md:py-20 3xl:py-30"
+      className="bg-surface py-10 md:py-16 3xl:py-24"
     >
       <Container>
         <NewArrivalSwitch
@@ -187,7 +187,7 @@ export function NewArrivalSection({
 
 export function TopBrands({ brands }: { brands: string[] }) {
   return (
-    <section aria-labelledby="brands-title" className="py-12 md:py-17.5">
+    <section aria-labelledby="brands-title" className="py-10 md:py-14">
       <Container>
         <BrandMarquee title="TOP BRANDS" brands={brands} />
       </Container>
@@ -223,15 +223,15 @@ function Sparkle() {
 
 export function WhySoleDrop() {
   return (
-    <section aria-labelledby="why-title" className="py-14 md:py-17">
-      <Container className="grid gap-12 lg:grid-cols-2 lg:items-center 3xl:grid-cols-why 3xl:gap-0">
+    <section aria-labelledby="why-title" className="py-10 md:py-14">
+      <Container className="grid gap-8 lg:grid-cols-2 lg:items-center 3xl:grid-cols-why 3xl:gap-0">
         <div className="flex flex-col gap-4 3xl:ps-1">
           <p className="text-14 font-extrabold tracking-wide-2 text-faint-foreground uppercase">
             The Sole Drop difference
           </p>
           <h2
             id="why-title"
-            className="flex flex-col text-56 leading-none font-black tracking-tight-3 uppercase md:text-68"
+            className="flex flex-col text-44 leading-none font-black tracking-tight-3 uppercase md:text-60"
           >
             <span>Why</span>
             <span>Sole</span>
@@ -239,7 +239,7 @@ export function WhySoleDrop() {
               Drop?
             </span>
           </h2>
-          <p className="max-w-130 pt-6 text-18 leading-relaxed text-subtle-foreground md:text-22">
+          <p className="max-w-130 pt-3 text-16 leading-relaxed text-subtle-foreground md:text-20">
             We built SOLE DROP for people who believe the right pair can change
             the way you move, feel and express yourself.
           </p>
@@ -248,14 +248,14 @@ export function WhySoleDrop() {
           {reasons.map(([title, text]) => (
             <li
               key={title}
-              className="flex gap-6 border-b border-surface-sunken py-7.5 last:border-b-0 3xl:first:pt-11.5 3xl:last:pb-6.5"
+              className="flex gap-4 border-b border-surface-sunken py-5 last:border-b-0 md:gap-6 md:py-6 3xl:first:pt-10 3xl:last:pb-6"
             >
               <Sparkle />
               <div className="flex flex-col gap-2">
-                <h3 className="text-18 font-bold tracking-wide-2 uppercase md:text-20">
+                <h3 className="text-16 font-bold tracking-wide-2 uppercase md:text-18">
                   {title}
                 </h3>
-                <p className="text-16 text-faint-foreground md:text-18">
+                <p className="text-14 text-faint-foreground md:text-17">
                   {text}
                 </p>
               </div>
@@ -271,13 +271,13 @@ export function InstagramStrip({ instagram }: { instagram: HomeContent["instagra
   return (
     <section
       aria-labelledby="instagram-title"
-      className="bg-surface py-14 md:py-20"
+      className="bg-surface py-10 md:py-16"
     >
-      <Container className="flex flex-col items-center gap-10 md:gap-12.25">
+      <Container className="flex flex-col items-center gap-7 md:gap-10">
         <div className="flex w-full min-w-0 flex-col items-center gap-2.25 text-center">
           <h2
             id="instagram-title"
-            className="text-28 font-black uppercase md:text-40"
+            className="text-26 font-black uppercase md:text-36"
           >
             Follow SOLEDROP
           </h2>
@@ -285,7 +285,7 @@ export function InstagramStrip({ instagram }: { instagram: HomeContent["instagra
             {instagram.handle}
           </p>
         </div>
-        <ul className="grid w-full max-w-376 grid-cols-2 gap-4 md:grid-cols-4 md:gap-12 md:pb-0.25">
+        <ul className="grid w-full max-w-376 grid-cols-2 gap-3 md:grid-cols-4 md:gap-8 md:pb-0.25">
           {instagram.images.map(({ src, alt }, index) => (
             <li key={`${src}-${index}`}>
               {/* Each post opens the Instagram profile; hover or focus dims the photo and shows the Instagram mark (D-051). */}

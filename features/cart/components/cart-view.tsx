@@ -66,18 +66,18 @@ export function CartView({ initial }: { initial: CartResponse }) {
 
   return (
     <div className="bg-surface">
-      <Container className="flex flex-col gap-8 pt-8 pb-16 md:pt-12 lg:gap-10 3xl:px-20 3xl:pt-20 3xl:pb-42.5">
+      <Container className="flex flex-col gap-6 pt-7 pb-12 md:gap-8 md:pt-10 md:pb-16 lg:gap-9 3xl:pt-16 3xl:pb-32">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3 md:gap-4">
             {/* Focusable so the removal effect above can fall back to it. */}
             <h1
               id="bag-title"
               tabIndex={-1}
-              className="font-display text-40 leading-none font-extrabold uppercase outline-none md:text-56"
+              className="font-display text-34 leading-none font-extrabold uppercase outline-none md:text-50"
             >
               Your Bag
             </h1>
-            <span className="rounded-full bg-brand px-4 py-1.5 text-16 font-bold text-brand-foreground md:text-18">
+            <span className="rounded-full bg-brand px-3 py-1 text-14 font-bold text-brand-foreground md:px-4 md:text-16">
               {items}
             </span>
           </div>
@@ -93,7 +93,7 @@ export function CartView({ initial }: { initial: CartResponse }) {
           </Link>
         </div>
 
-        <div className="grid items-start gap-8 lg:grid-cols-cart lg:gap-5">
+        <div className="grid items-start gap-6 lg:grid-cols-cart lg:gap-5">
           <section
             aria-labelledby="bag-title"
             className="flex min-w-0 flex-col gap-5"

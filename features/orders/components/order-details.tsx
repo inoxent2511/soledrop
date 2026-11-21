@@ -37,7 +37,7 @@ export function OrderDetails({ order, next, token, justPlaced }: Props) {
 
   return (
     <div className="bg-surface">
-      <Container className="flex flex-col gap-8 pt-8 pb-16 md:pt-14 md:pb-24 3xl:px-20">
+      <Container className="flex flex-col gap-8 pt-8 pb-16 md:pt-14 md:pb-24">
         <header className="flex flex-col gap-3">
           {justPlaced ? (
             <>

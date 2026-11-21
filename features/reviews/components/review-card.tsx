@@ -31,17 +31,17 @@ export function ReviewCard({ review, dark = false }: { review: Review; dark?: bo
 }
 
 export function ReviewHomeSection({ reviews, total, average }: { reviews: Review[]; total: number; average: number }) {
-  return <section aria-labelledby="reviews-home-title" className="bg-foreground py-16 text-background md:py-22">
-    <div className="mx-auto w-full max-w-screen-2xl px-5 md:px-10 xl:px-16">
+  return <section aria-labelledby="reviews-home-title" className="bg-foreground py-10 text-background md:py-16">
+    <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-5 md:px-8 xl:px-12">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div><p className="text-14 font-extrabold tracking-widest text-brand uppercase">From the Sole Drop community</p>
-          <h2 id="reviews-home-title" className="mt-3 text-40 leading-none font-black uppercase md:text-54">Real pairs. Real stories.</h2>
+          <h2 id="reviews-home-title" className="mt-2 text-30 leading-tight font-black uppercase md:text-48">Real pairs. Real stories.</h2>
           <p className="mt-4 max-w-2xl text-17 text-white/75">See what shoppers think of their pairs and their experience with us.</p></div>
         <Link href="/reviews" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-brand px-6 font-extrabold text-brand-foreground transition-transform hover:-translate-y-0.5">Explore customer reviews →</Link>
       </div>
       {total > 0 ? <p className="mt-8 flex items-center gap-3 text-16"><ReviewStars rating={average} /><strong>{average.toFixed(1)} / 5</strong><span className="text-white/65">from {total} approved {total === 1 ? "review" : "reviews"}</span></p> : null}
-      {reviews.length ? <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">{reviews.slice(0, 3).map((review) => <ReviewCard key={review.id} review={review} dark />)}</div>
-        : <div className="mt-8 rounded-2xl border border-white/20 p-7 text-white/80">Be the first to share your Sole Drop experience. Reviews appear after our team checks them.</div>}
+      {reviews.length ? <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{reviews.slice(0, 3).map((review) => <ReviewCard key={review.id} review={review} dark />)}</div>
+        : <div className="mt-6 rounded-2xl border border-white/20 p-5 text-white/80 md:p-7">Be the first to share your Sole Drop experience. Reviews appear after our team checks them.</div>}
     </div>
   </section>
 }

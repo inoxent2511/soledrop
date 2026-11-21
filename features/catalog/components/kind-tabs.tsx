@@ -134,11 +134,11 @@ export function KindTabs({
   }
 
   return (
-    <div className="flex flex-col gap-6 md:gap-10">
+    <div className="flex flex-col gap-5 md:gap-8">
       <div
         role="tablist"
         aria-label={page.label}
-        className="flex rounded-full border-2 border-border bg-background p-1.5 md:self-start"
+        className="flex rounded-full border border-border bg-background p-1 md:self-start"
       >
         {tabs.map((tab, index) => {
           const selected = tab.id === active
@@ -161,7 +161,7 @@ export function KindTabs({
               }}
               onKeyDown={(event) => onTabKeyDown(event, index)}
               className={cn(
-                "flex min-h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-full px-3 text-16 font-bold whitespace-nowrap transition-colors md:min-w-50 md:flex-none md:gap-3 md:px-6 md:text-20",
+                "flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 text-14 font-bold whitespace-nowrap transition-colors sm:px-3 sm:text-16 md:min-w-50 md:flex-none md:gap-3 md:px-6 md:text-18",
                 selected
                   ? "bg-foreground text-background"
                   : "text-subtle-foreground hover:text-foreground"
@@ -220,7 +220,7 @@ export function KindTabs({
                   ref={(node) => {
                     grids.current[tab.id] = node
                   }}
-                  className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3 2xl:grid-cols-4 3xl:gap-8.5"
+                className="catalog-card-grid catalog-feature-grid grid w-full grid-cols-1 gap-3 sm:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-4"
                 >
                   {tab.cards.slice(0, visible).map((card, index) => (
                     <li key={index}>{card}</li>

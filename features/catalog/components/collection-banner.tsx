@@ -20,7 +20,7 @@ export function CollectionBanner({ title, headline, description, image }: Collec
       <Image src={image.url} alt={image.alt} width={image.width} height={image.height} priority sizes="100vw" className="block h-auto w-full" />
     </div>
   }
-  if (!image) return <h1 className="py-8 text-48 font-black uppercase md:text-68">{title}</h1>
+  if (!image) return <h1 className="py-6 text-34 font-black uppercase md:py-8 md:text-60">{title}</h1>
   const titled = headline.join(" ").toLowerCase() !== title.toLowerCase()
   return (
     <div className="relative isolate flex overflow-hidden rounded-3xl bg-foreground text-background md:rounded-banner 3xl:h-105">
@@ -29,15 +29,15 @@ export function CollectionBanner({ title, headline, description, image }: Collec
           <Image src={image.url} alt={image.alt} fill priority sizes="(min-width: 1920px) 881px, 50vw" className="object-cover" />
         </div>
       ) : null}
-      <div className="flex flex-col gap-4 px-6 py-8 md:gap-8 md:px-10 md:py-12 3xl:ps-13.5 3xl:pe-0 3xl:pt-13.5 3xl:pb-0">
+      <div className="flex flex-col gap-3 px-5 py-7 md:gap-6 md:px-9 md:py-10 3xl:ps-13.5 3xl:pe-0 3xl:pt-13.5 3xl:pb-0">
         <div className="flex flex-col gap-3 md:gap-4">
-          <h1 className="flex flex-col text-48 leading-none font-black uppercase md:text-68 xl:text-100 3xl:text-120">
+          <h1 className="flex flex-col text-40 leading-none font-black uppercase md:text-60 xl:text-100 3xl:text-120">
             {titled ? <span className="sr-only">{title}: </span> : null}
             <span>{headline[0]}</span>
             <span className="text-brand">{headline[1]}</span>
           </h1>
         </div>
-        <p className="text-16 font-medium md:text-20 3xl:text-26">{description}</p>
+        <p className="text-14 font-medium md:text-18 3xl:text-24">{description}</p>
       </div>
     </div>
   )

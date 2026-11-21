@@ -45,10 +45,10 @@ export function ProductResults({ pathname, state, view, products, total, page, p
         {total === 1 ? "1 pair" : `${total} pairs`}
         {pageCount > 1 ? `, page ${page} of ${pageCount}` : ""}
       </p>
-      <ul className={cn("grid gap-4 md:gap-6 3xl:gap-8.5", view === "grid" ? "grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3" : "grid-cols-1")}>
+      <ul className={cn("grid gap-3 md:gap-5", view === "grid" ? "catalog-card-grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" : "grid-cols-1")}>
         {products.map((product, index) => (
           <li key={product.id}>
-            <ProductCard product={product} priority={index < 3} layout={view === "list" ? "row" : "grid"} headingLevel="h2" />
+            <ProductCard product={product} priority={index < 3} layout={view === "list" ? "row" : "grid"} compact={view === "grid"} headingLevel="h2" />
           </li>
         ))}
       </ul>

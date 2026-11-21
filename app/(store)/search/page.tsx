@@ -49,7 +49,7 @@ export default async function SearchPage({ searchParams }: Props) {
     <div className="bg-surface">
       <div className="bg-foreground text-background">
         <Container className="flex flex-col gap-6 pt-10 pb-10 md:pt-12.25 md:pb-12 3xl:px-50">
-          <h1 className="text-40 font-extrabold break-words uppercase md:text-60">{title}</h1>
+          <h1 className="text-32 font-extrabold break-words uppercase md:text-50">{title}</h1>
           <form role="search" action="/search" className="flex w-full max-w-200 gap-3">
             <label htmlFor="search-q" className="sr-only">
               Search shoes, brands and styles

@@ -1,12 +1,12 @@
 import { ProductCard } from "@/features/catalog/components/product-card"
 import type { CardProduct } from "@/features/catalog/types/card"
 
-/** Four product cards: a swipeable rail on small screens, the designed 4-up grid from `xl`. */
+/** Home products: a swipeable rail, then four or five columns as room allows. */
 export function ProductRow({ products, priority = false }: { products: CardProduct[]; priority?: boolean }) {
   return (
-    <ul className="relative flex snap-x snap-mandatory gap-4 overflow-x-auto p-0.5 pb-2 xl:grid xl:grid-cols-4 xl:gap-6.75 xl:overflow-visible xl:p-0 3xl:grid-cols-cards">
+    <ul className="home-product-row relative flex snap-x snap-mandatory gap-3 overflow-x-auto p-0.5 pb-2 sm:gap-4">
       {products.map((product, index) => (
-        <li key={product.id} className="shrink-0 basis-4/5 snap-start sm:basis-2/5 lg:basis-3/10 xl:basis-auto">
+        <li key={product.id} className="shrink-0 basis-[82%] snap-start sm:basis-2/5 lg:basis-3/10">
           <ProductCard product={product} priority={priority && index < 2} />
         </li>
       ))}

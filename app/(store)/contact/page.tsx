@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 }
 
-const card = "flex flex-col rounded-panel bg-background p-5 shadow-card-lift md:p-10"
-const cardTitle = "text-24 font-extrabold uppercase md:text-32"
+const card = "flex flex-col rounded-panel bg-background p-4 shadow-card-lift md:p-8"
+const cardTitle = "text-22 font-extrabold uppercase md:text-30"
 const cardIntro = "pt-3 text-16 font-semibold text-faint-foreground md:text-20"
 
 const socials: { label: string; href: string; Icon: ComponentType<SVGProps<SVGSVGElement>>; size: string }[] = [
@@ -51,13 +51,13 @@ export default function ContactPage() {
     <div className="bg-surface">
       <PageBand>Get in touch</PageBand>
 
-      <Container className="grid grid-cols-1 items-start gap-6 pt-8 pb-16 lg:grid-cols-2 lg:gap-8.5 3xl:grid-cols-contact 3xl:ps-51.25 3xl:pe-0 3xl:pt-22.75 3xl:pb-39">
+      <Container className="grid grid-cols-1 items-start gap-5 pt-7 pb-12 lg:grid-cols-2 lg:gap-8 3xl:pt-18 3xl:pb-28">
         <section aria-labelledby="contact-form-title" className={card}>
           <h2 id="contact-form-title" className={cardTitle}>
             Send a message
           </h2>
           <p className={cardIntro}>Fill out the form below and we&rsquo;ll get back to you as soon as possible.</p>
-          <div className="pt-8 md:pt-9.5">
+          <div className="pt-6 md:pt-8">
             <ContactForm />
           </div>
         </section>
@@ -67,19 +67,19 @@ export default function ContactPage() {
             Need quick help?
           </h2>
           <p className={cardIntro}>Chat with us directly or Email us. We&rsquo;re always happy to assist</p>
-          <ul className="flex flex-col gap-5 pt-6 md:pt-7.75">
+          <ul className="flex flex-col gap-4 pt-5 md:pt-7">
             {channels.map(({ title, text, href, external, Icon, tone, gap }) => (
               <li key={title}>
                 <a
                   href={href}
                   {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  className={cn("flex h-24 items-center gap-2 rounded-xl ps-4 pe-5 transition-colors md:h-28.5 md:ps-5.5 md:pe-10", gap, tone)}
+                  className={cn("flex h-18 items-center gap-2 rounded-xl ps-4 pe-4 transition-colors md:h-24 md:ps-5 md:pe-8", gap, tone)}
                 >
                   <span className="flex size-12 shrink-0 items-center justify-center md:size-17.5">
                     <Icon className="h-auto w-full max-w-full" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-1 md:gap-3.25">
-                    <span className="text-20 font-extrabold uppercase md:text-26">{title}</span>
+                    <span className="text-18 font-extrabold uppercase md:text-24">{title}</span>
                     <span className="truncate text-16 font-medium md:text-20">{text}</span>
                   </span>
                   <ArrowRightIcon className="h-auto w-7 shrink-0 md:w-9.75" />

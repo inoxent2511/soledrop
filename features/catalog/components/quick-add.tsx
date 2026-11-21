@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
  * picks a size there; pressing add without one points them at the chips instead of guessing
  * (journey-audit J-03). Sold-out sizes stay visible but can't be chosen.
  */
-export function QuickAdd({ product }: { product: CardProduct }) {
+export function QuickAdd({ product, compact = false }: { product: CardProduct; compact?: boolean }) {
   const id = useId()
   const [variantId, setVariantId] = useState<string | null>(null)
   const [message, setMessage] = useState<{ tone: "error" | "ok"; text: string } | null>(null)
@@ -45,9 +45,9 @@ export function QuickAdd({ product }: { product: CardProduct }) {
 
   return (
     <>
-      <fieldset className="flex min-h-10 flex-col gap-2" aria-describedby={error ? `${id}-error` : undefined}>
+      <fieldset className="flex min-h-9 flex-col gap-2" aria-describedby={error ? `${id}-error` : undefined}>
         <legend className="sr-only">Size (EU) for {product.title}</legend>
-        <div className="flex flex-wrap gap-2.5">
+        <div className={cn("flex flex-wrap gap-2", compact && "max-sm:gap-1")}>
           {product.sizes.map((size) => (
             <label key={size.variantId} className={cn("relative", !size.available && "cursor-not-allowed")}>
               <input
@@ -65,7 +65,8 @@ export function QuickAdd({ product }: { product: CardProduct }) {
               />
               <span
                 className={cn(
-                  "flex h-10 w-11 cursor-pointer items-center justify-center rounded-xs outline-[1.5px] outline-border-strong text-20 leading-0 font-semibold tracking-tight-1 transition-colors",
+                  "flex h-9 w-10 cursor-pointer items-center justify-center rounded-xs outline-[1.5px] outline-border-strong text-16 leading-none font-semibold tracking-tight-1 transition-colors",
+                  compact && "max-sm:h-9 max-sm:w-8 max-sm:text-14",
                   "peer-hover:outline-foreground peer-checked:outline-foreground peer-checked:bg-foreground peer-checked:text-background peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring",
                   "peer-disabled:cursor-not-allowed peer-disabled:outline-border peer-disabled:text-faint-foreground peer-disabled:line-through",
                 )}
@@ -82,12 +83,12 @@ export function QuickAdd({ product }: { product: CardProduct }) {
           {error}
         </p>
       ) : null}
-      <div>
+      <div className="mt-auto">
         <button
           type="button"
           onClick={onAdd}
           disabled={soldOut || add.isPending}
-          className={cn(buttonVariants({ tone: "brand", size: "card" }), "w-full")}
+          className={cn(buttonVariants({ tone: "brand", size: "card" }), "w-full", compact && "max-sm:h-11 max-sm:px-1 max-sm:text-xs")}
         >
           {soldOut ? "Sold out" : add.isPending ? "Adding…" : message?.tone === "ok" ? "Added ✓" : "Add to cart"}
           <span className="sr-only">: {product.title}</span>

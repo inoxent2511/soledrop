@@ -5,8 +5,8 @@ import { formatPrice } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { Cart } from "@/server/cart/types"
 
-const row = "flex items-baseline justify-between gap-4 text-20 font-medium md:text-24"
-const action = "flex h-14 items-center justify-center rounded-lg text-20 font-semibold transition-colors md:h-16 md:text-24"
+const row = "flex items-baseline justify-between gap-4 text-16 font-medium md:text-20"
+const action = "flex h-12 items-center justify-center rounded-lg text-16 font-semibold transition-colors md:h-14 md:text-20"
 
 /**
  * "Order Summary" (design 10, Frame 201). Every figure is the server's: subtotal, discounts,
@@ -21,13 +21,13 @@ export function OrderSummary({ cart, blocked }: { cart: Cart; blocked: boolean }
   return (
     <section
       aria-labelledby="order-summary-title"
-      className="flex flex-col rounded-2xl bg-background px-5 pt-6 pb-8 shadow-summary-lift outline-1 outline-foreground md:px-7.5 md:pt-7.25 3xl:min-h-190"
+      className="flex flex-col rounded-2xl bg-background px-4 pt-5 pb-6 shadow-summary-lift outline-1 outline-foreground md:px-7 md:pt-7 3xl:min-h-170"
     >
-      <h2 id="order-summary-title" tabIndex={-1} className="text-28 font-bold outline-none md:text-34">
+      <h2 id="order-summary-title" tabIndex={-1} className="text-24 font-bold outline-none md:text-30">
         Order Summary
       </h2>
       <dl className="flex flex-col">
-        <div className={cn(row, "pt-8 md:pt-10")}>
+        <div className={cn(row, "pt-6 md:pt-8")}>
           <dt className="text-subtle-foreground">
             Subtotal ({cart.itemCount} {cart.itemCount === 1 ? "item" : "items"})
           </dt>
@@ -41,11 +41,11 @@ export function OrderSummary({ cart, blocked }: { cart: Cart; blocked: boolean }
             </div>
           ) : null,
         )}
-        <div className={cn(row, "pt-6 pb-8 md:pt-7.5 md:pb-10.25")}>
+        <div className={cn(row, "pt-5 pb-6 md:pt-7 md:pb-8")}>
           <dt className="text-subtle-foreground">Delivery</dt>
           <dd>{totals.shipping === null ? "At checkout" : totals.shipping === 0 ? "Free" : price(totals.shipping)}</dd>
         </div>
-        <div className="flex items-baseline justify-between gap-4 border-t border-border pt-8 text-24 font-bold md:pt-10 md:text-30">
+        <div className="flex items-baseline justify-between gap-4 border-t border-border pt-6 text-22 font-bold md:pt-8 md:text-28">
           <dt>Total</dt>
           <dd>{price(totals.total)}</dd>
         </div>

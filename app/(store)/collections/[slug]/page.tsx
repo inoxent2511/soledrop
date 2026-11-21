@@ -45,7 +45,7 @@ export default async function CollectionPage({ params, searchParams }: Props) {
 
   return (
     <div className="bg-surface">
-      <Container className="flex flex-col gap-8 pt-6 pb-16 md:gap-12 md:pt-12 3xl:gap-0 3xl:pt-20 3xl:pb-23.25">
+      <Container className="flex flex-col gap-6 pt-5 pb-12 md:gap-10 md:pt-10 md:pb-16 3xl:gap-0 3xl:pt-16 3xl:pb-20">
         <CollectionBanner
           title={collection.title}
           headline={collection.headline}

@@ -79,11 +79,11 @@ export function FeaturedBuyBox({
   }
 
   return (
-    <div className="flex w-full max-w-150 flex-col gap-9.5">
-      <div className="flex flex-col gap-7.75">
+    <div className="flex w-full max-w-150 flex-col gap-7 md:gap-9">
+      <div className="flex flex-col gap-5 md:gap-7">
         <div className="flex flex-col gap-3.5">
           <p className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span className="text-18 font-medium text-brand md:text-24">
+            <span className="text-16 font-medium text-brand md:text-20">
               FEATURED DROP
             </span>
             <span
@@ -95,17 +95,17 @@ export function FeaturedBuyBox({
               {KIND_BADGE[product.kind].label}
             </span>
           </p>
-          <h2 className="text-34 font-bold md:text-48 3xl:text-56">
+          <h2 className="text-28 leading-tight font-bold md:text-40 3xl:text-50">
             {product.title}
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-4">
           <p className="flex flex-wrap items-baseline gap-x-4 uppercase">
-            <span className="text-34 font-bold text-brand md:text-48">
+            <span className="text-30 font-bold text-brand md:text-40">
               {formatPrice(product.price.amount, product.price.currency)}
             </span>
             {product.price.compareAt ? (
-              <s className="text-20 font-medium text-muted-foreground md:text-26">
+              <s className="text-17 font-medium text-muted-foreground md:text-22">
                 <span className="sr-only">Was </span>
                 {formatPrice(product.price.compareAt, product.price.currency)}
               </s>
@@ -155,11 +155,11 @@ export function FeaturedBuyBox({
       )}
 
       {preloved ? null : (
-        <div className="flex flex-wrap items-end justify-between gap-6 ps-1.25 pt-2.5">
+        <div className="flex flex-wrap items-end justify-between gap-4 pt-1 md:gap-6 md:ps-1.25 md:pt-2.5">
           <div className="flex flex-col gap-3.5">
             <p
               id={`${id}-qty`}
-              className="text-20 font-medium uppercase md:text-26"
+              className="text-17 font-medium uppercase md:text-22"
             >
               Quantity
             </p>
@@ -172,14 +172,14 @@ export function FeaturedBuyBox({
           </div>
           <Link
             href="/size-guide"
-            className="-mb-1.5 text-20 font-bold uppercase underline underline-offset-4 hover:text-brand md:text-26"
+            className="-mb-1.5 text-16 font-bold uppercase underline underline-offset-4 hover:text-brand md:text-22"
           >
             Size guide
           </Link>
         </div>
       )}
 
-      <div className="flex flex-col gap-5.75 pt-0.75">
+      <div className="flex flex-col gap-3 pt-0.75 md:gap-5">
         <button
           type="button"
           onClick={onAdd}

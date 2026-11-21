@@ -61,7 +61,7 @@ export function ProductBuyBox({ title, kind, sizes, condition }: ProductBuyBoxPr
   return (
     <div className="flex flex-col">
       {preloved ? (
-        <div className="flex flex-col gap-8 pt-8 3xl:gap-10.5 3xl:pt-11">
+        <div className="flex flex-col gap-6 pt-6 3xl:gap-9 3xl:pt-9">
           {selected ? (
             <div className="flex flex-col items-start gap-3.5">
               <p className="text-20 font-semibold md:text-26 3xl:ps-0.25">Size</p>
@@ -79,10 +79,10 @@ export function ProductBuyBox({ title, kind, sizes, condition }: ProductBuyBoxPr
         </div>
       ) : (
         <>
-          <div className="pt-8 3xl:pt-11.5">
+          <div className="pt-6 3xl:pt-9">
             <SizePicker
               legend="Size"
-              legendClassName="text-20 font-medium uppercase md:text-26"
+              legendClassName="text-17 font-medium uppercase md:text-22"
               variant="pdp"
               options={sizes.map((size) => ({ variantId: size.variantId, label: size.eu, available: size.stock > 0 }))}
               value={variantId}
@@ -95,19 +95,19 @@ export function ProductBuyBox({ title, kind, sizes, condition }: ProductBuyBoxPr
               describedBy={`${id}-status`}
             />
           </div>
-          <div className="flex flex-wrap items-end justify-between gap-6 pt-8 3xl:pt-12">
+          <div className="flex flex-wrap items-end justify-between gap-4 pt-6 md:gap-6 3xl:pt-10">
             <div className="flex flex-col gap-3.5">
-              <p className="text-20 font-medium uppercase md:text-26">Quantity</p>
+              <p className="text-17 font-medium uppercase md:text-22">Quantity</p>
               <QuantityStepper value={quantity} max={max} onChange={setQuantity} disabled={!inStock} />
             </div>
-            <Link href="/size-guide" className="text-20 font-bold uppercase underline underline-offset-4 hover:text-subtle-foreground md:text-26">
+            <Link href="/size-guide" className="text-16 font-bold uppercase underline underline-offset-4 hover:text-subtle-foreground md:text-22">
               Size guide
             </Link>
           </div>
         </>
       )}
 
-      <div className={cn("flex flex-col gap-4 pt-8", preloved ? "3xl:pt-10.5" : "3xl:pt-12.25")}>
+      <div className={cn("flex flex-col gap-3 pt-6 md:gap-4", preloved ? "3xl:pt-9" : "3xl:pt-10")}>
         <button
           type="button"
           onClick={() => submit("stay")}

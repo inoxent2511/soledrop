@@ -29,7 +29,7 @@ export function CartLineItem({ line, currency, busy, onQuantity, onRemove }: Car
   const preLoved = line.kind === "preloved"
 
   return (
-    <li className="grid grid-cols-[6rem_minmax(0,1fr)] gap-x-4 gap-y-5 rounded-xl bg-background p-4 outline-1 outline-border-strong md:grid-cols-[13.75rem_minmax(0,1fr)] md:gap-x-7.5 md:p-5 3xl:flex 3xl:h-65 3xl:items-center 3xl:gap-0">
+    <li className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-x-3 gap-y-4 rounded-xl bg-background p-3 outline-1 outline-border-strong sm:grid-cols-[7rem_minmax(0,1fr)] sm:p-4 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-x-6 md:p-5 3xl:flex 3xl:h-65 3xl:items-center 3xl:gap-0">
       <Link href={`/products/${line.slug}`} tabIndex={-1} aria-hidden="true" className="relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-well 3xl:size-55">
         <Image src={line.image.url} alt="" fill sizes="(min-width: 768px) 220px, 96px" className="object-cover" />
       </Link>
@@ -37,13 +37,13 @@ export function CartLineItem({ line, currency, busy, onQuantity, onRemove }: Car
       <div className="flex min-w-0 flex-col items-start 3xl:h-full 3xl:w-114.25 3xl:shrink-0 3xl:ps-7.5">
         <span
           className={cn(
-            "flex h-9 items-center justify-center rounded-sm px-3 text-16 font-semibold md:h-12 md:w-37 md:px-0 md:text-20",
+            "flex h-7 items-center justify-center rounded-sm px-2 text-14 font-semibold md:h-11 md:w-32 md:px-0 md:text-18",
             preLoved ? "bg-foreground text-background" : "bg-brand text-brand-foreground",
           )}
         >
           {preLoved ? "Pre-Loved" : "Brand New"}
         </span>
-        <h2 className="pt-3 text-20 font-semibold md:text-26">
+        <h2 className="pt-2 text-17 font-semibold md:pt-3 md:text-24">
           <Link href={`/products/${line.slug}`} className="hover:underline">
             {line.title}
           </Link>
@@ -57,7 +57,7 @@ export function CartLineItem({ line, currency, busy, onQuantity, onRemove }: Car
         {!line.available ? (
           <p className="pt-2 text-16 font-semibold text-destructive md:text-18">Sold out — remove it to check out</p>
         ) : null}
-        <div className="pt-4 md:pt-6.25">
+        <div className="pt-3 md:pt-5">
           <button
             type="button"
             onClick={onRemove}
@@ -67,14 +67,14 @@ export function CartLineItem({ line, currency, busy, onQuantity, onRemove }: Car
             className="flex items-start gap-2.5 text-destructive transition-opacity hover:underline disabled:opacity-50"
           >
             <TrashIcon className="h-6 w-5" />
-            <span className="pt-0.5 text-18 md:text-20">Remove</span>
+            <span className="pt-0.5 text-16 md:text-18">Remove</span>
           </button>
         </div>
       </div>
 
       <div className="col-span-2 flex flex-wrap items-center justify-between gap-4 3xl:col-span-1 3xl:h-full 3xl:flex-1 3xl:flex-nowrap 3xl:gap-0">
         <div className="flex flex-col items-center gap-4 3xl:gap-10">
-          <p className="flex gap-2 text-18 font-medium whitespace-nowrap md:text-24">
+          <p className="flex flex-wrap gap-2 text-16 font-medium md:text-22">
             {line.compareAt ? (
               <>
                 <s className="text-subtle-foreground">
@@ -101,7 +101,7 @@ export function CartLineItem({ line, currency, busy, onQuantity, onRemove }: Car
             />
           )}
         </div>
-        <p className="text-24 font-bold md:text-34 3xl:pe-5">
+        <p className="text-20 font-bold md:text-30 3xl:pe-5">
           <span className="sr-only">Line total: </span>
           {price(line.lineTotal)}
         </p>

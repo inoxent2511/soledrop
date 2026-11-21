@@ -37,8 +37,8 @@ const ADDRESS_FIELDS: { name: AddressField; label: string; autoComplete: string;
 const FIELD_ORDER: Field[] = ["email", ...ADDRESS_FIELDS.map((field) => field.name), "shippingCode", "paymentMethod"]
 
 const control =
-  "w-full rounded-lg border border-control-border bg-background px-4 text-18 transition-[border-color,box-shadow] hover:border-foreground/50 focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/20 aria-invalid:border-destructive aria-invalid:focus:border-destructive aria-invalid:focus:ring-destructive/20"
-const card = "flex flex-col gap-6 rounded-xl bg-background p-5 outline-1 outline-border-strong md:p-7.5"
+  "w-full rounded-lg border border-control-border bg-background px-4 text-16 transition-[border-color,box-shadow] hover:border-foreground/50 focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/20 aria-invalid:border-destructive aria-invalid:focus:border-destructive aria-invalid:focus:ring-destructive/20 md:text-18"
+const card = "flex flex-col gap-5 rounded-xl bg-background p-4 outline-1 outline-border-strong md:gap-6 md:p-7"
 const option =
   "flex cursor-pointer items-start gap-4 rounded-lg border-2 border-control-border p-4 transition-colors hover:border-foreground has-checked:border-foreground has-checked:bg-brand-tint has-disabled:cursor-not-allowed has-disabled:opacity-60 has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring md:p-5"
 const deliveryOption =
@@ -263,16 +263,16 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
 
   return (
     <div className="bg-surface">
-      <Container className="flex flex-col gap-8 pt-8 pb-16 md:pt-12 md:pb-24 3xl:px-20">
+      <Container className="flex flex-col gap-6 pt-7 pb-12 md:gap-8 md:pt-10 md:pb-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h1 className="font-display text-40 leading-none font-extrabold uppercase md:text-56">Checkout</h1>
+          <h1 className="font-display text-34 leading-none font-extrabold uppercase md:text-50">Checkout</h1>
           <Link href="/cart" className="flex min-h-11 items-center gap-2 text-16 font-bold underline-offset-4 hover:underline md:text-18">
             <ArrowRightIcon className="h-auto w-4 rotate-180 rtl:rotate-0" />
             Back to bag
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-cart lg:gap-5">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-cart lg:gap-5">
           {/* The summary holds its own promotion-code form, so it sits beside this form, not inside it; Place order submits this one by id. */}
           <form id={`${id}-form`} method="post" inert={!hydrated} noValidate onSubmit={onSubmit} aria-busy={busy} aria-label="Checkout details" className="flex min-w-0 flex-col gap-5 lg:me-12">
             <Section title="Contact" number={1}>
@@ -282,7 +282,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                 </p>
               ) : (
                 <div className="flex flex-col gap-2.5">
-                  <label htmlFor={`${id}-email`} className="text-18 font-bold md:text-20">
+                  <label htmlFor={`${id}-email`} className="text-16 font-bold md:text-18">
                     Email
                   </label>
                   <div className="relative">
@@ -337,7 +337,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
               <div className="grid gap-5 sm:grid-cols-2">
                 {ADDRESS_FIELDS.map((field) => (
                   <div key={field.name} className={cn("flex flex-col gap-2.5", field.wide && "sm:col-span-2")}>
-                    <label htmlFor={`${id}-${field.name}`} className="text-18 font-bold md:text-20">
+                    <label htmlFor={`${id}-${field.name}`} className="text-16 font-bold md:text-18">
                       {field.label}
                     </label>
                     {field.name === "province" ? (
@@ -439,7 +439,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                     </label>
                   ) : (
                     <>
-                      <label htmlFor={`${id}-${field.code}`} className="text-18 font-bold md:text-20">
+                      <label htmlFor={`${id}-${field.code}`} className="text-16 font-bold md:text-18">
                         {field.label}
                         {field.required ? "" : " (optional)"}
                       </label>
@@ -458,7 +458,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                 </div>
               ))}
               <div className="flex flex-col gap-2.5">
-                <label htmlFor={`${id}-note`} className="text-18 font-bold md:text-20">
+                <label htmlFor={`${id}-note`} className="text-16 font-bold md:text-18">
                   Delivery instructions (optional)
                 </label>
                 <textarea id={`${id}-note`} name="note" rows={3} maxLength={500} className={cn(control, "resize-y py-3")} />
@@ -522,7 +522,7 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
                   type="submit"
                   form={`${id}-form`}
                   disabled={busy || blocked}
-                  className="flex h-14 items-center justify-center rounded-lg bg-foreground text-20 font-semibold text-background transition-colors hover:bg-brand hover:text-brand-foreground disabled:cursor-not-allowed disabled:opacity-50 md:h-16 md:text-24"
+                  className="flex h-13 items-center justify-center rounded-lg bg-foreground text-17 font-semibold text-background transition-colors hover:bg-brand hover:text-brand-foreground disabled:cursor-not-allowed disabled:opacity-50 md:h-15 md:text-20"
                 >
                   {busy ? "Placing order…" : `Place order · ${price(cart.totals.total)}`}
                 </button>
@@ -556,8 +556,8 @@ export function CheckoutView({ context }: { context: CheckoutContext }) {
 function Section({ title, number, children }: { title: string; number: number; children: ReactNode }) {
   return (
     <section aria-labelledby={`checkout-step-${number}`} className={card}>
-      <h2 id={`checkout-step-${number}`} className="flex items-center gap-3 text-24 font-bold md:text-28">
-        <span aria-hidden="true" className="flex size-9 items-center justify-center rounded-full bg-brand text-18 text-brand-foreground">
+      <h2 id={`checkout-step-${number}`} className="flex items-center gap-2.5 text-22 font-bold md:gap-3 md:text-26">
+        <span aria-hidden="true" className="flex size-8 items-center justify-center rounded-full bg-brand text-16 text-brand-foreground md:size-9 md:text-18">
           {number}
         </span>
         {title}

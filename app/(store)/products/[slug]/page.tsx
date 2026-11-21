@@ -135,32 +135,32 @@ export default async function ProductPage({ params }: Props) {
     <>
       <JsonLd data={jsonLd} />
       <RecordView product={viewed} />
-      <Container className="grid items-start gap-8 pt-6 pb-12 md:pt-12 lg:grid-cols-2 lg:gap-12 3xl:grid-cols-pdp 3xl:gap-14.75 3xl:pt-25 3xl:pb-19.75">
+      <Container className="grid items-start gap-6 pt-5 pb-10 md:gap-8 md:pt-10 md:pb-12 lg:grid-cols-2 lg:gap-10 3xl:grid-cols-pdp 3xl:gap-12 3xl:pt-20 3xl:pb-16">
         <ProductGallery images={galleryImages(product.images).map((image) => ({ url: image.url, alt: image.alt }))} title={product.title} />
 
         <div className="flex flex-col 3xl:pt-5">
-          <div className="flex flex-col border-b border-border pb-4.75 3xl:w-200">
-            <h1 className="text-32 font-bold md:text-44 3xl:ps-0.25 3xl:text-54">{product.title}</h1>
-            <div className="flex flex-col gap-3.5 pt-5 3xl:ps-0.25 3xl:pt-10">
+          <div className="flex flex-col border-b border-border pb-4 3xl:w-200">
+            <h1 className="text-28 leading-tight font-bold md:text-40 3xl:ps-0.25 3xl:text-48">{product.title}</h1>
+            <div className="flex flex-col gap-2.5 pt-4 3xl:ps-0.25 3xl:pt-8">
               <p className="flex flex-wrap items-start gap-x-7.5 gap-y-2">
                 <span className="sr-only">{compareAt ? "Sale price" : "Price"}</span>
-                <span className="text-34 font-bold tracking-tight-2 md:text-44 3xl:text-50">{formatPrice(amount, currency, { symbol: true })}</span>
+                <span className="text-30 font-bold tracking-tight-2 md:text-40 3xl:text-48">{formatPrice(amount, currency, { symbol: true })}</span>
                 {compareAt ? (
                   <>
                     <span className="sr-only">, was</span>
-                    <s className="pt-1.5 text-20 tracking-tight-3 text-faint-foreground md:pt-2.5 md:text-24 3xl:pt-3.5 3xl:text-28">{formatPrice(compareAt, currency)}</s>
+                    <s className="pt-1 text-17 tracking-tight-3 text-faint-foreground md:pt-2 md:text-22 3xl:pt-3 3xl:text-26">{formatPrice(compareAt, currency)}</s>
                   </>
                 ) : null}
                 {discountPercent ? (
                   <span className="flex 3xl:pt-0.5">
-                    <span className="flex h-11 items-start rounded-sm bg-brand ps-3.5 pe-3.5 pt-2.25 text-20 font-bold tracking-tight-1 text-brand-foreground md:h-14.5 md:ps-4.75 md:pe-4.5 md:pt-3.5 md:text-26">
+                    <span className="flex h-9 items-center rounded-sm bg-brand px-3 text-16 font-bold tracking-tight-1 text-brand-foreground md:h-12 md:px-4 md:text-22">
                       {discountPercent}% OFF
                     </span>
                   </span>
                 ) : null}
               </p>
               {compareAt && compareAt > amount ? (
-                <p className="text-20 font-medium tracking-tight-1 text-success md:text-28">You save {formatPrice(compareAt - amount, currency, { symbol: true })}</p>
+                <p className="text-17 font-medium tracking-tight-1 text-success md:text-24">You save {formatPrice(compareAt - amount, currency, { symbol: true })}</p>
               ) : null}
             </div>
           </div>
@@ -169,20 +169,20 @@ export default async function ProductPage({ params }: Props) {
             <ProductBuyBox title={product.title} kind={product.kind} sizes={sizes} condition={product.condition} />
           </div>
 
-          <div className="pt-8 3xl:w-200.25 3xl:ps-0.25 3xl:pt-11">
+          <div className="pt-6 3xl:w-200.25 3xl:ps-0.25 3xl:pt-9">
             <TrustRow freeDeliveryOver={freeDeliveryOver} />
           </div>
         </div>
       </Container>
 
       <div className="bg-surface">
-        <Container className="py-10 md:py-16 3xl:px-55 3xl:py-19.5">
+        <Container className="py-8 md:py-12 3xl:px-48 3xl:py-16">
           <ProductInformation items={information} className={preloved ? "3xl:pb-17.5" : "3xl:pb-18.25"} />
         </Container>
       </div>
 
       {related.length ? (
-        <section aria-labelledby="related-title" className={cn("py-14 md:py-20", preloved ? "3xl:pt-22.25 3xl:pb-37.25" : "3xl:py-30")}>
+        <section aria-labelledby="related-title" className={cn("py-10 md:py-16", preloved ? "3xl:pt-20 3xl:pb-28" : "3xl:py-24")}>
           <Container className={cn("flex flex-col gap-8 md:gap-10", preloved ? "3xl:gap-14.5" : "3xl:gap-14")}>
             <SectionTitle id="related-title">You may also like</SectionTitle>
             <ProductRow products={related.map(toCardProduct)} />

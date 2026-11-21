@@ -79,13 +79,13 @@ export function NewArrivalSwitch({
   }
 
   return (
-    <div className="flex flex-col gap-6 md:gap-8">
-      <div className="flex flex-col gap-4 md:gap-5">
+    <div className="flex flex-col gap-5 md:gap-7">
+      <div className="flex flex-col gap-3 md:gap-4">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <SectionTitle id={titleId}>New Arrival</SectionTitle>
           <Link
             href={current.viewAll}
-            className="group inline-flex min-h-11 items-center gap-2 whitespace-nowrap text-16 font-bold uppercase underline-offset-4 hover:underline md:text-20"
+            className="group inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap text-14 font-bold uppercase underline-offset-4 hover:underline md:text-18"
           >
             View all
             <span className="sr-only">
@@ -98,7 +98,7 @@ export function NewArrivalSwitch({
         <div
           role="tablist"
           aria-label="New arrivals"
-          className="flex w-fit rounded-full border-2 border-border bg-background p-1.5"
+          className="flex w-fit rounded-full border border-border bg-background p-1"
         >
           {sides.map((side, index) => {
             const selected = side.id === active
@@ -121,7 +121,7 @@ export function NewArrivalSwitch({
                 }}
                 onKeyDown={(event) => onKeyDown(event, index)}
                 className={cn(
-                  "flex min-h-11 items-center gap-1.5 rounded-full px-3 text-16 font-bold whitespace-nowrap transition-colors sm:gap-2 sm:px-4 md:px-6 md:text-18",
+                  "flex min-h-10 items-center gap-1.5 rounded-full px-3 text-14 font-bold whitespace-nowrap transition-colors sm:min-h-11 sm:gap-2 sm:px-4 sm:text-16 md:px-6 md:text-18",
                   selected
                     ? "bg-foreground text-background"
                     : "text-subtle-foreground hover:text-foreground"

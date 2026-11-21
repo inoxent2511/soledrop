@@ -35,12 +35,12 @@ export async function homeData() {
   const service = catalog()
   const context = retailContext()
   const [newArrivals, newestPreloved, brandNew, preloved, featuredNew, featuredPreloved] = await Promise.all([
-    service.queryProducts({ collection: "new-arrivals", pageSize: 4 }, context),
+    service.queryProducts({ collection: "new-arrivals", pageSize: 5 }, context),
     // The New Arrival row's Pre-Loved side (D-075): the newest listings, as the New Arrivals page counts them.
-    service.queryProducts({ kind: "preloved", sort: "newest", pageSize: 4 }, context),
+    service.queryProducts({ kind: "preloved", sort: "newest", pageSize: 5 }, context),
     // Brand New Drops (D-076): the brand-new range in featured order, like Pre-Loved Drops.
-    service.queryProducts({ collection: "brand-new", pageSize: 4 }, context),
-    service.queryProducts({ kind: "preloved", pageSize: 4 }, context),
+    service.queryProducts({ collection: "brand-new", pageSize: 5 }, context),
+    service.queryProducts({ kind: "preloved", pageSize: 5 }, context),
     service.queryProducts({ collection: "featured", kind: "new", pageSize: 1 }, context),
     service.queryProducts({ collection: "featured", kind: "preloved", pageSize: 1 }, context),
   ])

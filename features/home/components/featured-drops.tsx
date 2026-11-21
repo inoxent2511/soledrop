@@ -130,7 +130,7 @@ export function FeaturedDrops({ slides }: { slides: FeaturedSlide[] }) {
     <section
       aria-roledescription="carousel"
       aria-label="Featured drops"
-      className="relative bg-foreground py-12 text-background md:py-17.5"
+      className="relative bg-foreground py-10 text-background md:py-14"
       onPointerEnter={() => setHeld(true)}
       onPointerLeave={() => setHeld(false)}
       onFocus={() => setHeld(true)}
@@ -141,7 +141,7 @@ export function FeaturedDrops({ slides }: { slides: FeaturedSlide[] }) {
     >
       {many ? (
         // Laid over the section: an empty copy of the photo box, then the controls in the strip under it.
-        <Container className="pointer-events-none absolute inset-x-0 top-12 z-10 md:top-17.5">
+        <Container className="pointer-events-none absolute inset-x-0 top-10 z-10 md:top-14">
           <div className="flex w-full flex-col lg:w-1/2 3xl:w-180">
             <div className="aspect-square w-full" />
             <div
@@ -252,7 +252,7 @@ export function FeaturedDrops({ slides }: { slides: FeaturedSlide[] }) {
             inert={hydrated && index !== active}
             className="w-full shrink-0 snap-start"
           >
-            <Container className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16 3xl:gap-22.5">
+            <Container className="flex flex-col gap-7 lg:flex-row lg:items-start lg:gap-12 3xl:gap-18">
               <div className="flex w-full shrink-0 flex-col lg:w-1/2 3xl:w-180">
                 <div className="relative aspect-square w-full overflow-hidden rounded-4xl bg-well-dark">
                   {slide.image ? (

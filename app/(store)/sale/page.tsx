@@ -41,7 +41,7 @@ export default async function SalePage({ searchParams }: Props) {
 
   const { collection, brandNew, preloved } = await saleData()
   const cards = (page: ProductPage) =>
-    page.items.map((product, index) => <ProductCard key={product.id} product={toCardProduct(product)} priority={index < 4} headingLevel="h2" />)
+    page.items.map((product, index) => <ProductCard key={product.id} product={toCardProduct(product)} priority={index < 4} compact headingLevel="h2" />)
 
   const tabs: KindTab[] = [
     { id: "new", label: "Brand New", noun: "brand-new", total: brandNew.total, cards: cards(brandNew), seeAllHref: "/collections/brand-new", emptyText: emptyText("brand-new") },
@@ -50,7 +50,7 @@ export default async function SalePage({ searchParams }: Props) {
 
   return (
     <div className="bg-surface">
-      <Container className="flex flex-col gap-8 pt-6 pb-16 md:gap-12 md:pt-12 3xl:gap-20 3xl:pt-20 3xl:pb-23.25">
+      <Container className="flex flex-col gap-6 pt-5 pb-12 md:gap-10 md:pt-10 md:pb-16 3xl:gap-16 3xl:pt-16 3xl:pb-20">
         <CollectionBanner
           title="Sale"
           headline={["On", "Sale"]}

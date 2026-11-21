@@ -101,6 +101,55 @@
   mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
 }
 
+/* Phone catalog cards have their own compact layout; below 360px they stay full width. */
+@media (min-width: 360px) and (max-width: 639.98px) {
+  .catalog-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Home rows align with the section heading; wide screens have room for five cards. */
+@media (min-width: 1280px) {
+  .home-product-row {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+    overflow: visible;
+    padding: 0;
+  }
+}
+@media (min-width: 1280px) and (max-width: 1399.98px) {
+  .home-product-row > li:nth-child(n + 5) {
+    display: none;
+  }
+}
+@media (min-width: 1400px) {
+  .home-product-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .catalog-feature-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1536px) and (max-width: 1919.98px) {
+  .site-container {
+    padding-inline: 96px;
+  }
+
+  .home-hero-copy {
+    padding-inline-start: 96px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .home-hero-copy {
+    padding-inline-start: 128px;
+  }
+}
+
 /* Header height per breakpoint (h-14 / lg:h-21.5): header panels fill the viewport below it. */
 :root {
   --header-height: 56px;

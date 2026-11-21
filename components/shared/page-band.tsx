@@ -15,9 +15,9 @@ type PageBandProps = {
 export function PageBand({ children, description, display = false }: PageBandProps) {
   return (
     <div className="bg-foreground text-background">
-      <Container className={cn("flex flex-col pt-10 pb-10 3xl:px-50", description ? "md:pt-12.25 md:pb-12" : "md:pt-16 md:pb-15.75")}>
-        <h1 className={cn("text-40 font-extrabold uppercase md:text-60", display && "font-display")}>{children}</h1>
-        {description ? <p className="pt-1.5 font-display text-16 font-semibold text-muted-foreground md:text-20">{description}</p> : null}
+      <Container className={cn("flex flex-col pt-10 pb-10", description ? "md:pt-12.25 md:pb-12" : "md:pt-16 md:pb-15.75")}>
+        <h1 className={cn("text-32 leading-tight font-extrabold uppercase sm:text-34 md:text-50", display && "font-display")}>{children}</h1>
+        {description ? <p className="pt-2 font-display text-16 font-semibold text-muted-foreground md:text-18">{description}</p> : null}
       </Container>
     </div>
   )
